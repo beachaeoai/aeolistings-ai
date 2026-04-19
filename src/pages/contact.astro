@@ -27,14 +27,12 @@ const organizationWithContact = {
       contactType: 'customer support',
       email: site.email,
       availableLanguage: ['English'],
-      areaServed: ['Arizona', 'Utah'],
     },
     {
       '@type': 'ContactPoint',
       contactType: 'sales',
       email: site.email,
       availableLanguage: ['English'],
-      areaServed: ['Arizona', 'Utah'],
     },
   ],
 };
@@ -55,7 +53,7 @@ const socialRows = (
 ---
 <Base
   title="Contact"
-  description="Get in touch with AEO Listings. Email is the fastest path for new projects, existing clients, and cancellations. Serving Arizona and Southern Utah."
+  description="Get in touch with AEO Listings. Email is the fastest path for new projects, existing clients, and cancellations."
   path="/contact"
   schema={[contactPageSchema, organizationWithContact]}
 >
@@ -115,17 +113,6 @@ const socialRows = (
                 </a>
                 <div class="mt-2 text-sm text-[color:var(--color-fg-muted)]">
                   New projects · current clients · anything else.
-                </div>
-              </dd>
-            </div>
-
-            <!-- Location row -->
-            <div class="grid grid-cols-[auto_1fr] gap-6 py-5 border-b border-[color:var(--color-hairline)]">
-              <dt class="mono-label pt-1">Location</dt>
-              <dd class="min-w-0">
-                <span class="font-[family-name:var(--font-serif)] text-[1.25rem] md:text-[1.5rem]">{site.location}</span>
-                <div class="mt-2 text-sm text-[color:var(--color-fg-muted)]">
-                  Serving Arizona and Southern Utah.
                 </div>
               </dd>
             </div>
@@ -233,7 +220,7 @@ const socialRows = (
                 id="city"
                 name="City"
                 type="text"
-                placeholder="e.g. Mesa, Phoenix, St. George"
+                placeholder="e.g. the primary city or region you serve"
                 class="mt-2 block w-full bg-transparent border border-[color:var(--color-hairline-2)] px-3 py-3 font-[family-name:var(--font-sans)] text-[0.9375rem] text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-dim)] focus:border-[color:var(--color-accent)] focus:outline-none rounded-[2px]"
               />
             </div>

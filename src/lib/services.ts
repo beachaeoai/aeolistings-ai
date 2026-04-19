@@ -21,7 +21,7 @@ export const services: Service[] = [
     name: 'Local AI Audit',
     tagline: 'See exactly what AI chatbots say about your business right now.',
     summary:
-      "We ask ChatGPT, Google AI, Perplexity, Claude, and Gemini the questions your customers actually ask — 'best plumber in Mesa,' 'roof repair St. George,' 'HVAC Phoenix' — and report back what they say. Your name. Your competitors. The gaps. The fixes. You get a clear picture of where you stand before we do anything else.",
+      "We ask ChatGPT, Google AI, Perplexity, Claude, and Gemini the questions your customers actually ask — 'best plumber near me,' 'emergency roof repair,' 'HVAC replacement cost' — and report back what they say. Your name. Your competitors. The gaps. The fixes. You get a clear picture of where you stand before we do anything else.",
     deliverables: [
       'Fifty-plus buyer-intent prompts run across five major AI chatbots',
       'Citation share report — how often you appear vs. your three top competitors',
@@ -54,7 +54,7 @@ export const services: Service[] = [
       'Rewrites of up to 25 key pages in answer-engine-ready structure',
       'FAQ expansion built around real buyer questions',
       'llms.txt file added to your site to guide AI crawlers',
-      'Location-specific pages for Mesa, Phoenix, St. George, and your other service areas',
+      'Location pages for each of your primary service areas',
     ],
   },
   {

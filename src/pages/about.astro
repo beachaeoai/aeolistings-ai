@@ -10,16 +10,12 @@ const aboutSchema = {
   name: `About ${site.name}`,
   url: site.url + '/about',
   description:
-    `${site.name} is an Answer Engine Optimization agency serving home service pros and local professionals across Arizona and Southern Utah.`,
+    `${site.name} is an Answer Engine Optimization agency for home service pros and local professionals.`,
   about: {
     '@type': 'Organization',
     name: site.name,
     url: site.url,
     email: site.email,
-    areaServed: [
-      { '@type': 'State', name: 'Arizona' },
-      { '@type': 'State', name: 'Utah' },
-    ],
   },
 };
 
@@ -56,13 +52,13 @@ const principles = [
   {
     num: '04',
     title: 'We have to pass our own test.',
-    body: "If this website doesn't get recommended by ChatGPT, Claude, and Perplexity when someone asks for an AEO agency in Arizona, we have no business selling the same outcome to you.",
+    body: "If this website doesn't get recommended by ChatGPT, Claude, and Perplexity when someone asks for an AEO agency, we have no business selling the same outcome to you.",
   },
 ];
 ---
 <Base
   title="About"
-  description={`About ${site.name} — an Answer Engine Optimization agency for home service pros and local professionals across Arizona and Southern Utah.`}
+  description={`About ${site.name} — an Answer Engine Optimization agency for home service pros and local professionals.`}
   path="/about"
   schema={[aboutSchema, founderSchema]}
 >
@@ -80,8 +76,8 @@ const principles = [
 
       <p class="mt-10 max-w-2xl text-lg md:text-xl leading-[1.6] text-[color:var(--color-fg-muted)]">
         {site.name} is a small, focused Answer Engine Optimization agency working with home
-        service pros and local professionals across Arizona and Southern Utah. We help your
-        business get recommended by the AI chatbots your next customer is already asking.
+        service pros and local professionals. We help your business get recommended by
+        the AI chatbots your next customer is already asking.
       </p>
     </Container>
   </section>
@@ -117,19 +113,18 @@ const principles = [
             They're the ones that made it easy for the model to recommend them.
           </blockquote>
           <p class="text-[color:var(--color-fg-muted)]">
-            We exist to fix that gap for local service businesses in Arizona and Southern
-            Utah. No agency in the region is doing this work with focus. Most SEO shops
+            We exist to fix that gap for local service businesses. Most SEO shops
             don't understand how AI models retrieve and cite sources; most AI tools don't
             understand local service businesses. We sit in the middle.
           </p>
           <p class="text-[color:var(--color-fg-muted)]">
-            We work on retainer with a small roster of clients. No annual contracts. The
-            playbook is public on this site — read the <a href="/services" class="link-slide text-[color:var(--color-fg)]">services page</a> and the <a href="/#faq" class="link-slide text-[color:var(--color-fg)]">FAQ</a> and you'll know as much about the practice as we do.
+            We work on retainer with a small roster of clients. No annual contracts.
+            We're not shy about how the work gets done — the <a href="/services" class="link-slide text-[color:var(--color-fg)]">services page</a> and the <a href="/#faq" class="link-slide text-[color:var(--color-fg)]">FAQ</a> describe the whole practice. The value isn't in the playbook. It's in running it for you — correctly, and every month the models change.
           </p>
           <div class="pt-4 flex flex-wrap gap-2">
-            <span class="tag">Arizona & S. Utah</span>
             <span class="tag">Home service pros</span>
             <span class="tag">Local professionals</span>
+            <span class="tag">No annual contracts</span>
             <span class="tag tag--accent">Retainer</span>
           </div>
         </div>
@@ -201,8 +196,6 @@ const principles = [
             <a href={`mailto:${site.email}`} class="link-slide text-[color:var(--color-fg)]">
               {site.email}
             </a>
-            <span class="mx-3 text-[color:var(--color-fg-dim)]">·</span>
-            <span class="text-[color:var(--color-fg-muted)]">{site.location}</span>
           </div>
         </div>
       </div>

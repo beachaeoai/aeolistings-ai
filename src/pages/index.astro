@@ -25,44 +25,32 @@ const websiteSchema = {
   description: site.description,
 };
 
-// LocalBusiness schema — signals regional focus to AI + search engines
-const localBusinessSchema = {
+// Organization schema — professional services firm
+const organizationSchema = {
   '@context': 'https://schema.org',
   '@type': 'ProfessionalService',
   name: site.name,
   description: site.description,
   url: site.url,
   email: site.email,
-  areaServed: [
-    { '@type': 'State', name: 'Arizona' },
-    { '@type': 'City', name: 'Phoenix' },
-    { '@type': 'City', name: 'Mesa' },
-    { '@type': 'City', name: 'St. George' },
-  ],
-  address: {
-    '@type': 'PostalAddress',
-    addressLocality: 'Phoenix',
-    addressRegion: 'AZ',
-    addressCountry: 'US',
-  },
 };
 ---
 <Base
-  title="Answer Engine Optimization for Arizona & Southern Utah"
+  title="Answer Engine Optimization for home service pros"
   description={site.description}
   path="/"
-  schema={[faqSchema, websiteSchema, localBusinessSchema]}
+  schema={[faqSchema, websiteSchema, organizationSchema]}
 >
   <!-- =========================================================
        HERO — leads with the buyer's problem in plain language
        ========================================================= -->
   <section class="border-b border-[color:var(--color-hairline)]">
     <Container class="py-20 md:py-32 lg:py-40">
-      <div class="mono-label">Answer Engine Optimization · Arizona & Southern Utah</div>
+      <div class="mono-label">Answer Engine Optimization · Retainer agency</div>
 
-      <h1 class="mt-10 text-balance max-w-[18ch]"
+      <h1 class="mt-10 text-balance max-w-[20ch]"
           style="font-family: var(--font-serif); font-size: var(--text-display-xl); line-height: 0.98;">
-        When someone asks ChatGPT for a plumber in Mesa, is it recommending
+        When someone asks ChatGPT who to hire, is it recommending
         <em class="italic">you</em>?
       </h1>
 

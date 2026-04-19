@@ -16,10 +16,6 @@ const serviceSchemas = services.map((s) => ({
     url: site.url,
   },
   serviceType: 'Answer Engine Optimization',
-  areaServed: [
-    { '@type': 'State', name: 'Arizona' },
-    { '@type': 'State', name: 'Utah' },
-  ],
 }));
 
 // BreadcrumbList schema
@@ -61,7 +57,7 @@ const process = [
 ---
 <Base
   title="Services"
-  description="Four Answer Engine Optimization services for home service pros and local professionals in Arizona and Southern Utah: Local AI Audit, Get Listed Get Cited, Answer-Ready Pages, and an ongoing retainer."
+  description="Four Answer Engine Optimization services for home service pros and local professionals: Local AI Audit, Get Listed Get Cited, Answer-Ready Pages, and an ongoing retainer."
   path="/services"
   schema={[...serviceSchemas, breadcrumbSchema]}
 >
@@ -112,7 +108,7 @@ const process = [
           <p>
             <strong class="font-semibold">Answer Engine Optimization</strong> — AEO — is how you
             get recommended by AI chatbots. When someone asks ChatGPT, Google AI, Perplexity,
-            Claude, or Gemini "who's the best roofer in Mesa," the AI gives them an
+            Claude, or Gemini "who's the best roofer near me," the AI gives them an
             answer. Sometimes one name. Sometimes two or three. Almost never a list of ten.
           </p>
           <p class="text-[color:var(--color-fg-muted)]">
