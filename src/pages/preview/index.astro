@@ -1,0 +1,108 @@
+---
+/**
+ * Preview index — side-by-side comparison of 3 style directions.
+ * Temporary page. Delete once user picks a direction.
+ * Not linked from main nav, not indexed (noindex).
+ */
+import Base from '../../layouts/Base.astro';
+import Container from '../../components/Container.astro';
+
+const variants = [
+  {
+    key: 'A',
+    name: 'Brutalist-tech',
+    href: '/',
+    tagline: 'Dark · monospace · electric orange',
+    signal: 'Technical operator. Uncompromising.',
+    palette: ['#0A0A0A', '#F5F2EA', '#FF3D00'],
+    vibe: 'Stripe of the command line.',
+  },
+  {
+    key: 'B',
+    name: 'Editorial minimalism',
+    href: '/preview/editorial',
+    tagline: 'Warm paper · serif display · restrained grayscale',
+    signal: 'Expensive expert. Considered.',
+    palette: ['#FAF8F1', '#1A1A1A', '#6B6B6B'],
+    vibe: 'Stripe / Linear / Substack.',
+  },
+  {
+    key: 'C',
+    name: 'Modern SaaS / neon',
+    href: '/preview/neon',
+    tagline: 'Deep ink · gradients · glassy surfaces',
+    signal: 'Future-of-search. Forward.',
+    palette: ['#0E0E14', '#7B61FF', '#00D4FF'],
+    vibe: 'Vercel / Arc / linear.app.',
+  },
+];
+---
+<Base
+  title="Style preview"
+  description="Three style directions for review."
+  path="/preview"
+  noindex
+>
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-16">
+      <div class="mono-label">[ Preview / Pick one ]</div>
+      <h1 class="mt-6 font-medium tracking-[-0.02em] leading-[1.02]"
+          style="font-size: var(--text-display);">
+        Three directions. One brand.
+      </h1>
+      <p class="mt-6 max-w-2xl text-lg text-[color:var(--color-fg-muted)]">
+        Click any card to see the full treatment — hero, sections, CTA. Each variant is a self-contained
+        rendering so the aesthetic is unmixed. Pick one and we apply it across the entire site.
+      </p>
+    </Container>
+  </section>
+
+  <section>
+    <Container class="py-12">
+      <div class="grid md:grid-cols-3 border border-[color:var(--color-hairline)]">
+        {variants.map((v, i) => (
+          <a
+            href={v.href}
+            class:list={[
+              'group block p-8 md:p-10 transition-colors hover:bg-[color:var(--color-bg-2)] relative',
+              i > 0 ? 'border-t md:border-t-0 md:border-l border-[color:var(--color-hairline)]' : '',
+            ]}
+          >
+            <div class="flex items-start justify-between gap-4">
+              <span class="mono-label">[{v.key}]</span>
+              <span class="tag tag--accent">{v.key === 'A' ? 'current' : 'preview'}</span>
+            </div>
+            <h2 class="mt-6 text-2xl md:text-3xl font-medium tracking-tight leading-tight group-hover:text-[color:var(--color-accent)] transition-colors">
+              {v.name}
+            </h2>
+            <p class="mt-3 font-[family-name:var(--font-mono)] text-sm text-[color:var(--color-accent)]">
+              {v.tagline}
+            </p>
+            <p class="mt-4 text-[color:var(--color-fg-muted)] leading-relaxed">
+              {v.signal}
+            </p>
+            <p class="mt-2 text-sm text-[color:var(--color-fg-dim)] italic">
+              {v.vibe}
+            </p>
+
+            <!-- palette swatches -->
+            <div class="mt-8 flex gap-2">
+              {v.palette.map((hex) => (
+                <span
+                  class="inline-block h-8 w-8 border border-[color:var(--color-hairline-2)]"
+                  style={`background: ${hex};`}
+                  title={hex}
+                  aria-hidden="true"
+                ></span>
+              ))}
+            </div>
+
+            <span class="mt-8 inline-flex items-center gap-2 font-[family-name:var(--font-mono)] text-xs uppercase tracking-[0.08em] text-[color:var(--color-fg-muted)] group-hover:text-[color:var(--color-accent)]">
+              View <span aria-hidden="true">→</span>
+            </span>
+          </a>
+        ))}
+      </div>
+    </Container>
+  </section>
+</Base>
