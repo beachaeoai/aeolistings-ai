@@ -1,41 +1,44 @@
 @import "tailwindcss";
-@import "@fontsource-variable/geist/index.css";
-@import "@fontsource-variable/geist-mono/index.css";
+@import "@fontsource/instrument-serif/index.css";
+@import "@fontsource/instrument-sans/index.css";
+@import "@fontsource/instrument-sans/400-italic.css";
 
 /* ===========================================================================
-   Design tokens — brutalist-tech
+   Design tokens — editorial minimalism
+   Paper + ink. Oxblood accent. Serif display + sans body.
    Single source of truth. Change these and the whole site follows.
    =========================================================================== */
 @theme {
   /* Palette */
-  --color-bg:         #0A0A0A;  /* off-black — pure black crushes on most displays */
-  --color-bg-2:       #111111;  /* raised surfaces */
-  --color-bg-3:       #181818;
-  --color-fg:         #F5F2EA;  /* bone / warm off-white */
-  --color-fg-muted:   #8A857A;
-  --color-fg-dim:     #5A564F;
-  --color-hairline:   #1F1F1F;  /* subtle border */
-  --color-hairline-2: #2A2A2A;
-  --color-accent:     #FF3D00;  /* electric orange — swap a single var to change */
-  --color-accent-ink: #0A0A0A;  /* text on accent bg */
-  --color-danger:     #FF3D00;
+  --color-bg:         #FAF8F1;  /* paper — warm off-white */
+  --color-bg-2:       #F4F1E8;  /* raised surfaces */
+  --color-bg-3:       #EFECE2;  /* inset surfaces */
+  --color-fg:         #1A1A1A;  /* ink */
+  --color-fg-muted:   #6B6B6B;
+  --color-fg-dim:     #9A9A9A;
+  --color-hairline:   #E5E1D6;  /* paper hairline */
+  --color-hairline-2: #D8D3C5;
+  --color-accent:     #8B2F2F;  /* oxblood — restrained editorial accent */
+  --color-accent-ink: #FAF8F1;  /* text on accent bg */
+  --color-danger:     #8B2F2F;
 
   /* Type */
-  --font-sans:    "Geist Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-mono:    "Geist Mono Variable", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  --font-display: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-sans:    "Instrument Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-serif:   "Instrument Serif", Georgia, "Times New Roman", serif;
+  --font-mono:    var(--font-sans);  /* legacy alias — editorial uses tracked sans for metadata */
+  --font-display: var(--font-serif);
 
-  /* Scale — display sizes go HEAVY for brutalist impact */
-  --text-display-xl: clamp(3.5rem, 9vw, 8rem);
-  --text-display:    clamp(2.5rem, 6vw, 5rem);
-  --text-h1:         clamp(2rem, 4.5vw, 3.5rem);
+  /* Scale — restrained editorial proportions */
+  --text-display-xl: clamp(3.25rem, 8vw, 6.5rem);
+  --text-display:    clamp(2.25rem, 5vw, 4.25rem);
+  --text-h1:         clamp(1.875rem, 4vw, 3rem);
   --text-h2:         clamp(1.5rem, 3vw, 2.25rem);
-  --text-h3:         1.25rem;
+  --text-h3:         1.5rem;
 
-  /* Motion — restrained */
+  /* Motion */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --dur-fast: 120ms;
-  --dur-med:  220ms;
+  --dur-med:  240ms;
 }
 
 /* ===========================================================================
@@ -46,16 +49,25 @@
     background: var(--color-bg);
     color: var(--color-fg);
     font-family: var(--font-sans);
-    font-feature-settings: "ss01", "cv11";
+    font-size: 17px;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    color-scheme: light;
   }
 
   body {
     min-height: 100vh;
     min-height: 100dvh;
-    line-height: 1.5;
-    font-size: 1rem;
+    line-height: 1.65;
+  }
+
+  /* Serif display for h1 / h2 by default — can be overridden per page */
+  h1, h2 {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
   }
 
   ::selection {
@@ -78,36 +90,38 @@
 }
 
 /* ===========================================================================
-   Utility primitives (brutalist-tech specific)
+   Utility primitives (editorial specific)
    =========================================================================== */
 @layer components {
-  /* Monospace metadata label — e.g. `[01]` or `[SERVICES /]` */
+  /* Editorial eyebrow label — tracked uppercase sans */
   .mono-label {
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    letter-spacing: 0.08em;
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--color-fg-muted);
+    font-weight: 500;
   }
 
-  /* Hairline rule — horizontal separator */
+  /* Hairline rule */
   .hairline {
     border: 0;
     border-top: 1px solid var(--color-hairline);
     margin: 0;
   }
 
-  /* Signature hover — used sparingly on primary CTAs and nav */
+  /* Slide-under link — used on nav and inline editorial links */
   .link-slide {
     position: relative;
     display: inline-block;
+    padding-bottom: 2px;
   }
   .link-slide::after {
     content: "";
     position: absolute;
     left: 0;
     right: 0;
-    bottom: -2px;
+    bottom: 0;
     height: 1px;
     background: currentColor;
     transform: scaleX(0);
@@ -120,59 +134,61 @@
     transform-origin: left;
   }
 
-  /* Inline code-style badge */
+  /* Tag — inline text badge, pill-shaped */
   .tag {
     display: inline-flex;
     align-items: center;
     gap: 0.4em;
-    padding: 0.25rem 0.5rem;
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-    letter-spacing: 0.06em;
+    padding: 0.25rem 0.625rem;
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
+    font-weight: 500;
     color: var(--color-fg);
     border: 1px solid var(--color-hairline-2);
-    background: var(--color-bg-2);
+    background: transparent;
+    border-radius: 999px;
   }
   .tag--accent {
     color: var(--color-accent);
     border-color: var(--color-accent);
-    background: transparent;
   }
 
-  /* Primary CTA — solid accent block, no rounding (brutalist) */
+  /* Button — editorial outline */
   .btn {
     display: inline-flex;
     align-items: center;
-    gap: 0.6rem;
-    padding: 0.9rem 1.25rem;
-    font-family: var(--font-mono);
-    font-size: 0.85rem;
+    gap: 0.75rem;
+    padding: 0.875rem 1.5rem;
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
     font-weight: 500;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
     text-decoration: none;
     border: 1px solid var(--color-fg);
+    border-radius: 2px;
     color: var(--color-fg);
     background: transparent;
-    transition: background var(--dur-fast) linear,
-                color var(--dur-fast) linear;
+    transition: background var(--dur-med) var(--ease-out-expo),
+                color var(--dur-med) var(--ease-out-expo),
+                border-color var(--dur-med) var(--ease-out-expo);
   }
   .btn:hover {
     background: var(--color-fg);
     color: var(--color-bg);
   }
   .btn--primary {
+    background: var(--color-fg);
+    color: var(--color-bg);
+    border-color: var(--color-fg);
+  }
+  .btn--primary:hover {
     background: var(--color-accent);
     border-color: var(--color-accent);
     color: var(--color-accent-ink);
   }
-  .btn--primary:hover {
-    background: transparent;
-    color: var(--color-accent);
-  }
 
-  /* Grid divider — visible hairlines between children */
+  /* Grid divider */
   .grid-divide > * + * {
     border-top: 1px solid var(--color-hairline);
   }
@@ -182,4 +198,133 @@
       border-left: 1px solid var(--color-hairline);
     }
   }
+
+  /* Serif display utility */
+  .display {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+  }
+
+  /* Pullquote — editorial drop quote */
+  .pullquote {
+    margin: 2.5rem 0;
+    padding-left: 3.5rem;
+    position: relative;
+    font-family: var(--font-serif);
+    font-size: 1.75rem;
+    line-height: 1.25;
+    color: var(--color-fg);
+    font-style: italic;
+  }
+  .pullquote::before {
+    content: "\201C";
+    position: absolute;
+    left: -0.25rem;
+    top: -1.5rem;
+    font-family: var(--font-serif);
+    font-size: 6rem;
+    line-height: 1;
+    color: var(--color-accent);
+    font-style: normal;
+  }
+}
+
+/* ===========================================================================
+   Blog post body — editorial prose
+   Applied on /blog/[slug] article content
+   =========================================================================== */
+.post-body {
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  color: var(--color-fg);
+  max-width: 68ch;
+}
+.post-body > * + * { margin-top: 1.25em; }
+.post-body h2 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 2rem;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin-top: 2.5em;
+  margin-bottom: 0.5em;
+}
+.post-body h3 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 1.5rem;
+  line-height: 1.25;
+  margin-top: 2em;
+  margin-bottom: 0.4em;
+}
+.post-body p {
+  margin: 0 0 1.25em;
+}
+.post-body a {
+  color: var(--color-accent);
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-hairline-2);
+  transition: border-color var(--dur-fast) linear;
+}
+.post-body a:hover {
+  border-color: var(--color-accent);
+}
+.post-body strong {
+  font-weight: 600;
+}
+.post-body em {
+  font-style: italic;
+  font-family: var(--font-serif);
+}
+.post-body ul,
+.post-body ol {
+  padding-left: 1.5em;
+  margin: 0 0 1.25em;
+}
+.post-body ul { list-style: disc; }
+.post-body ol { list-style: decimal; }
+.post-body li + li { margin-top: 0.5em; }
+.post-body blockquote {
+  margin: 2em 0;
+  padding: 0.5em 0 0.5em 1.5em;
+  border-left: 2px solid var(--color-accent);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.25rem;
+  line-height: 1.5;
+  color: var(--color-fg);
+}
+.post-body code {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.92em;
+  background: var(--color-bg-2);
+  padding: 0.15em 0.4em;
+  border-radius: 2px;
+}
+.post-body pre {
+  background: var(--color-bg-2);
+  padding: 1.25em;
+  overflow-x: auto;
+  border: 1px solid var(--color-hairline);
+  border-radius: 2px;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+.post-body pre code {
+  background: transparent;
+  padding: 0;
+}
+.post-body hr {
+  border: 0;
+  border-top: 1px solid var(--color-hairline);
+  margin: 2.5em 0;
+}
+.post-body img {
+  max-width: 100%;
+  height: auto;
+  margin: 2em 0;
+  border-radius: 2px;
 }

@@ -16,7 +16,10 @@ const serviceSchemas = services.map((s) => ({
     url: site.url,
   },
   serviceType: 'Answer Engine Optimization',
-  areaServed: site.location,
+  areaServed: [
+    { '@type': 'State', name: 'Arizona' },
+    { '@type': 'State', name: 'Utah' },
+  ],
 }));
 
 // BreadcrumbList schema
@@ -24,18 +27,8 @@ const breadcrumbSchema = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    {
-      '@type': 'ListItem',
-      position: 1,
-      name: 'Home',
-      item: site.url,
-    },
-    {
-      '@type': 'ListItem',
-      position: 2,
-      name: 'Services',
-      item: `${site.url}/services`,
-    },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: site.url },
+    { '@type': 'ListItem', position: 2, name: 'Services', item: `${site.url}/services` },
   ],
 };
 
@@ -44,107 +37,102 @@ const process = [
     num: '01',
     title: 'Audit',
     description:
-      'We run your brand through every major answer engine, map current citation share, and surface the entity and retrieval gaps that keep you out of answers.',
+      "We run your business through every major AI chatbot — ChatGPT, Google AI, Perplexity, Claude, Gemini — with the questions your real customers ask. You'll see exactly where you stand and where your competitors beat you.",
   },
   {
     num: '02',
     title: 'Build',
     description:
-      'We implement schema, restructure high-leverage pages, and publish the entity-dense answer content retrieval systems actually chunk and cite.',
+      "We rebuild the foundation AI needs to trust you: Google Business Profile, consistent citations across 30+ directories, schema.org markup, and a canonical business description that lines up everywhere on the web.",
   },
   {
     num: '03',
-    title: 'Monitor',
+    title: 'Write',
     description:
-      'A recurring prompt set runs against ChatGPT, Claude, Perplexity, Gemini, and AI Overviews. You see citation share, sentiment, and competitor presence every month.',
+      "We rewrite your service pages, FAQ, and location pages so AI can cleanly quote them. Clear answers to real questions — the kind of content an AI assistant can drop into a conversation with your name attached.",
   },
   {
     num: '04',
-    title: 'Iterate',
+    title: 'Monitor',
     description:
-      'Models and surfaces change weekly. We refresh content, adjust schema, and respond to shifts before they cost you the answer slot.',
+      "Every month we run the same prompts and report what's changed. When a model updates or a competitor gets aggressive, we adjust. You stay ahead — and you always know where you stand.",
   },
 ];
 ---
 <Base
   title="Services"
-  description="Four Answer Engine Optimization services — entity foundation, answer-ready content, AEO measurement, and ongoing retainer — engineered to make your business the canonical answer LLMs return."
+  description="Four Answer Engine Optimization services for home service pros and local professionals in Arizona and Southern Utah: Local AI Audit, Get Listed Get Cited, Answer-Ready Pages, and an ongoing retainer."
   path="/services"
   schema={[...serviceSchemas, breadcrumbSchema]}
 >
   <!-- =========================================================
        HERO
        ========================================================= -->
-  <section class="relative border-b border-[color:var(--color-hairline)]">
-    <Container class="py-16 md:py-28 lg:py-36">
-      <div class="mono-label flex items-center gap-3">
-        <span class="inline-block h-1.5 w-1.5 rounded-full bg-[color:var(--color-accent)] animate-pulse" aria-hidden="true"></span>
-        <span>[ Services / Overview ]</span>
-      </div>
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-32">
+      <div class="mono-label">Services · Overview</div>
 
-      <h1 class="mt-8 font-medium tracking-[-0.02em] leading-[1.05] text-balance"
-          style="font-size: var(--text-display);">
-        Four disciplines.<br />
-        One surface:
-        <span class="relative inline-block">
-          the answer.
-          <span class="absolute left-0 -bottom-2 h-[6px] w-full bg-[color:var(--color-accent)]" aria-hidden="true"></span>
-        </span>
+      <h1 class="mt-8 text-balance max-w-[22ch]"
+          style="font-family: var(--font-serif); font-size: var(--text-display); line-height: 1.02;">
+        Four services. One outcome: your business gets recommended.
       </h1>
 
-      <p class="mt-10 max-w-2xl text-lg md:text-xl text-[color:var(--color-fg-muted)] text-balance">
-        Answer Engine Optimization is the work of making your business the single source a generative model
-        retrieves, trusts, and quotes. Each service below is a lever on that outcome — used alone, or
-        stacked as a full retainer.
+      <p class="mt-10 max-w-2xl text-lg md:text-xl leading-[1.6] text-[color:var(--color-fg-muted)]">
+        Answer Engine Optimization is the work of making your business the name AI
+        chatbots return when a prospect asks for a recommendation. Each service below is a
+        lever on that outcome — used alone, or stacked as a full retainer.
       </p>
 
       <div class="mt-10 flex flex-wrap items-center gap-4">
         <a href="/contact" class="btn btn--primary">
-          Start a project
+          <span>Start a project</span>
           <span aria-hidden="true">→</span>
         </a>
         <a href="/#faq" class="btn">
-          Read the FAQ
+          <span>Read the FAQ</span>
         </a>
       </div>
     </Container>
   </section>
 
   <!-- =========================================================
-       DEFINITION — What is AEO?
+       DEFINITION — What is AEO, in plain English?
        ========================================================= -->
   <section class="border-b border-[color:var(--color-hairline)]">
     <Container class="py-20 md:py-28">
-      <div class="grid md:grid-cols-[1fr_2fr] gap-10">
+      <div class="grid md:grid-cols-[1fr_2fr] gap-12 md:gap-20">
         <div>
-          <div class="mono-label">[ 01 / Definition ]</div>
-          <h2 class="mt-4 font-medium tracking-[-0.02em] leading-[1.05]"
-              style="font-size: var(--text-h1);">
-            What is AEO?
+          <div class="mono-label">01 · The short version</div>
+          <h2 class="mt-5"
+              style="font-size: var(--text-h1); line-height: 1.05;">
+            What is AEO, really?
           </h2>
         </div>
-        <div class="space-y-6 text-lg leading-relaxed">
+        <div class="max-w-[60ch] space-y-6 text-[1.0625rem] leading-[1.65]">
           <p>
-            <strong class="font-medium">Answer Engine Optimization (AEO)</strong> is the practice of
-            structuring a business&rsquo;s entity data, content, and technical signals so that large
-            language models &mdash; ChatGPT, Claude, Perplexity, Google&rsquo;s AI Overviews, Gemini
-            &mdash; return that business as the answer when users ask a buying-intent question.
+            <strong class="font-semibold">Answer Engine Optimization</strong> — AEO — is how you
+            get recommended by AI chatbots. When someone asks ChatGPT, Google AI, Perplexity,
+            Claude, or Gemini "who's the best roofer in Mesa," the AI gives them an
+            answer. Sometimes one name. Sometimes two or three. Almost never a list of ten.
           </p>
           <p class="text-[color:var(--color-fg-muted)]">
-            Traditional SEO optimizes for a ranked list of blue links. AEO optimizes for a single
-            synthesized response. The unit of success is no longer a position on page one &mdash;
-            it is a <em class="text-[color:var(--color-accent)] not-italic">citation</em> inside the
-            model&rsquo;s answer.
+            Our work is making sure the name is yours. We build the signals that AI models use
+            to decide who they trust enough to mention — then we keep those signals in
+            shape as the models change.
           </p>
+          <blockquote class="pullquote">
+            Traditional SEO gets your website listed. AEO gets your business <em>named</em>.
+          </blockquote>
           <p class="text-[color:var(--color-fg-muted)]">
-            Getting there requires a specific stack: machine-readable entity schema, retrieval-friendly
-            content architecture, presence across the corpora LLMs train and retrieve from, and
-            ongoing measurement of citation share across every major answer surface.
+            SEO and AEO aren't enemies. Most of what we build — consistent business data,
+            structured content, clear answers to buyer questions — helps both. But the
+            surfaces are different, and the signals each rewards are different. We focus on
+            the AI chatbot surface because almost nobody else is.
           </p>
           <div class="pt-4 flex flex-wrap gap-2">
-            <span class="tag">Entity graph</span>
-            <span class="tag">Retrieval-ready</span>
-            <span class="tag">Citation share</span>
+            <span class="tag">Citations</span>
+            <span class="tag">Structured data</span>
+            <span class="tag">Answer-ready content</span>
             <span class="tag tag--accent">AEO</span>
           </div>
         </div>
@@ -157,9 +145,9 @@ const process = [
        ========================================================= -->
   <section class="border-b border-[color:var(--color-hairline)]">
     <Container class="py-20 md:py-28">
-      <div class="mono-label">[ 02 / Services ]</div>
-      <h2 class="mt-4 font-medium tracking-[-0.02em] leading-[1.05]"
-          style="font-size: var(--text-display);">
+      <div class="mono-label">02 · The services</div>
+      <h2 class="mt-5"
+          style="font-size: var(--text-display); line-height: 1.05;">
         The stack.
       </h2>
 
@@ -168,32 +156,32 @@ const process = [
           <article
             id={s.id}
             class:list={[
-              'grid md:grid-cols-[1fr_2fr] gap-10 py-12 md:py-16',
+              'grid md:grid-cols-[1fr_2fr] gap-10 md:gap-16 py-14 md:py-20',
               i > 0 ? 'border-t border-[color:var(--color-hairline)]' : '',
             ]}
           >
             <div>
-              <div class="mono-label text-base md:text-lg">[{s.num}]</div>
-              <h3 class="mt-4 text-3xl md:text-4xl font-medium tracking-tight leading-tight">
+              <div class="mono-label">{s.num}</div>
+              <h3 class="mt-4 font-[family-name:var(--font-serif)] text-[2rem] md:text-[2.5rem] leading-[1.05] tracking-[-0.01em]">
                 {s.name}
               </h3>
-              <p class="mt-4 text-[color:var(--color-accent)] font-[family-name:var(--font-mono)] text-sm leading-relaxed">
+              <p class="mt-5 font-[family-name:var(--font-serif)] italic text-[1.125rem] leading-[1.4] text-[color:var(--color-fg-muted)]">
                 {s.tagline}
               </p>
             </div>
 
             <div class="space-y-8">
-              <p class="text-lg leading-relaxed text-[color:var(--color-fg-muted)]">
+              <p class="text-[1.0625rem] leading-[1.7] text-[color:var(--color-fg)] max-w-[60ch]">
                 {s.summary}
               </p>
 
               <div>
-                <div class="mono-label mb-4">[ Deliverables ]</div>
+                <div class="mono-label mb-4">Deliverables</div>
                 <ul class="border-t border-[color:var(--color-hairline)]">
                   {s.deliverables.map((d) => (
-                    <li class="flex items-start gap-4 py-3 border-b border-[color:var(--color-hairline)]">
-                      <span class="font-[family-name:var(--font-mono)] text-[color:var(--color-accent)] text-sm pt-1 shrink-0" aria-hidden="true">▸</span>
-                      <span class="leading-relaxed">{d}</span>
+                    <li class="flex items-start gap-4 py-4 border-b border-[color:var(--color-hairline)]">
+                      <span class="shrink-0 pt-1 text-[color:var(--color-accent)] font-[family-name:var(--font-serif)]" aria-hidden="true">·</span>
+                      <span class="leading-[1.6]">{d}</span>
                     </li>
                   ))}
                 </ul>
@@ -210,27 +198,22 @@ const process = [
        ========================================================= -->
   <section class="border-b border-[color:var(--color-hairline)]">
     <Container class="py-20 md:py-28">
-      <div class="mono-label">[ Process ]</div>
-      <h2 class="mt-4 font-medium tracking-[-0.02em] leading-[1.05]"
-          style="font-size: var(--text-display);">
-        Audit. Build. Monitor. Iterate.
+      <div class="mono-label">03 · How the engagement runs</div>
+      <h2 class="mt-5"
+          style="font-size: var(--text-display); line-height: 1.05;">
+        Audit. Build. Write. Monitor.
       </h2>
 
-      <div class="mt-12 grid md:grid-cols-4 grid-divide grid-divide--md-cols">
-        {process.map((step, i) => (
-          <div class:list={[
-            'py-8 md:py-0',
-            i === 0 ? 'md:pr-8' : '',
-            i > 0 && i < process.length - 1 ? 'md:px-8' : '',
-            i === process.length - 1 ? 'md:pl-8' : '',
-          ]}>
-            <div class="font-[family-name:var(--font-mono)] text-[color:var(--color-fg-muted)] text-xs tracking-[0.08em]">
-              STEP {step.num}
+      <div class="mt-16 grid gap-12 md:grid-cols-2 lg:grid-cols-4">
+        {process.map((step) => (
+          <div>
+            <div class="font-[family-name:var(--font-sans)] text-[0.8125rem] uppercase tracking-[0.18em] text-[color:var(--color-accent)] font-semibold">
+              Step {step.num}
             </div>
-            <h3 class="mt-4 text-2xl font-medium tracking-tight leading-tight">
+            <h3 class="mt-4 font-[family-name:var(--font-serif)] text-[1.75rem] leading-[1.1] tracking-[-0.01em]">
               {step.title}
             </h3>
-            <p class="mt-3 text-[color:var(--color-fg-muted)] leading-relaxed">
+            <p class="mt-4 text-[color:var(--color-fg-muted)] leading-[1.65]">
               {step.description}
             </p>
           </div>
@@ -244,18 +227,17 @@ const process = [
        ========================================================= -->
   <section>
     <Container class="py-24 md:py-36 text-center">
-      <div class="mono-label">[ End of line ]</div>
-      <h2 class="mt-6 font-medium tracking-[-0.02em] leading-[0.95] text-balance mx-auto max-w-4xl"
-          style="font-size: var(--text-display);">
-        Ready to become the answer <br class="hidden md:block"/> in your category?
-      </h2>
+      <p class="font-[family-name:var(--font-serif)] italic text-balance mx-auto max-w-3xl"
+         style="font-size: clamp(1.75rem, 3.5vw, 2.75rem); line-height: 1.2;">
+        Ready to become the answer in your category?
+      </p>
       <div class="mt-10 flex justify-center flex-wrap gap-4">
         <a href="/contact" class="btn btn--primary">
-          Start a project
+          <span>Start a project</span>
           <span aria-hidden="true">→</span>
         </a>
         <a href="/" class="btn">
-          Back to home
+          <span>Back to home</span>
         </a>
       </div>
     </Container>

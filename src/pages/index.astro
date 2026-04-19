@@ -16,7 +16,7 @@ const faqSchema = {
   })),
 };
 
-// WebSite schema with SearchAction
+// WebSite schema
 const websiteSchema = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
@@ -24,132 +24,135 @@ const websiteSchema = {
   url: site.url,
   description: site.description,
 };
+
+// LocalBusiness schema — signals regional focus to AI + search engines
+const localBusinessSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfessionalService',
+  name: site.name,
+  description: site.description,
+  url: site.url,
+  email: site.email,
+  areaServed: [
+    { '@type': 'State', name: 'Arizona' },
+    { '@type': 'City', name: 'Phoenix' },
+    { '@type': 'City', name: 'Mesa' },
+    { '@type': 'City', name: 'St. George' },
+  ],
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Phoenix',
+    addressRegion: 'AZ',
+    addressCountry: 'US',
+  },
+};
 ---
 <Base
-  title="Answer Engine Optimization agency"
+  title="Answer Engine Optimization for Arizona & Southern Utah"
   description={site.description}
   path="/"
-  schema={[faqSchema, websiteSchema]}
+  schema={[faqSchema, websiteSchema, localBusinessSchema]}
 >
   <!-- =========================================================
-       HERO
+       HERO — leads with the buyer's problem in plain language
        ========================================================= -->
-  <section class="relative border-b border-[color:var(--color-hairline)]">
-    <Container class="py-16 md:py-28 lg:py-36">
-      <div class="mono-label flex items-center gap-3">
-        <span class="inline-block h-1.5 w-1.5 rounded-full bg-[color:var(--color-accent)] animate-pulse" aria-hidden="true"></span>
-        <span>[ v0.1 / Answer Engine Optimization ]</span>
-      </div>
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-32 lg:py-40">
+      <div class="mono-label">Answer Engine Optimization · Arizona & Southern Utah</div>
 
-      <h1 class="mt-8 font-medium tracking-[-0.02em] leading-[0.95] text-balance"
-          style="font-size: var(--text-display-xl);">
-        Be the answer,
-        <span class="text-[color:var(--color-fg-muted)]">not a</span>
-        <span class="relative inline-block">
-          link.
-          <span class="absolute left-0 -bottom-2 h-[6px] w-full bg-[color:var(--color-accent)]" aria-hidden="true"></span>
-        </span>
+      <h1 class="mt-10 text-balance max-w-[18ch]"
+          style="font-family: var(--font-serif); font-size: var(--text-display-xl); line-height: 0.98;">
+        When someone asks ChatGPT for a plumber in Mesa, is it recommending
+        <em class="italic">you</em>?
       </h1>
 
-      <p class="mt-10 max-w-2xl text-lg md:text-xl text-[color:var(--color-fg-muted)] text-balance">
-        {site.name} is an Answer Engine Optimization agency. We make your business the
-        <span class="text-[color:var(--color-fg)]">canonical answer</span>
-        ChatGPT, Claude, Perplexity, and Google AI return when prospects ask.
+      <p class="mt-8 md:mt-10 max-w-2xl text-lg md:text-xl leading-[1.55] text-[color:var(--color-fg-muted)]">
+        AI chatbots are replacing Google for local recommendations. We make sure your
+        business is the name ChatGPT, Google AI, Perplexity, and Claude say back when a
+        prospect asks who to hire.
       </p>
 
       <div class="mt-10 flex flex-wrap items-center gap-4">
         <a href="/contact" class="btn btn--primary">
-          Start a project
+          <span>Start a project</span>
           <span aria-hidden="true">→</span>
         </a>
         <a href="/services" class="btn">
-          How it works
+          <span>See how it works</span>
         </a>
       </div>
     </Container>
-
-    <!-- Telemetry strip — mono data row, pure ornament -->
-    <div class="border-t border-[color:var(--color-hairline)] bg-[color:var(--color-bg-2)]">
-      <Container class="flex flex-wrap items-center gap-x-10 gap-y-2 py-3 font-[family-name:var(--font-mono)] text-[0.7rem] uppercase tracking-[0.08em] text-[color:var(--color-fg-muted)]">
-        <span><span class="text-[color:var(--color-accent)]">●</span> Live</span>
-        <span>ENGINE: ChatGPT · Claude · Perplexity · Gemini · AI Overviews</span>
-        <span class="hidden md:inline">MODE: Retainer · Cancel by email</span>
-        <span class="ml-auto hidden lg:inline">LAT: 38.9°N</span>
-      </Container>
-    </div>
   </section>
 
   <!-- =========================================================
-       WHAT WE DO
+       WHAT CHANGED — the argument prospects need to accept
        ========================================================= -->
   <section class="border-b border-[color:var(--color-hairline)]">
     <Container class="py-20 md:py-28">
-      <div class="grid md:grid-cols-[1fr_2fr] gap-10">
+      <div class="grid md:grid-cols-[1fr_2fr] gap-12 md:gap-20">
         <div>
-          <div class="mono-label">[ 01 / What we do ]</div>
-          <h2 class="mt-4 font-medium tracking-[-0.02em] leading-[1.05]"
-              style="font-size: var(--text-display);">
-            Optimize for the answer.
+          <div class="mono-label">01 · What changed</div>
+          <h2 class="mt-5 text-balance"
+              style="font-size: var(--text-display); line-height: 1.05;">
+            The way people find local businesses just changed.
           </h2>
         </div>
-        <div class="space-y-6 text-lg leading-relaxed">
-          <p>
-            Search is being replaced by synthesis. When buyers ask an LLM
-            <em class="text-[color:var(--color-accent)] not-italic">&ldquo;who's the best X?&rdquo;</em>
-            the model returns a single answer, distilled from whatever content it can retrieve and trust.
+        <div class="max-w-[60ch]">
+          <p class="text-[1.0625rem] leading-[1.65]">
+            For twenty years, your prospect typed a question into Google and scrolled through
+            a list of blue links. Today, more of them are asking ChatGPT, Perplexity, or
+            Google's AI Overviews — and getting back a single recommendation. Not ten. One.
           </p>
-          <p class="text-[color:var(--color-fg-muted)]">
-            We engineer every signal that decides whether you're that answer — entity graphs, structured data,
-            retrieval-friendly content architecture, and ongoing monitoring across every major answer engine.
+          <blockquote class="pullquote">
+            The winners of the next decade won't be the sites that rank. They'll be the
+            businesses that get recommended by name.
+          </blockquote>
+          <p class="text-[1.0625rem] leading-[1.65]">
+            AI models don't rank websites the way Google does. They read your business
+            information across the web, verify it's consistent, and then decide whether they
+            trust you enough to name you in an answer. If the signals aren't there — or your
+            competitor's signals are stronger — you don't get mentioned. You don't even know
+            the conversation happened.
           </p>
-          <div class="pt-4 flex flex-wrap gap-2">
-            <span class="tag">Entity schema</span>
-            <span class="tag">RAG-ready content</span>
-            <span class="tag">Citation tracking</span>
-            <span class="tag tag--accent">Retainer</span>
-          </div>
+          <p class="text-[1.0625rem] leading-[1.65] mt-6">
+            We fix that.
+          </p>
         </div>
       </div>
     </Container>
   </section>
 
   <!-- =========================================================
-       SERVICES GRID
+       SERVICES — plain-language offers
        ========================================================= -->
   <section class="border-b border-[color:var(--color-hairline)]">
     <Container class="py-20 md:py-28">
       <div class="flex items-end justify-between gap-6 flex-wrap">
         <div>
-          <div class="mono-label">[ 02 / Services ]</div>
-          <h2 class="mt-4 font-medium tracking-[-0.02em] leading-[1.05]"
-              style="font-size: var(--text-display);">
-            Four disciplines.<br />One surface: the answer.
+          <div class="mono-label">02 · What we do</div>
+          <h2 class="mt-5 text-balance"
+              style="font-size: var(--text-display); line-height: 1.05;">
+            Four services.<br />One outcome: you get recommended.
           </h2>
         </div>
-        <a href="/services" class="link-slide font-[family-name:var(--font-mono)] text-xs uppercase tracking-[0.08em] text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-accent)]">
+        <a href="/services" class="link-slide font-[family-name:var(--font-sans)] text-[0.8125rem] uppercase tracking-[0.14em] font-medium text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-accent)]">
           All services →
         </a>
       </div>
 
-      <div class="mt-12 grid md:grid-cols-2 border border-[color:var(--color-hairline)]">
-        {services.map((s, i) => (
-          <article class:list={[
-            'p-8 md:p-10 relative',
-            i % 2 === 0 ? 'md:border-r border-[color:var(--color-hairline)]' : '',
-            i >= 2 ? 'border-t border-[color:var(--color-hairline)]' : '',
-            'transition-colors hover:bg-[color:var(--color-bg-2)]',
-          ]}>
-            <div class="flex items-start justify-between gap-4">
-              <span class="mono-label">[{s.num}]</span>
-              <span class="tag tag--accent">{s.id}</span>
-            </div>
-            <h3 class="mt-6 text-2xl md:text-3xl font-medium tracking-tight leading-tight">
-              {s.name}
+      <div class="mt-14 grid gap-14 md:grid-cols-2 md:gap-x-16 md:gap-y-16">
+        {services.map((s) => (
+          <article>
+            <div class="mono-label">{s.num}</div>
+            <h3 class="mt-3 font-[family-name:var(--font-serif)] text-[1.75rem] md:text-[2rem] leading-[1.1] tracking-[-0.01em]">
+              <a href={`/services#${s.id}`} class="link-slide text-[color:var(--color-fg)] hover:text-[color:var(--color-accent)]">
+                {s.name}
+              </a>
             </h3>
-            <p class="mt-3 text-[color:var(--color-accent)] font-[family-name:var(--font-mono)] text-sm">
+            <p class="mt-3 font-[family-name:var(--font-serif)] italic text-[1.0625rem] text-[color:var(--color-fg-muted)]">
               {s.tagline}
             </p>
-            <p class="mt-4 text-[color:var(--color-fg-muted)] leading-relaxed">
+            <p class="mt-4 text-[1rem] leading-[1.65] text-[color:var(--color-fg)] max-w-[52ch]">
               {s.summary}
             </p>
           </article>
@@ -159,34 +162,28 @@ const websiteSchema = {
   </section>
 
   <!-- =========================================================
-       PROOF / POSITIONING (placeholder stats block)
+       WHY NOW — three facts, editorial callout
        ========================================================= -->
   <section class="border-b border-[color:var(--color-hairline)]">
     <Container class="py-20 md:py-28">
-      <div class="mono-label">[ 03 / Why now ]</div>
-      <div class="mt-8 grid md:grid-cols-3 grid-divide grid-divide--md-cols">
-        <div class="py-8 md:py-0 md:pr-10">
-          <div class="font-[family-name:var(--font-mono)] text-[color:var(--color-accent)] text-sm tracking-wider">FACT 01</div>
-          <p class="mt-4 text-3xl md:text-4xl font-medium tracking-tight leading-tight text-balance">
-            ChatGPT alone answers
-            <span class="text-[color:var(--color-accent)]">over 1&nbsp;billion</span>
-            queries per day.
+      <div class="mono-label">03 · Why now</div>
+      <div class="mt-10 grid md:grid-cols-3 gap-10 md:gap-0">
+        <div class="md:pr-10 md:border-r md:border-[color:var(--color-hairline)]">
+          <div class="font-[family-name:var(--font-sans)] text-[0.75rem] uppercase tracking-[0.18em] text-[color:var(--color-accent)] font-semibold">Fact 01</div>
+          <p class="mt-4 font-[family-name:var(--font-serif)] text-[1.75rem] md:text-[2rem] leading-[1.15] text-balance">
+            ChatGPT alone handles <em class="italic not-[font-style:normal]">over one&nbsp;billion</em> queries a day. Many are local-intent.
           </p>
         </div>
-        <div class="py-8 md:py-0 md:px-10">
-          <div class="font-[family-name:var(--font-mono)] text-[color:var(--color-accent)] text-sm tracking-wider">FACT 02</div>
-          <p class="mt-4 text-3xl md:text-4xl font-medium tracking-tight leading-tight text-balance">
-            Answers increasingly cite
-            <span class="text-[color:var(--color-accent)]">one</span>
-            source. Not ten.
+        <div class="md:px-10 md:border-r md:border-[color:var(--color-hairline)]">
+          <div class="font-[family-name:var(--font-sans)] text-[0.75rem] uppercase tracking-[0.18em] text-[color:var(--color-accent)] font-semibold">Fact 02</div>
+          <p class="mt-4 font-[family-name:var(--font-serif)] text-[1.75rem] md:text-[2rem] leading-[1.15] text-balance">
+            AI answers increasingly cite <em class="italic">one</em> business by name. Not ten blue links.
           </p>
         </div>
-        <div class="py-8 md:py-0 md:pl-10">
-          <div class="font-[family-name:var(--font-mono)] text-[color:var(--color-accent)] text-sm tracking-wider">FACT 03</div>
-          <p class="mt-4 text-3xl md:text-4xl font-medium tracking-tight leading-tight text-balance">
-            Most sites are
-            <span class="text-[color:var(--color-accent)]">invisible</span>
-            to retrieval systems today.
+        <div class="md:pl-10">
+          <div class="font-[family-name:var(--font-sans)] text-[0.75rem] uppercase tracking-[0.18em] text-[color:var(--color-accent)] font-semibold">Fact 03</div>
+          <p class="mt-4 font-[family-name:var(--font-serif)] text-[1.75rem] md:text-[2rem] leading-[1.15] text-balance">
+            Most local businesses are <em class="italic">invisible</em> to AI models today.
           </p>
         </div>
       </div>
@@ -194,36 +191,37 @@ const websiteSchema = {
   </section>
 
   <!-- =========================================================
-       FAQ — big AEO signal. Matches FAQPage JSON-LD above.
+       FAQ — matches FAQPage JSON-LD above
        ========================================================= -->
   <section class="border-b border-[color:var(--color-hairline)]">
     <Container class="py-20 md:py-28">
-      <div class="grid md:grid-cols-[1fr_2fr] gap-10">
+      <div class="grid md:grid-cols-[1fr_2fr] gap-12 md:gap-20">
         <div>
-          <div class="mono-label">[ 04 / FAQ ]</div>
-          <h2 class="mt-4 font-medium tracking-[-0.02em] leading-[1.05]"
-              style="font-size: var(--text-display);">
+          <div class="mono-label">04 · FAQ</div>
+          <h2 class="mt-5 text-balance"
+              style="font-size: var(--text-display); line-height: 1.05;">
             Questions,<br />answered.
           </h2>
-          <p class="mt-4 text-[color:var(--color-fg-muted)] max-w-sm">
-            Structured Q&amp;A is exactly what answer engines retrieve. This section is itself an example of what we build for clients.
+          <p class="mt-6 text-[color:var(--color-fg-muted)] max-w-sm leading-[1.6]">
+            Structured Q&amp;A is exactly what AI models retrieve and cite. This page is
+            itself a demonstration of what we build for clients.
           </p>
         </div>
 
         <div class="border-t border-[color:var(--color-hairline)]">
           {faq.map((item, i) => (
             <details class="group border-b border-[color:var(--color-hairline)]">
-              <summary class="list-none cursor-pointer py-6 flex items-start justify-between gap-6 text-lg md:text-xl font-medium tracking-tight">
-                <span class="flex gap-4 items-start">
-                  <span class="mono-label shrink-0 pt-1" aria-hidden="true">
-                    [{String(i + 1).padStart(2, '0')}]
+              <summary class="list-none cursor-pointer py-6 flex items-start justify-between gap-6 font-[family-name:var(--font-serif)] text-[1.25rem] md:text-[1.5rem] leading-[1.25] tracking-[-0.01em]">
+                <span class="flex gap-5 items-baseline">
+                  <span class="mono-label shrink-0" aria-hidden="true">
+                    {String(i + 1).padStart(2, '0')}
                   </span>
                   <span>{item.question}</span>
                 </span>
-                <span class="shrink-0 pt-1 font-[family-name:var(--font-mono)] text-[color:var(--color-accent)] transition-transform group-open:rotate-45"
+                <span class="shrink-0 pt-1 font-[family-name:var(--font-sans)] text-[color:var(--color-accent)] transition-transform group-open:rotate-45 text-xl"
                       aria-hidden="true">+</span>
               </summary>
-              <div class="pb-6 pl-12 pr-2 text-[color:var(--color-fg-muted)] leading-relaxed max-w-2xl">
+              <div class="pb-6 md:pl-14 pr-2 text-[color:var(--color-fg-muted)] leading-[1.65] max-w-[60ch]">
                 {item.answer}
               </div>
             </details>
@@ -234,22 +232,21 @@ const websiteSchema = {
   </section>
 
   <!-- =========================================================
-       FINAL CTA
+       FINAL CTA — editorial
        ========================================================= -->
   <section>
     <Container class="py-24 md:py-36 text-center">
-      <div class="mono-label">[ End of line ]</div>
-      <h2 class="mt-6 font-medium tracking-[-0.02em] leading-[0.95] text-balance mx-auto max-w-4xl"
-          style="font-size: var(--text-display);">
-        Ready to be the answer <br class="hidden md:block"/> your buyers get?
-      </h2>
+      <p class="font-[family-name:var(--font-serif)] italic text-balance mx-auto max-w-3xl"
+         style="font-size: clamp(1.75rem, 3.5vw, 2.75rem); line-height: 1.2;">
+        The answer begins with a conversation.
+      </p>
       <div class="mt-10 flex justify-center flex-wrap gap-4">
         <a href="/contact" class="btn btn--primary">
-          Start a project
+          <span>Start a project</span>
           <span aria-hidden="true">→</span>
         </a>
         <a href={`mailto:${site.email}`} class="btn">
-          Email us directly
+          <span>Email us directly</span>
         </a>
       </div>
     </Container>

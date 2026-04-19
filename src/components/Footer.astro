@@ -1,54 +1,57 @@
 ---
 import { site } from '../lib/site';
 import Container from './Container.astro';
+import Wordmark from './Wordmark.astro';
 
 const year = new Date().getFullYear();
 ---
-<footer class="border-t border-[color:var(--color-hairline)] mt-24">
-  <Container class="py-16">
-    <div class="grid gap-10 md:grid-cols-[2fr_1fr_1fr]">
+<footer class="border-t border-[color:var(--color-hairline)] mt-24 md:mt-32">
+  <Container class="py-16 md:py-20">
+    <div class="grid gap-12 md:grid-cols-[2fr_1fr_1fr]">
       <div>
-        <div class="mono-label">[ Agency ]</div>
-        <p class="mt-3 text-2xl md:text-3xl font-medium tracking-tight text-balance max-w-md">
+        <a href="/" aria-label={`${site.name} — home`} class="inline-block text-[color:var(--color-fg)]">
+          <Wordmark class="h-8 md:h-10 w-auto" />
+        </a>
+        <p class="mt-6 font-[family-name:var(--font-serif)] text-2xl md:text-[1.75rem] leading-[1.2] text-balance max-w-md text-[color:var(--color-fg)]">
           {site.tagline}
         </p>
-        <a href="/contact" class="btn btn--primary mt-6">
-          Get in touch
+        <a href="/contact" class="btn btn--primary mt-8">
+          <span>Get in touch</span>
           <span aria-hidden="true">→</span>
         </a>
       </div>
 
       <div>
-        <div class="mono-label">[ Site ]</div>
-        <ul class="mt-3 space-y-2 font-[family-name:var(--font-mono)] text-sm">
+        <div class="mono-label">Site</div>
+        <ul class="mt-4 space-y-3 font-[family-name:var(--font-sans)]">
           {site.nav.map(({ label, href }) => (
             <li>
-              <a href={href} class="link-slide hover:text-[color:var(--color-accent)]">{label}</a>
+              <a href={href} class="link-slide text-[color:var(--color-fg)] hover:text-[color:var(--color-accent)]">{label}</a>
             </li>
           ))}
         </ul>
       </div>
 
       <div>
-        <div class="mono-label">[ Contact ]</div>
-        <ul class="mt-3 space-y-2 font-[family-name:var(--font-mono)] text-sm">
+        <div class="mono-label">Contact</div>
+        <ul class="mt-4 space-y-3 font-[family-name:var(--font-sans)]">
           <li>
-            <a href={`mailto:${site.email}`} class="link-slide break-all hover:text-[color:var(--color-accent)]">
+            <a href={`mailto:${site.email}`} class="link-slide break-all text-[color:var(--color-fg)] hover:text-[color:var(--color-accent)]">
               {site.email}
             </a>
           </li>
           <li class="text-[color:var(--color-fg-muted)]">{site.location}</li>
+          <li class="text-[color:var(--color-fg-dim)] text-[0.9rem]">Cancel anytime by email</li>
         </ul>
       </div>
     </div>
   </Container>
 
   <div class="border-t border-[color:var(--color-hairline)]">
-    <Container class="flex flex-col md:flex-row md:items-center md:justify-between gap-2 py-5 font-[family-name:var(--font-mono)] text-xs uppercase tracking-[0.08em] text-[color:var(--color-fg-muted)]">
+    <Container class="flex flex-col md:flex-row md:items-center md:justify-between gap-2 py-5 font-[family-name:var(--font-sans)] text-[0.8125rem] text-[color:var(--color-fg-muted)]">
       <div>© {year} {site.name}. All rights reserved.</div>
-      <div class="flex items-center gap-2">
-        <span class="inline-block h-1.5 w-1.5 rounded-full bg-[color:var(--color-accent)]" aria-hidden="true"></span>
-        <span>Built to rank in answer engines.</span>
+      <div class="uppercase tracking-[0.14em] text-[color:var(--color-fg-dim)] font-medium">
+        Answer Engine Optimization
       </div>
     </Container>
   </div>

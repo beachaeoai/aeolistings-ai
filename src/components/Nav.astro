@@ -1,24 +1,22 @@
 ---
 import { site } from '../lib/site';
 import Container from './Container.astro';
+import Wordmark from './Wordmark.astro';
 
 const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
 ---
-<header class="sticky top-0 z-50 border-b border-[color:var(--color-hairline)] bg-[color:var(--color-bg)]/90 backdrop-blur supports-[backdrop-filter]:bg-[color:var(--color-bg)]/70">
-  <Container class="flex h-14 items-center justify-between">
+<header class="border-b border-[color:var(--color-hairline)] bg-[color:var(--color-bg)]">
+  <Container class="flex h-16 md:h-20 items-center justify-between gap-6">
     <a
       href="/"
-      class="flex items-center gap-2 font-[family-name:var(--font-mono)] text-sm tracking-[0.04em] uppercase link-slide whitespace-nowrap"
+      class="flex items-center gap-2 text-[color:var(--color-fg)] link-slide"
       aria-label={`${site.name} — home`}
     >
-      <span aria-hidden="true" class="text-[color:var(--color-accent)]">▞</span>
-      <span class="font-medium">{site.name}</span>
-      <span class="hidden sm:inline text-[color:var(--color-fg-muted)]">/</span>
-      <span class="hidden sm:inline text-[color:var(--color-fg-muted)]">{site.domain}</span>
+      <Wordmark class="h-6 md:h-7 w-auto" />
     </a>
 
     <nav aria-label="Primary" class="hidden md:block">
-      <ul class="flex items-center gap-8 font-[family-name:var(--font-mono)] text-xs uppercase tracking-[0.08em]">
+      <ul class="flex items-center gap-8 font-[family-name:var(--font-sans)] text-[0.8125rem] tracking-[0.12em] uppercase font-medium">
         {site.nav.map(({ label, href }) => {
           const active = currentPath === href || currentPath.startsWith(href + '/');
           return (
@@ -28,7 +26,9 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
                 aria-current={active ? 'page' : undefined}
                 class:list={[
                   'link-slide transition-colors',
-                  active ? 'text-[color:var(--color-accent)]' : 'text-[color:var(--color-fg)] hover:text-[color:var(--color-accent)]',
+                  active
+                    ? 'text-[color:var(--color-accent)]'
+                    : 'text-[color:var(--color-fg)] hover:text-[color:var(--color-accent)]',
                 ]}
               >
                 {label}
@@ -40,28 +40,34 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
     </nav>
 
     <a href="/contact" class="btn btn--primary hidden md:inline-flex">
-      Start a project
+      <span>Start a project</span>
       <span aria-hidden="true">→</span>
     </a>
 
-    <!-- Mobile menu toggle — progressive enhancement via <details> -->
+    <!-- Mobile menu — progressive enhancement via <details> -->
     <details class="md:hidden relative">
       <summary
-        class="list-none cursor-pointer p-2 -mr-2 font-[family-name:var(--font-mono)] text-xs uppercase tracking-[0.08em]"
+        class="list-none cursor-pointer p-2 -mr-2 font-[family-name:var(--font-sans)] text-[0.8125rem] uppercase tracking-[0.14em] font-medium"
         aria-label="Toggle menu"
       >
         Menu
       </summary>
-      <ul class="absolute right-0 top-full mt-2 min-w-[220px] border border-[color:var(--color-hairline-2)] bg-[color:var(--color-bg-2)] p-2 font-[family-name:var(--font-mono)] text-xs uppercase tracking-[0.08em]">
+      <ul class="absolute right-0 top-full mt-2 min-w-[240px] border border-[color:var(--color-hairline-2)] bg-[color:var(--color-bg)] shadow-sm p-2 font-[family-name:var(--font-sans)] text-[0.8125rem] uppercase tracking-[0.12em] font-medium">
         {site.nav.map(({ label, href }) => (
           <li>
-            <a href={href} class="block px-3 py-2 hover:bg-[color:var(--color-bg-3)] hover:text-[color:var(--color-accent)]">
+            <a
+              href={href}
+              class="block px-3 py-2.5 text-[color:var(--color-fg)] hover:bg-[color:var(--color-bg-2)] hover:text-[color:var(--color-accent)] transition-colors"
+            >
               {label}
             </a>
           </li>
         ))}
         <li>
-          <a href="/contact" class="block px-3 py-2 mt-1 bg-[color:var(--color-accent)] text-[color:var(--color-accent-ink)]">
+          <a
+            href="/contact"
+            class="block px-3 py-2.5 mt-1 bg-[color:var(--color-fg)] text-[color:var(--color-bg)] hover:bg-[color:var(--color-accent)] transition-colors"
+          >
             Start a project →
           </a>
         </li>

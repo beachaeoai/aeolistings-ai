@@ -1,0 +1,33 @@
+---
+/**
+ * Wordmark — inline SVG brand mark.
+ * Uses currentColor so the main letterforms inherit text color,
+ * while ".ai" picks up --color-accent (oxblood) independently.
+ *
+ * Size via `height` / font-size on the parent, or via the `class` prop.
+ */
+interface Props {
+  /** Accessible label for the mark. Defaults to the full brand name. */
+  label?: string;
+  /** Tailwind / custom classes applied to the <svg>. */
+  class?: string;
+}
+const { label = 'AEO Listings', class: className = 'h-6 w-auto' } = Astro.props;
+---
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 520 100"
+  role="img"
+  aria-label={label}
+  class={className}
+>
+  <text
+    x="0"
+    y="72"
+    font-family="'Instrument Serif', Georgia, 'Times New Roman', serif"
+    font-size="72"
+    font-weight="400"
+    letter-spacing="-1"
+    fill="currentColor"
+  >aeolistings<tspan fill="var(--color-accent)" font-style="italic">.ai</tspan></text>
+</svg>
