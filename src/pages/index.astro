@@ -1,0 +1,257 @@
+---
+import Base from '../layouts/Base.astro';
+import Container from '../components/Container.astro';
+import { site } from '../lib/site';
+import { services } from '../lib/services';
+import { faq } from '../lib/faq';
+
+// FAQPage schema — prime AEO fuel
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faq.map(({ question, answer }) => ({
+    '@type': 'Question',
+    name: question,
+    acceptedAnswer: { '@type': 'Answer', text: answer },
+  })),
+};
+
+// WebSite schema with SearchAction
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: site.name,
+  url: site.url,
+  description: site.description,
+};
+---
+<Base
+  title="Answer Engine Optimization agency"
+  description={site.description}
+  path="/"
+  schema={[faqSchema, websiteSchema]}
+>
+  <!-- =========================================================
+       HERO
+       ========================================================= -->
+  <section class="relative border-b border-[color:var(--color-hairline)]">
+    <Container class="py-16 md:py-28 lg:py-36">
+      <div class="mono-label flex items-center gap-3">
+        <span class="inline-block h-1.5 w-1.5 rounded-full bg-[color:var(--color-accent)] animate-pulse" aria-hidden="true"></span>
+        <span>[ v0.1 / Answer Engine Optimization ]</span>
+      </div>
+
+      <h1 class="mt-8 font-medium tracking-[-0.02em] leading-[0.95] text-balance"
+          style="font-size: var(--text-display-xl);">
+        Be the answer,
+        <span class="text-[color:var(--color-fg-muted)]">not a</span>
+        <span class="relative inline-block">
+          link.
+          <span class="absolute left-0 -bottom-2 h-[6px] w-full bg-[color:var(--color-accent)]" aria-hidden="true"></span>
+        </span>
+      </h1>
+
+      <p class="mt-10 max-w-2xl text-lg md:text-xl text-[color:var(--color-fg-muted)] text-balance">
+        {site.name} is an Answer Engine Optimization agency. We make your business the
+        <span class="text-[color:var(--color-fg)]">canonical answer</span>
+        ChatGPT, Claude, Perplexity, and Google AI return when prospects ask.
+      </p>
+
+      <div class="mt-10 flex flex-wrap items-center gap-4">
+        <a href="/contact" class="btn btn--primary">
+          Start a project
+          <span aria-hidden="true">→</span>
+        </a>
+        <a href="/services" class="btn">
+          How it works
+        </a>
+      </div>
+    </Container>
+
+    <!-- Telemetry strip — mono data row, pure ornament -->
+    <div class="border-t border-[color:var(--color-hairline)] bg-[color:var(--color-bg-2)]">
+      <Container class="flex flex-wrap items-center gap-x-10 gap-y-2 py-3 font-[family-name:var(--font-mono)] text-[0.7rem] uppercase tracking-[0.08em] text-[color:var(--color-fg-muted)]">
+        <span><span class="text-[color:var(--color-accent)]">●</span> Live</span>
+        <span>ENGINE: ChatGPT · Claude · Perplexity · Gemini · AI Overviews</span>
+        <span class="hidden md:inline">MODE: Retainer · Cancel by email</span>
+        <span class="ml-auto hidden lg:inline">LAT: 38.9°N</span>
+      </Container>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       WHAT WE DO
+       ========================================================= -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28">
+      <div class="grid md:grid-cols-[1fr_2fr] gap-10">
+        <div>
+          <div class="mono-label">[ 01 / What we do ]</div>
+          <h2 class="mt-4 font-medium tracking-[-0.02em] leading-[1.05]"
+              style="font-size: var(--text-display);">
+            Optimize for the answer.
+          </h2>
+        </div>
+        <div class="space-y-6 text-lg leading-relaxed">
+          <p>
+            Search is being replaced by synthesis. When buyers ask an LLM
+            <em class="text-[color:var(--color-accent)] not-italic">&ldquo;who's the best X?&rdquo;</em>
+            the model returns a single answer, distilled from whatever content it can retrieve and trust.
+          </p>
+          <p class="text-[color:var(--color-fg-muted)]">
+            We engineer every signal that decides whether you're that answer — entity graphs, structured data,
+            retrieval-friendly content architecture, and ongoing monitoring across every major answer engine.
+          </p>
+          <div class="pt-4 flex flex-wrap gap-2">
+            <span class="tag">Entity schema</span>
+            <span class="tag">RAG-ready content</span>
+            <span class="tag">Citation tracking</span>
+            <span class="tag tag--accent">Retainer</span>
+          </div>
+        </div>
+      </div>
+    </Container>
+  </section>
+
+  <!-- =========================================================
+       SERVICES GRID
+       ========================================================= -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28">
+      <div class="flex items-end justify-between gap-6 flex-wrap">
+        <div>
+          <div class="mono-label">[ 02 / Services ]</div>
+          <h2 class="mt-4 font-medium tracking-[-0.02em] leading-[1.05]"
+              style="font-size: var(--text-display);">
+            Four disciplines.<br />One surface: the answer.
+          </h2>
+        </div>
+        <a href="/services" class="link-slide font-[family-name:var(--font-mono)] text-xs uppercase tracking-[0.08em] text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-accent)]">
+          All services →
+        </a>
+      </div>
+
+      <div class="mt-12 grid md:grid-cols-2 border border-[color:var(--color-hairline)]">
+        {services.map((s, i) => (
+          <article class:list={[
+            'p-8 md:p-10 relative',
+            i % 2 === 0 ? 'md:border-r border-[color:var(--color-hairline)]' : '',
+            i >= 2 ? 'border-t border-[color:var(--color-hairline)]' : '',
+            'transition-colors hover:bg-[color:var(--color-bg-2)]',
+          ]}>
+            <div class="flex items-start justify-between gap-4">
+              <span class="mono-label">[{s.num}]</span>
+              <span class="tag tag--accent">{s.id}</span>
+            </div>
+            <h3 class="mt-6 text-2xl md:text-3xl font-medium tracking-tight leading-tight">
+              {s.name}
+            </h3>
+            <p class="mt-3 text-[color:var(--color-accent)] font-[family-name:var(--font-mono)] text-sm">
+              {s.tagline}
+            </p>
+            <p class="mt-4 text-[color:var(--color-fg-muted)] leading-relaxed">
+              {s.summary}
+            </p>
+          </article>
+        ))}
+      </div>
+    </Container>
+  </section>
+
+  <!-- =========================================================
+       PROOF / POSITIONING (placeholder stats block)
+       ========================================================= -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28">
+      <div class="mono-label">[ 03 / Why now ]</div>
+      <div class="mt-8 grid md:grid-cols-3 grid-divide grid-divide--md-cols">
+        <div class="py-8 md:py-0 md:pr-10">
+          <div class="font-[family-name:var(--font-mono)] text-[color:var(--color-accent)] text-sm tracking-wider">FACT 01</div>
+          <p class="mt-4 text-3xl md:text-4xl font-medium tracking-tight leading-tight text-balance">
+            ChatGPT alone answers
+            <span class="text-[color:var(--color-accent)]">over 1&nbsp;billion</span>
+            queries per day.
+          </p>
+        </div>
+        <div class="py-8 md:py-0 md:px-10">
+          <div class="font-[family-name:var(--font-mono)] text-[color:var(--color-accent)] text-sm tracking-wider">FACT 02</div>
+          <p class="mt-4 text-3xl md:text-4xl font-medium tracking-tight leading-tight text-balance">
+            Answers increasingly cite
+            <span class="text-[color:var(--color-accent)]">one</span>
+            source. Not ten.
+          </p>
+        </div>
+        <div class="py-8 md:py-0 md:pl-10">
+          <div class="font-[family-name:var(--font-mono)] text-[color:var(--color-accent)] text-sm tracking-wider">FACT 03</div>
+          <p class="mt-4 text-3xl md:text-4xl font-medium tracking-tight leading-tight text-balance">
+            Most sites are
+            <span class="text-[color:var(--color-accent)]">invisible</span>
+            to retrieval systems today.
+          </p>
+        </div>
+      </div>
+    </Container>
+  </section>
+
+  <!-- =========================================================
+       FAQ — big AEO signal. Matches FAQPage JSON-LD above.
+       ========================================================= -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28">
+      <div class="grid md:grid-cols-[1fr_2fr] gap-10">
+        <div>
+          <div class="mono-label">[ 04 / FAQ ]</div>
+          <h2 class="mt-4 font-medium tracking-[-0.02em] leading-[1.05]"
+              style="font-size: var(--text-display);">
+            Questions,<br />answered.
+          </h2>
+          <p class="mt-4 text-[color:var(--color-fg-muted)] max-w-sm">
+            Structured Q&amp;A is exactly what answer engines retrieve. This section is itself an example of what we build for clients.
+          </p>
+        </div>
+
+        <div class="border-t border-[color:var(--color-hairline)]">
+          {faq.map((item, i) => (
+            <details class="group border-b border-[color:var(--color-hairline)]">
+              <summary class="list-none cursor-pointer py-6 flex items-start justify-between gap-6 text-lg md:text-xl font-medium tracking-tight">
+                <span class="flex gap-4 items-start">
+                  <span class="mono-label shrink-0 pt-1" aria-hidden="true">
+                    [{String(i + 1).padStart(2, '0')}]
+                  </span>
+                  <span>{item.question}</span>
+                </span>
+                <span class="shrink-0 pt-1 font-[family-name:var(--font-mono)] text-[color:var(--color-accent)] transition-transform group-open:rotate-45"
+                      aria-hidden="true">+</span>
+              </summary>
+              <div class="pb-6 pl-12 pr-2 text-[color:var(--color-fg-muted)] leading-relaxed max-w-2xl">
+                {item.answer}
+              </div>
+            </details>
+          ))}
+        </div>
+      </div>
+    </Container>
+  </section>
+
+  <!-- =========================================================
+       FINAL CTA
+       ========================================================= -->
+  <section>
+    <Container class="py-24 md:py-36 text-center">
+      <div class="mono-label">[ End of line ]</div>
+      <h2 class="mt-6 font-medium tracking-[-0.02em] leading-[0.95] text-balance mx-auto max-w-4xl"
+          style="font-size: var(--text-display);">
+        Ready to be the answer <br class="hidden md:block"/> your buyers get?
+      </h2>
+      <div class="mt-10 flex justify-center flex-wrap gap-4">
+        <a href="/contact" class="btn btn--primary">
+          Start a project
+          <span aria-hidden="true">→</span>
+        </a>
+        <a href={`mailto:${site.email}`} class="btn">
+          Email us directly
+        </a>
+      </div>
+    </Container>
+  </section>
+</Base>

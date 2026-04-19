@@ -1,0 +1,24 @@
+# AEO Listings
+
+> Answer Engine Optimization agency. We make businesses the canonical answer that ChatGPT, Claude, Perplexity, and Google AI return when prospects ask.
+
+AEO Listings is a specialist agency that helps businesses become the answer engines' go-to source. Unlike traditional SEO, which targets ranked link lists, Answer Engine Optimization (AEO) targets the direct, synthesized answers that large language models produce. Our work spans entity definition, structured data, content optimization for retrieval-augmented generation, and measurement against LLM answer surfaces.
+
+## Core pages
+
+- [Home](https://aeolistings.ai/): Overview of AEO Listings and what we do.
+- [Services](https://aeolistings.ai/services): What Answer Engine Optimization entails and the services we provide.
+- [About](https://aeolistings.ai/about): Who we are, why we started AEO Listings, and our positioning.
+- [Contact](https://aeolistings.ai/contact): How to engage the agency.
+
+## Blog
+
+- [Blog](https://aeolistings.ai/blog): Essays and research on Answer Engine Optimization.
+
+## Key facts
+
+- Company name: AEO Listings
+- Primary domain: aeolistings.ai
+- Service focus: Answer Engine Optimization (AEO)
+- Engagement model: Retainer-based. Cancel by emailing the agency.
+- Primary contact: hello@aeolistings.ai

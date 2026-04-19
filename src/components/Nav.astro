@@ -1,0 +1,71 @@
+---
+import { site } from '../lib/site';
+import Container from './Container.astro';
+
+const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
+---
+<header class="sticky top-0 z-50 border-b border-[color:var(--color-hairline)] bg-[color:var(--color-bg)]/90 backdrop-blur supports-[backdrop-filter]:bg-[color:var(--color-bg)]/70">
+  <Container class="flex h-14 items-center justify-between">
+    <a
+      href="/"
+      class="flex items-center gap-2 font-[family-name:var(--font-mono)] text-sm tracking-[0.04em] uppercase link-slide whitespace-nowrap"
+      aria-label={`${site.name} — home`}
+    >
+      <span aria-hidden="true" class="text-[color:var(--color-accent)]">▞</span>
+      <span class="font-medium">{site.name}</span>
+      <span class="hidden sm:inline text-[color:var(--color-fg-muted)]">/</span>
+      <span class="hidden sm:inline text-[color:var(--color-fg-muted)]">{site.domain}</span>
+    </a>
+
+    <nav aria-label="Primary" class="hidden md:block">
+      <ul class="flex items-center gap-8 font-[family-name:var(--font-mono)] text-xs uppercase tracking-[0.08em]">
+        {site.nav.map(({ label, href }) => {
+          const active = currentPath === href || currentPath.startsWith(href + '/');
+          return (
+            <li>
+              <a
+                href={href}
+                aria-current={active ? 'page' : undefined}
+                class:list={[
+                  'link-slide transition-colors',
+                  active ? 'text-[color:var(--color-accent)]' : 'text-[color:var(--color-fg)] hover:text-[color:var(--color-accent)]',
+                ]}
+              >
+                {label}
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+
+    <a href="/contact" class="btn btn--primary hidden md:inline-flex">
+      Start a project
+      <span aria-hidden="true">→</span>
+    </a>
+
+    <!-- Mobile menu toggle — progressive enhancement via <details> -->
+    <details class="md:hidden relative">
+      <summary
+        class="list-none cursor-pointer p-2 -mr-2 font-[family-name:var(--font-mono)] text-xs uppercase tracking-[0.08em]"
+        aria-label="Toggle menu"
+      >
+        Menu
+      </summary>
+      <ul class="absolute right-0 top-full mt-2 min-w-[220px] border border-[color:var(--color-hairline-2)] bg-[color:var(--color-bg-2)] p-2 font-[family-name:var(--font-mono)] text-xs uppercase tracking-[0.08em]">
+        {site.nav.map(({ label, href }) => (
+          <li>
+            <a href={href} class="block px-3 py-2 hover:bg-[color:var(--color-bg-3)] hover:text-[color:var(--color-accent)]">
+              {label}
+            </a>
+          </li>
+        ))}
+        <li>
+          <a href="/contact" class="block px-3 py-2 mt-1 bg-[color:var(--color-accent)] text-[color:var(--color-accent-ink)]">
+            Start a project →
+          </a>
+        </li>
+      </ul>
+    </details>
+  </Container>
+</header>

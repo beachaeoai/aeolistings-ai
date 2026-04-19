@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="AEO Listings — Answer Engine Optimization">
+  <!-- Default Open Graph fallback image. 1200x630 — the standard OG aspect.
+       Swap for a raster PNG later if you want photo/gradient imagery. -->
+  <defs>
+    <style>
+      .bg { fill: #0A0A0A; }
+      .fg { fill: #F5F2EA; font-family: "Geist", "Inter Tight", "Helvetica Neue", sans-serif; font-weight: 500; }
+      .accent { fill: #FF3D00; }
+      .mono { fill: #8A857A; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 22px; letter-spacing: 0.08em; text-transform: uppercase; }
+      .hairline { stroke: #1F1F1F; stroke-width: 1; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1200" height="630" />
+
+  <!-- Visible grid lines -->
+  <line class="hairline" x1="0" y1="90" x2="1200" y2="90" />
+  <line class="hairline" x1="0" y1="540" x2="1200" y2="540" />
+
+  <!-- Top mono label -->
+  <text class="mono" x="80" y="60">[ AEOLISTINGS.AI / V0.1 ]</text>
+  <circle class="accent" cx="60" cy="52" r="6" />
+
+  <!-- Big headline -->
+  <text class="fg" x="80" y="290" font-size="120" letter-spacing="-0.02em">Be the answer,</text>
+  <text class="fg" x="80" y="430" font-size="120" letter-spacing="-0.02em">
+    <tspan fill="#8A857A">not a</tspan>
+    <tspan dx="18" fill="#F5F2EA">link.</tspan>
+  </text>
+
+  <!-- Accent underline under "link." — matches the site hero -->
+  <rect class="accent" x="482" y="445" width="150" height="10" />
+
+  <!-- Bottom mono strip -->
+  <text class="mono" x="80" y="590">ANSWER ENGINE OPTIMIZATION AGENCY</text>
+  <text class="mono" x="1120" y="590" text-anchor="end">AEOLISTINGS.AI</text>
+</svg>

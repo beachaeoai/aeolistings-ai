@@ -1,0 +1,271 @@
+---
+import Base from '../layouts/Base.astro';
+import Container from '../components/Container.astro';
+import { site } from '../lib/site';
+
+// AboutPage schema
+const aboutSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'AboutPage',
+  name: `About ${site.name}`,
+  url: site.url + '/about',
+  description:
+    `${site.name} is an Answer Engine Optimization agency. This page describes the agency's thesis, founder, and operating principles.`,
+  about: {
+    '@type': 'Organization',
+    name: site.name,
+    url: site.url,
+    email: site.email,
+  },
+};
+
+// Person schema for the founder
+const founderSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: site.founder.name,
+  jobTitle: site.founder.title,
+  worksFor: {
+    '@type': 'Organization',
+    name: site.name,
+    url: site.url,
+  },
+  email: site.email,
+};
+
+const principles = [
+  {
+    num: '01',
+    title: 'Answer first, content second.',
+    body: 'Every page leads with the definitional answer before context. Synthesizers reward pages that resolve the query in the first paragraph.',
+  },
+  {
+    num: '02',
+    title: 'Measure what synthesizers see.',
+    body: 'We do not track rankings. We track citations, entity presence, and the share of answers that name you as the source.',
+  },
+  {
+    num: '03',
+    title: 'Retainer, not lock-in.',
+    body: 'Cancel by email. No annual contracts, no surprise fees. The work has to speak for itself every month.',
+  },
+  {
+    num: '04',
+    title: 'Your site is the proof.',
+    body: 'If we cannot rank ourselves in ChatGPT, Claude, and Perplexity, we have no business selling you the same outcome.',
+  },
+];
+---
+<Base
+  title="About"
+  description={`About ${site.name} — an Answer Engine Optimization agency making businesses the canonical answer returned by ChatGPT, Claude, Perplexity, and Google AI.`}
+  path="/about"
+  schema={[aboutSchema, founderSchema]}
+>
+  <!-- =========================================================
+       HERO
+       ========================================================= -->
+  <section class="relative border-b border-[color:var(--color-hairline)]">
+    <Container class="py-16 md:py-28 lg:py-36">
+      <div class="mono-label flex items-center gap-3">
+        <span class="inline-block h-1.5 w-1.5 rounded-full bg-[color:var(--color-accent)] animate-pulse" aria-hidden="true"></span>
+        <span>[ About / Agency ]</span>
+      </div>
+
+      <h1 class="mt-8 font-medium tracking-[-0.02em] leading-[0.95] text-balance max-w-5xl"
+          style="font-size: var(--text-display-xl);">
+        Built by operators who got tired of being
+        <span class="relative inline-block">
+          <span class="text-[color:var(--color-accent)]">invisible</span>
+        </span>
+        to LLMs.
+      </h1>
+
+      <p class="mt-10 max-w-2xl text-lg md:text-xl text-[color:var(--color-fg-muted)] text-balance">
+        {site.name} is a small, focused Answer Engine Optimization agency. We came up through classical SEO, watched retrieval replace ten blue links, and rebuilt our playbook for the machines actually doing the answering.
+      </p>
+    </Container>
+  </section>
+
+  <!-- =========================================================
+       THESIS / POSITIONING
+       ========================================================= -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28">
+      <div class="grid md:grid-cols-[1fr_2fr] gap-10">
+        <div>
+          <div class="mono-label">[ 01 / Thesis ]</div>
+          <h2 class="mt-4 font-medium tracking-[-0.02em] leading-[1.05]"
+              style="font-size: var(--text-display);">
+            The search contract has changed.
+          </h2>
+        </div>
+        <div class="space-y-6 text-lg leading-relaxed">
+          <p>
+            For two decades, search engines returned ten ranked links and the user chose. That contract is being replaced by
+            <em class="text-[color:var(--color-accent)] not-italic">synthesis</em>:
+            a large language model reads across dozens of sources and hands back a single composed answer. ChatGPT, Claude, Perplexity, and Google&apos;s AI Overviews already account for a meaningful and growing share of commercial discovery.
+          </p>
+          <p class="text-[color:var(--color-fg-muted)]">
+            Most businesses are structurally invisible to these systems. Their content is not chunked for retrieval, their entities are not disambiguated in the knowledge graph, and their pages do not lead with a definitional answer. When a buyer asks an LLM &ldquo;who does X?&rdquo; — the model cannot cite what it cannot parse.
+          </p>
+          <p class="text-[color:var(--color-fg-muted)]">
+            {site.name} exists to close that gap. We engineer the retrieval surface of a business — schema, entities, content architecture, and citations — so synthesizers have something clean to pull from. The deliverable is not a ranking report. It is your name, returned as the answer.
+          </p>
+          <p class="text-[color:var(--color-fg-muted)]">
+            We work on retainer with a small roster of clients at a time. No annual contracts. No gimmicks. The playbook is public on this site.
+          </p>
+          <div class="pt-4 flex flex-wrap gap-2">
+            <span class="tag">Entity-first</span>
+            <span class="tag">Retrieval-aware</span>
+            <span class="tag tag--accent">Citation-measured</span>
+          </div>
+        </div>
+      </div>
+    </Container>
+  </section>
+
+  <!-- =========================================================
+       FOUNDER / TEAM
+       ========================================================= -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28">
+      <div class="mono-label">[ 02 / Team ]</div>
+      <h2 class="mt-4 font-medium tracking-[-0.02em] leading-[1.05]"
+          style="font-size: var(--text-display);">
+        Small roster.<br />Senior hands only.
+      </h2>
+
+      <div class="mt-12 border border-[color:var(--color-hairline)] grid md:grid-cols-[minmax(0,320px)_1fr]">
+        <!-- Portrait placeholder -->
+        <div class="relative aspect-square border-b md:border-b-0 md:border-r border-[color:var(--color-hairline)] bg-[color:var(--color-bg-2)] flex items-center justify-center">
+          <span class="mono-label">[ portrait / pending ]</span>
+          <span class="absolute top-3 left-3 font-[family-name:var(--font-mono)] text-[0.65rem] uppercase tracking-[0.08em] text-[color:var(--color-fg-dim)]">
+            01
+          </span>
+          <span class="absolute bottom-3 right-3 font-[family-name:var(--font-mono)] text-[0.65rem] uppercase tracking-[0.08em] text-[color:var(--color-fg-dim)]">
+            ◩
+          </span>
+        </div>
+
+        <div class="p-8 md:p-10">
+          <div class="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <h3 class="text-2xl md:text-3xl font-medium tracking-tight leading-tight">
+                {site.founder.name}
+              </h3>
+              <p class="mt-2 text-[color:var(--color-accent)] font-[family-name:var(--font-mono)] text-sm uppercase tracking-[0.06em]">
+                {site.founder.title}
+              </p>
+            </div>
+            <span class="tag tag--accent">Lead</span>
+          </div>
+
+          <p class="mt-6 text-[color:var(--color-fg-muted)] leading-relaxed max-w-2xl">
+            [PLACEHOLDER] Short bio paragraph one. Where the founder came from, what they built, and why classical SEO no longer solved the problem they kept seeing. Written in third person, three to four sentences, entity-dense.
+          </p>
+          <p class="mt-4 text-[color:var(--color-fg-muted)] leading-relaxed max-w-2xl">
+            [PLACEHOLDER] Short bio paragraph two. Why they started {site.name}, who they work with, and the one opinion that runs through the agency&apos;s practice.
+          </p>
+
+          <div class="mt-8 border-t border-[color:var(--color-hairline)] pt-6">
+            <div class="mono-label mb-4">[ credentials ]</div>
+            <ul class="space-y-2 text-[color:var(--color-fg-muted)]">
+              <li class="flex gap-3">
+                <span class="font-[family-name:var(--font-mono)] text-[color:var(--color-accent)] shrink-0">▸</span>
+                <span>[PLACEHOLDER] Prior role / notable outcome</span>
+              </li>
+              <li class="flex gap-3">
+                <span class="font-[family-name:var(--font-mono)] text-[color:var(--color-accent)] shrink-0">▸</span>
+                <span>[PLACEHOLDER] Prior role / notable outcome</span>
+              </li>
+              <li class="flex gap-3">
+                <span class="font-[family-name:var(--font-mono)] text-[color:var(--color-accent)] shrink-0">▸</span>
+                <span>[PLACEHOLDER] Publication, talk, or certification</span>
+              </li>
+              <li class="flex gap-3">
+                <span class="font-[family-name:var(--font-mono)] text-[color:var(--color-accent)] shrink-0">▸</span>
+                <span>[PLACEHOLDER] Area of focus or specialty</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Contact card -->
+          <div class="mt-8 border border-[color:var(--color-hairline)] bg-[color:var(--color-bg-2)] p-5 font-[family-name:var(--font-mono)] text-xs leading-relaxed">
+            <div class="flex items-center justify-between mb-3 text-[color:var(--color-fg-muted)] uppercase tracking-[0.08em]">
+              <span>~/ contact.card</span>
+              <span class="text-[color:var(--color-accent)]">● open</span>
+            </div>
+            <div class="space-y-1 text-[color:var(--color-fg)]">
+              <div><span class="text-[color:var(--color-fg-muted)]">name  &gt;</span> {site.founder.name}</div>
+              <div><span class="text-[color:var(--color-fg-muted)]">role  &gt;</span> {site.founder.title}, {site.name}</div>
+              <div><span class="text-[color:var(--color-fg-muted)]">email &gt;</span> <a href={`mailto:${site.email}`} class="link-slide text-[color:var(--color-accent)]">{site.email}</a></div>
+              <div><span class="text-[color:var(--color-fg-muted)]">loc   &gt;</span> {site.location}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Container>
+  </section>
+
+  <!-- =========================================================
+       PRINCIPLES
+       ========================================================= -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28">
+      <div class="flex items-end justify-between gap-6 flex-wrap">
+        <div>
+          <div class="mono-label">[ 03 / Principles ]</div>
+          <h2 class="mt-4 font-medium tracking-[-0.02em] leading-[1.05]"
+              style="font-size: var(--text-display);">
+            How we operate.
+          </h2>
+        </div>
+        <p class="max-w-sm text-[color:var(--color-fg-muted)]">
+          Four rules the agency does not break. They shape every engagement, deliverable, and invoice.
+        </p>
+      </div>
+
+      <div class="mt-12 grid md:grid-cols-4 grid-divide grid-divide--md-cols border border-[color:var(--color-hairline)]">
+        {principles.map((p) => (
+          <div class="p-8 md:p-10">
+            <div class="font-[family-name:var(--font-mono)] text-[color:var(--color-accent)] text-sm tracking-wider">
+              P/{p.num}
+            </div>
+            <h3 class="mt-4 text-xl md:text-2xl font-medium tracking-tight leading-tight">
+              {p.title}
+            </h3>
+            <p class="mt-4 text-[color:var(--color-fg-muted)] leading-relaxed">
+              {p.body}
+            </p>
+          </div>
+        ))}
+      </div>
+    </Container>
+  </section>
+
+  <!-- =========================================================
+       FINAL CTA
+       ========================================================= -->
+  <section>
+    <Container class="py-24 md:py-36 text-center">
+      <div class="mono-label">[ End of line ]</div>
+      <h2 class="mt-6 font-medium tracking-[-0.02em] leading-[0.95] text-balance mx-auto max-w-4xl"
+          style="font-size: var(--text-display);">
+        Want to talk <span class="text-[color:var(--color-accent)]">shop</span>?
+      </h2>
+      <p class="mt-6 max-w-xl mx-auto text-[color:var(--color-fg-muted)] text-lg">
+        Thirty minutes, no pitch. Bring a question about retrieval, citations, or entity schema and we&apos;ll bring an honest answer.
+      </p>
+      <div class="mt-10 flex justify-center flex-wrap gap-4">
+        <a href="/contact" class="btn btn--primary">
+          Start a project
+          <span aria-hidden="true">→</span>
+        </a>
+        <a href={`mailto:${site.email}`} class="btn">
+          Email us directly
+        </a>
+      </div>
+    </Container>
+  </section>
+</Base>

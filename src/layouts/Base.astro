@@ -1,0 +1,93 @@
+---
+import '../styles/global.css';
+import { site } from '../lib/site';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Canonical URL path for this page, e.g. "/services" */
+  path?: string;
+  /** Optional JSON-LD schema objects for this page */
+  schema?: unknown[];
+  /** If true, sets robots meta to noindex (useful for draft pages) */
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description = site.description,
+  path,
+  schema = [],
+  noindex = false,
+} = Astro.props;
+
+const pageTitle = title ? `${title} — ${site.name}` : `${site.name} — ${site.tagline}`;
+const canonical = new URL(path ?? Astro.url.pathname, site.url).href;
+
+// Default Organization schema — present on every page
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: site.name,
+  url: site.url,
+  description: site.description,
+  email: site.email,
+};
+const allSchema = [organizationSchema, ...schema];
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0A0A0A" />
+
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={new URL('/og-default.svg', site.url).href} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+
+    <!-- Structured data (JSON-LD) — feeds LLM/AEO -->
+    {allSchema.map((obj) => (
+      <script is:inline type="application/ld+json" set:html={JSON.stringify(obj)} />
+    ))}
+
+    <!-- Sitemap link for crawlers -->
+    <link rel="sitemap" href="/sitemap-index.xml" />
+  </head>
+  <body>
+    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-[color:var(--color-accent)] focus:text-[color:var(--color-accent-ink)] focus:px-3 focus:py-2 focus:font-[family-name:var(--font-mono)] focus:text-xs focus:uppercase focus:tracking-wider">
+      Skip to content
+    </a>
+
+    <Nav />
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <Footer />
+  </body>
+</html>

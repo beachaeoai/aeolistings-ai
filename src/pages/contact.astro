@@ -1,0 +1,326 @@
+---
+import Base from '../layouts/Base.astro';
+import Container from '../components/Container.astro';
+import { site } from '../lib/site';
+
+// ContactPage schema
+const contactPageSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ContactPage',
+  name: `Contact — ${site.name}`,
+  url: `${site.url}/contact`,
+  description:
+    'Get in touch with AEO Listings. Email is the fastest path for new projects and existing client requests, including cancellations.',
+};
+
+// Organization schema with nested ContactPoint
+const organizationWithContact = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: site.name,
+  url: site.url,
+  email: site.email,
+  contactPoint: [
+    {
+      '@type': 'ContactPoint',
+      contactType: 'customer support',
+      email: site.email,
+      availableLanguage: ['English'],
+      areaServed: 'Worldwide',
+    },
+    {
+      '@type': 'ContactPoint',
+      contactType: 'sales',
+      email: site.email,
+      availableLanguage: ['English'],
+      areaServed: 'Worldwide',
+    },
+  ],
+};
+
+const services = [
+  'Entity Foundation',
+  'Answer-Ready Content',
+  'AEO Measurement',
+  'Ongoing Retainer',
+  'Not sure yet',
+];
+
+// Show social rows only when a URL is provided (defaults are empty strings).
+const socialRows = (
+  [
+    { label: 'LinkedIn', href: site.social.linkedin as string },
+    { label: 'X', href: site.social.x as string },
+    { label: 'GitHub', href: site.social.github as string },
+  ] as { label: string; href: string }[]
+).filter((row) => row.href.length > 0);
+---
+<Base
+  title="Contact"
+  description="Get in touch with AEO Listings. Email is the fastest path for new projects, existing clients, and cancellations."
+  path="/contact"
+  schema={[contactPageSchema, organizationWithContact]}
+>
+  <!-- =========================================================
+       HERO
+       ========================================================= -->
+  <section class="relative border-b border-[color:var(--color-hairline)]">
+    <Container class="py-16 md:py-28 lg:py-36">
+      <div class="mono-label flex items-center gap-3">
+        <span class="inline-block h-1.5 w-1.5 rounded-full bg-[color:var(--color-accent)] animate-pulse" aria-hidden="true"></span>
+        <span>[ Contact / Agency ]</span>
+      </div>
+
+      <h1 class="mt-8 font-medium tracking-[-0.02em] leading-[1.05] text-balance"
+          style="font-size: var(--text-display);">
+        Let's
+        <span class="relative inline-block">
+          talk.
+          <span class="absolute left-0 -bottom-2 h-[6px] w-full bg-[color:var(--color-accent)]" aria-hidden="true"></span>
+        </span>
+      </h1>
+
+      <p class="mt-10 max-w-2xl text-lg md:text-xl text-[color:var(--color-fg-muted)] text-balance">
+        Email is the fastest path. No forms required &mdash;
+        <span class="text-[color:var(--color-fg)]">but one's below</span>
+        if you prefer.
+      </p>
+
+      <div class="mt-10 flex flex-wrap items-center gap-4">
+        <a href={`mailto:${site.email}`} class="btn btn--primary">
+          Email {site.email}
+          <span aria-hidden="true">→</span>
+        </a>
+        <a href="#inquiry" class="btn">
+          Use the form
+        </a>
+      </div>
+    </Container>
+  </section>
+
+  <!-- =========================================================
+       TWO-COLUMN: DIRECT CHANNELS + INQUIRY FORM
+       ========================================================= -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28">
+      <div class="grid md:grid-cols-2 border border-[color:var(--color-hairline)]">
+        <!-- LEFT: DIRECT CHANNELS -->
+        <div class="p-8 md:p-12 md:border-r border-[color:var(--color-hairline)]">
+          <div class="mono-label">[ 01 / Direct ]</div>
+          <h2 class="mt-4 font-medium tracking-[-0.02em] leading-[1.05]"
+              style="font-size: var(--text-display);">
+            Reach us<br/>directly.
+          </h2>
+          <p class="mt-6 text-[color:var(--color-fg-muted)] leading-relaxed max-w-md">
+            One inbox. One human. No ticket queue, no CRM funnel.
+          </p>
+
+          <dl class="mt-10 border-t border-[color:var(--color-hairline)]">
+            <!-- Email row -->
+            <div class="grid grid-cols-[auto_1fr] gap-6 py-5 border-b border-[color:var(--color-hairline)]">
+              <dt class="mono-label pt-1">Email</dt>
+              <dd class="min-w-0">
+                <a href={`mailto:${site.email}`} class="link-slide font-[family-name:var(--font-mono)] text-base md:text-lg break-all">
+                  {site.email}
+                </a>
+                <div class="mt-1 text-sm text-[color:var(--color-fg-muted)]">
+                  New projects &middot; current clients &middot; anything.
+                </div>
+              </dd>
+            </div>
+
+            <!-- Location row -->
+            <div class="grid grid-cols-[auto_1fr] gap-6 py-5 border-b border-[color:var(--color-hairline)]">
+              <dt class="mono-label pt-1">Location</dt>
+              <dd class="min-w-0">
+                <span class="font-[family-name:var(--font-mono)] text-base md:text-lg">{site.location}</span>
+                <div class="mt-1 text-sm text-[color:var(--color-fg-muted)]">
+                  Remote-first. Clients global.
+                </div>
+              </dd>
+            </div>
+
+            <!-- Hours row -->
+            <div class="grid grid-cols-[auto_1fr] gap-6 py-5 border-b border-[color:var(--color-hairline)]">
+              <dt class="mono-label pt-1">Hours</dt>
+              <dd class="min-w-0">
+                <span class="font-[family-name:var(--font-mono)] text-base md:text-lg">Mon &ndash; Fri</span>
+                <div class="mt-1 text-sm text-[color:var(--color-fg-muted)]">
+                  Replies within one business day.
+                </div>
+              </dd>
+            </div>
+
+            <!-- Optional social rows — only render if URL provided -->
+            {socialRows.map((row) => (
+              <div class="grid grid-cols-[auto_1fr] gap-6 py-5 border-b border-[color:var(--color-hairline)]">
+                <dt class="mono-label pt-1">{row.label}</dt>
+                <dd class="min-w-0">
+                  <a href={row.href} rel="noopener noreferrer" target="_blank" class="link-slide font-[family-name:var(--font-mono)] text-base md:text-lg">
+                    {row.href.replace(/^https?:\/\//, '')}
+                  </a>
+                </dd>
+              </div>
+            ))}
+          </dl>
+
+          <div class="mt-10 flex flex-wrap gap-2">
+            <span class="tag">Retainer</span>
+            <span class="tag">Cancel by email</span>
+            <span class="tag tag--accent">1 business day</span>
+          </div>
+        </div>
+
+        <!-- RIGHT: INQUIRY FORM -->
+        <div id="inquiry" class="p-8 md:p-12 border-t md:border-t-0 border-[color:var(--color-hairline)]">
+          <div class="mono-label">[ 02 / Inquiry ]</div>
+          <h2 class="mt-4 font-medium tracking-[-0.02em] leading-[1.05]"
+              style="font-size: var(--text-display);">
+            Or use<br/>the form.
+          </h2>
+          <p class="mt-6 text-[color:var(--color-fg-muted)] leading-relaxed max-w-md">
+            Send the basics. We'll reply from a real inbox, not a no-reply.
+          </p>
+
+          {/*
+            FORM SUBMISSION — PLACEHOLDER ONLY.
+            This uses `mailto:` as a no-backend fallback so the form isn't dead on launch.
+            Most browsers will open the user's default mail client with a pre-filled body.
+            Replace with a real endpoint before production:
+              - Resend (https://resend.com) via an Astro API route (src/pages/api/contact.ts),
+              - Formspree / Basin / Getform (drop-in POST endpoints), OR
+              - Custom serverless function (Vercel / Netlify / Cloudflare Workers).
+            When migrating, remove `enctype="text/plain"` and switch `action` to the endpoint URL.
+          */}
+          <form
+            class="mt-10 space-y-6"
+            action={`mailto:${site.email}`}
+            method="POST"
+            enctype="text/plain"
+          >
+            <!-- Name -->
+            <div>
+              <label for="name" class="mono-label block">Name *</label>
+              <input
+                id="name"
+                name="Name"
+                type="text"
+                required
+                autocomplete="name"
+                class="mt-2 block w-full bg-transparent border border-[color:var(--color-hairline-2)] px-3 py-3 font-[family-name:var(--font-mono)] text-sm text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-dim)] focus:border-[color:var(--color-accent)] focus:outline-none"
+              />
+            </div>
+
+            <!-- Email -->
+            <div>
+              <label for="email" class="mono-label block">Email *</label>
+              <input
+                id="email"
+                name="Email"
+                type="email"
+                required
+                autocomplete="email"
+                class="mt-2 block w-full bg-transparent border border-[color:var(--color-hairline-2)] px-3 py-3 font-[family-name:var(--font-mono)] text-sm text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-dim)] focus:border-[color:var(--color-accent)] focus:outline-none"
+              />
+            </div>
+
+            <!-- Company -->
+            <div>
+              <label for="company" class="mono-label block">Company</label>
+              <input
+                id="company"
+                name="Company"
+                type="text"
+                autocomplete="organization"
+                class="mt-2 block w-full bg-transparent border border-[color:var(--color-hairline-2)] px-3 py-3 font-[family-name:var(--font-mono)] text-sm text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-dim)] focus:border-[color:var(--color-accent)] focus:outline-none"
+              />
+            </div>
+
+            <!-- Service of interest -->
+            <div>
+              <label for="service" class="mono-label block">Service of interest</label>
+              <select
+                id="service"
+                name="Service"
+                class="mt-2 block w-full bg-transparent border border-[color:var(--color-hairline-2)] px-3 py-3 font-[family-name:var(--font-mono)] text-sm text-[color:var(--color-fg)] focus:border-[color:var(--color-accent)] focus:outline-none"
+              >
+                {services.map((s) => (
+                  <option value={s} class="bg-[color:var(--color-bg-2)] text-[color:var(--color-fg)]">{s}</option>
+                ))}
+              </select>
+            </div>
+
+            <!-- Message -->
+            <div>
+              <label for="message" class="mono-label block">Message *</label>
+              <textarea
+                id="message"
+                name="Message"
+                rows="5"
+                required
+                placeholder="What are you trying to rank for in LLM answers?"
+                class="mt-2 block w-full bg-transparent border border-[color:var(--color-hairline-2)] px-3 py-3 font-[family-name:var(--font-mono)] text-sm text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-dim)] focus:border-[color:var(--color-accent)] focus:outline-none resize-y"
+              ></textarea>
+            </div>
+
+            <div class="pt-2 flex flex-wrap items-center gap-4">
+              <button type="submit" class="btn btn--primary">
+                Send inquiry
+                <span aria-hidden="true">→</span>
+              </button>
+              <span class="font-[family-name:var(--font-mono)] text-xs uppercase tracking-[0.08em] text-[color:var(--color-fg-muted)]">
+                Opens your mail client
+              </span>
+            </div>
+          </form>
+        </div>
+      </div>
+    </Container>
+  </section>
+
+  <!-- =========================================================
+       CANCELLATION BLOCK
+       ========================================================= -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28">
+      <div class="grid md:grid-cols-[1fr_2fr] gap-10">
+        <div>
+          <div class="mono-label">[ 03 / Cancellation ]</div>
+          <h2 class="mt-4 font-medium tracking-[-0.02em] leading-[1.05]"
+              style="font-size: var(--text-h1);">
+            One email.<br/>Always.
+          </h2>
+        </div>
+        <blockquote class="border-l-2 border-[color:var(--color-accent)] pl-6 md:pl-8 text-lg md:text-xl leading-relaxed text-balance">
+          <p>
+            Current clients can cancel any active retainer by emailing
+            <a href={`mailto:${site.email}`} class="link-slide text-[color:var(--color-accent)] font-[family-name:var(--font-mono)]">
+              {site.email}
+            </a>.
+            No forms, no phone tree, no retention calls. We'd rather hear why and fix it, but cancellation is always
+            <span class="text-[color:var(--color-fg)]">one email away</span>.
+          </p>
+        </blockquote>
+      </div>
+    </Container>
+  </section>
+
+  <!-- =========================================================
+       FINAL CTA
+       ========================================================= -->
+  <section>
+    <Container class="py-20 md:py-28 text-center">
+      <div class="mono-label">[ Prefer a call? ]</div>
+      <p class="mt-6 font-medium tracking-[-0.02em] leading-[1.1] text-balance mx-auto max-w-3xl"
+         style="font-size: var(--text-h1);">
+        Email us first and<br class="hidden md:block"/> we'll find a time.
+      </p>
+      <div class="mt-10 flex justify-center flex-wrap gap-4">
+        <a href={`mailto:${site.email}`} class="btn btn--primary">
+          Email us
+          <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </Container>
+  </section>
+</Base>

@@ -1,0 +1,185 @@
+@import "tailwindcss";
+@import "@fontsource-variable/geist/index.css";
+@import "@fontsource-variable/geist-mono/index.css";
+
+/* ===========================================================================
+   Design tokens — brutalist-tech
+   Single source of truth. Change these and the whole site follows.
+   =========================================================================== */
+@theme {
+  /* Palette */
+  --color-bg:         #0A0A0A;  /* off-black — pure black crushes on most displays */
+  --color-bg-2:       #111111;  /* raised surfaces */
+  --color-bg-3:       #181818;
+  --color-fg:         #F5F2EA;  /* bone / warm off-white */
+  --color-fg-muted:   #8A857A;
+  --color-fg-dim:     #5A564F;
+  --color-hairline:   #1F1F1F;  /* subtle border */
+  --color-hairline-2: #2A2A2A;
+  --color-accent:     #FF3D00;  /* electric orange — swap a single var to change */
+  --color-accent-ink: #0A0A0A;  /* text on accent bg */
+  --color-danger:     #FF3D00;
+
+  /* Type */
+  --font-sans:    "Geist Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono:    "Geist Mono Variable", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-display: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+
+  /* Scale — display sizes go HEAVY for brutalist impact */
+  --text-display-xl: clamp(3.5rem, 9vw, 8rem);
+  --text-display:    clamp(2.5rem, 6vw, 5rem);
+  --text-h1:         clamp(2rem, 4.5vw, 3.5rem);
+  --text-h2:         clamp(1.5rem, 3vw, 2.25rem);
+  --text-h3:         1.25rem;
+
+  /* Motion — restrained */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 120ms;
+  --dur-med:  220ms;
+}
+
+/* ===========================================================================
+   Base
+   =========================================================================== */
+@layer base {
+  html {
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    line-height: 1.5;
+    font-size: 1rem;
+  }
+
+  ::selection {
+    background: var(--color-accent);
+    color: var(--color-accent-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+    border-radius: 1px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ===========================================================================
+   Utility primitives (brutalist-tech specific)
+   =========================================================================== */
+@layer components {
+  /* Monospace metadata label — e.g. `[01]` or `[SERVICES /]` */
+  .mono-label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-fg-muted);
+  }
+
+  /* Hairline rule — horizontal separator */
+  .hairline {
+    border: 0;
+    border-top: 1px solid var(--color-hairline);
+    margin: 0;
+  }
+
+  /* Signature hover — used sparingly on primary CTAs and nav */
+  .link-slide {
+    position: relative;
+    display: inline-block;
+  }
+  .link-slide::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -2px;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform var(--dur-med) var(--ease-out-expo);
+  }
+  .link-slide:hover::after,
+  .link-slide:focus-visible::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+
+  /* Inline code-style badge */
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    padding: 0.25rem 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-fg);
+    border: 1px solid var(--color-hairline-2);
+    background: var(--color-bg-2);
+  }
+  .tag--accent {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+    background: transparent;
+  }
+
+  /* Primary CTA — solid accent block, no rounding (brutalist) */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.9rem 1.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: 1px solid var(--color-fg);
+    color: var(--color-fg);
+    background: transparent;
+    transition: background var(--dur-fast) linear,
+                color var(--dur-fast) linear;
+  }
+  .btn:hover {
+    background: var(--color-fg);
+    color: var(--color-bg);
+  }
+  .btn--primary {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: var(--color-accent-ink);
+  }
+  .btn--primary:hover {
+    background: transparent;
+    color: var(--color-accent);
+  }
+
+  /* Grid divider — visible hairlines between children */
+  .grid-divide > * + * {
+    border-top: 1px solid var(--color-hairline);
+  }
+  @media (min-width: 768px) {
+    .grid-divide--md-cols > * + * {
+      border-top: 0;
+      border-left: 1px solid var(--color-hairline);
+    }
+  }
+}
