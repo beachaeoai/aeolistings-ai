@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 150" role="img" aria-label="AEO Listings">
+  <text x="0" y="88"
+        font-family="'Instrument Serif', Georgia, 'Times New Roman', serif"
+        font-size="104"
+        font-weight="400"
+        letter-spacing="-3"
+        fill="#1A1A1A">AEO</text>
+  <text x="233" y="88"
+        font-family="'Instrument Serif', Georgia, 'Times New Roman', serif"
+        font-size="104"
+        font-weight="400"
+        font-style="italic"
+        fill="#8B2F2F">.</text>
+  <text x="0" y="128"
+        font-family="'Instrument Sans', -apple-system, Helvetica, sans-serif"
+        font-size="18"
+        font-weight="500"
+        letter-spacing="6"
+        fill="#1A1A1A">L I S T I N G S</text>
+</svg>
