@@ -14,17 +14,17 @@ const fmt = new Intl.DateTimeFormat('en-US', {
   day: '2-digit',
 });
 
+// Blog schema — publisher references the root Organization (`#org`)
+// shipped site-wide from Base.astro.
 const blogSchema = {
   '@context': 'https://schema.org',
   '@type': 'Blog',
-  name: `${site.name} — Notes`,
+  '@id': `${site.url}/blog#blog`,
   url: `${site.url}/blog`,
+  name: `${site.name} — Notes`,
   description: 'Essays and research on Answer Engine Optimization.',
-  publisher: {
-    '@type': 'Organization',
-    name: site.name,
-    url: site.url,
-  },
+  publisher: { '@id': `${site.url}/#org` },
+  inLanguage: 'en-US',
 };
 ---
 <Base

@@ -1,0 +1,218 @@
+---
+import Base from '../../layouts/Base.astro';
+import Container from '../../components/Container.astro';
+import { site } from '../../lib/site';
+import { locations, type Location } from '../../lib/locations';
+
+export async function getStaticPaths() {
+  return locations.map((loc) => ({
+    params: { city: loc.slug },
+    props: { location: loc },
+  }));
+}
+
+interface Props {
+  location: Location;
+}
+
+const { location } = Astro.props;
+
+const pageUrl = `${site.url}/locations/${location.slug}`;
+
+// Per-city ProfessionalService entity — references the root Organization
+// (`#org`) as the parent; declares the city as the primary areaServed for
+// THIS page so AI chatbots have an explicit per-city signal to retrieve.
+const localServiceSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfessionalService',
+  '@id': `${pageUrl}#service`,
+  name: `${site.name} — Answer Engine Optimization in ${location.name}`,
+  url: pageUrl,
+  description: location.metaDescription,
+  parentOrganization: { '@id': `${site.url}/#org` },
+  provider: { '@id': `${site.url}/#org` },
+  serviceType: 'Answer Engine Optimization',
+  areaServed: [
+    { '@type': 'City', name: location.name, containedInPlace: { '@type': 'State', name: 'Arizona' } },
+  ],
+};
+
+// FAQPage — built from the location's per-city Q&A.
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  '@id': `${pageUrl}#faq`,
+  mainEntity: location.faq.map((item) => ({
+    '@type': 'Question',
+    name: item.q,
+    acceptedAnswer: { '@type': 'Answer', text: item.a },
+  })),
+};
+
+// BreadcrumbList — Home → Locations → [City]
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  '@id': `${pageUrl}#breadcrumbs`,
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${site.url}/` },
+    { '@type': 'ListItem', position: 2, name: 'Locations', item: `${site.url}/locations` },
+    { '@type': 'ListItem', position: 3, name: location.fullName, item: pageUrl },
+  ],
+};
+---
+<Base
+  title={location.metaTitle}
+  description={location.metaDescription}
+  path={`/locations/${location.slug}`}
+  schema={[localServiceSchema, faqSchema, breadcrumbSchema]}
+>
+  <!-- =========================================================
+       HERO
+       ========================================================= -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-32">
+      <div class="mono-label flex flex-wrap items-center gap-3">
+        <a href="/locations" class="link-slide hover:text-[color:var(--color-accent)]">
+          ← /locations
+        </a>
+        <span aria-hidden="true">·</span>
+        <span>{location.metro}</span>
+      </div>
+
+      <h1 class="mt-8 text-balance max-w-[24ch]"
+          style="font-family: var(--font-serif); font-size: var(--text-display); line-height: 1.02;">
+        Answer Engine Optimization in {location.name}.
+      </h1>
+
+      <p class="mt-10 max-w-2xl text-lg md:text-xl leading-[1.6] text-[color:var(--color-fg-muted)]">
+        {location.intro}
+      </p>
+    </Container>
+  </section>
+
+  <!-- =========================================================
+       THE HOOK — the unique-per-city paragraph + cited source
+       ========================================================= -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28">
+      <div class="grid md:grid-cols-[1fr_2fr] gap-12 md:gap-20">
+        <div>
+          <div class="mono-label">01 · The market</div>
+          <h2 class="mt-5"
+              style="font-size: var(--text-h1); line-height: 1.05;">
+            What's actually different about {location.name}.
+          </h2>
+        </div>
+        <div class="space-y-6 text-[1.0625rem] leading-[1.65] max-w-[60ch]">
+          <p>{location.hookParagraph}</p>
+          <p class="text-sm text-[color:var(--color-fg-muted)] font-[family-name:var(--font-sans)] pt-2 border-t border-[color:var(--color-hairline)]">
+            Source: <a
+              href={location.hookSourceUrl}
+              rel="noopener noreferrer"
+              target="_blank"
+              class="link-slide text-[color:var(--color-fg)]"
+            >{location.hookSourceLabel}</a>
+          </p>
+        </div>
+      </div>
+    </Container>
+  </section>
+
+  <!-- =========================================================
+       WHAT WE DO HERE — references the four-track service stack
+       ========================================================= -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28">
+      <div class="grid md:grid-cols-[1fr_2fr] gap-12 md:gap-20">
+        <div>
+          <div class="mono-label">02 · The work</div>
+          <h2 class="mt-5"
+              style="font-size: var(--text-h1); line-height: 1.05;">
+            What we do for {location.name} businesses.
+          </h2>
+        </div>
+        <div class="space-y-6 text-[1.0625rem] leading-[1.65] max-w-[60ch]">
+          <p>
+            The work in {location.name} runs the same four tracks we run for every
+            client — Foundation (entity discipline, Google Business Profile, schema,
+            citations), Visibility (passage-shaped content for AI retrieval),
+            Authority (off-site corroboration, review velocity, named-source
+            mentions), and Operations (monthly monitoring as the models change).
+          </p>
+          <p class="text-[color:var(--color-fg-muted)]">
+            What changes by city is the <em>weighting</em>: which queries to
+            prioritize, which competitors to track, which neighborhood signals to
+            build, and which directories to fix first. The market dynamic above is
+            what tells us how to weight the work for {location.name} specifically.
+          </p>
+          <div class="pt-4">
+            <a href="/services" class="link-slide text-[color:var(--color-fg)]">
+              See the full four-track service stack →
+            </a>
+          </div>
+        </div>
+      </div>
+    </Container>
+  </section>
+
+  <!-- =========================================================
+       PER-CITY FAQ
+       ========================================================= -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28">
+      <div class="grid md:grid-cols-[1fr_2fr] gap-12 md:gap-20">
+        <div>
+          <div class="mono-label">03 · Questions</div>
+          <h2 class="mt-5"
+              style="font-size: var(--text-h1); line-height: 1.05;">
+            Specific to {location.name}.
+          </h2>
+          <p class="mt-6 text-[color:var(--color-fg-muted)] leading-[1.65] max-w-md">
+            Three questions we get most often from {location.name} businesses.
+            <a href="/faq" class="link-slide text-[color:var(--color-fg)]">All ten general FAQs are here</a>.
+          </p>
+        </div>
+        <div class="max-w-[60ch] space-y-3">
+          {location.faq.map((item) => (
+            <details class="group border-b border-[color:var(--color-hairline)] py-5">
+              <summary class="cursor-pointer list-none flex items-baseline justify-between gap-4 font-[family-name:var(--font-serif)] text-[1.25rem] md:text-[1.375rem] leading-snug">
+                <span>{item.q}</span>
+                <span aria-hidden="true" class="font-[family-name:var(--font-mono)] text-sm text-[color:var(--color-fg-muted)] shrink-0 transition-transform group-open:rotate-45">+</span>
+              </summary>
+              <div class="mt-4 text-[color:var(--color-fg-muted)] leading-[1.65]">
+                <p>{item.a}</p>
+              </div>
+            </details>
+          ))}
+        </div>
+      </div>
+    </Container>
+  </section>
+
+  <!-- =========================================================
+       FINAL CTA
+       ========================================================= -->
+  <section>
+    <Container class="py-20 md:py-28 text-center">
+      <p class="font-[family-name:var(--font-serif)] italic text-balance mx-auto max-w-3xl"
+         style="font-size: clamp(1.75rem, 3.5vw, 2.5rem); line-height: 1.2;">
+        Run the audit on your {location.name} business — free, on a call.
+      </p>
+      <p class="mt-6 max-w-xl mx-auto text-[color:var(--color-fg-muted)] leading-[1.65]">
+        Thirty minutes. No pitch. We pull live AI-citation data for your business
+        in {location.name} and walk you through what the chatbots are actually saying
+        about you today.
+      </p>
+      <div class="mt-10 flex justify-center flex-wrap gap-4">
+        <a href="/contact" class="btn btn--primary">
+          <span>Start a project</span>
+          <span aria-hidden="true">→</span>
+        </a>
+        <a href={`mailto:${site.email}`} class="btn">
+          <span>Email us directly</span>
+        </a>
+      </div>
+    </Container>
+  </section>
+</Base>

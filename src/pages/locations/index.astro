@@ -1,0 +1,137 @@
+---
+import Base from '../../layouts/Base.astro';
+import Container from '../../components/Container.astro';
+import { site } from '../../lib/site';
+import { locations } from '../../lib/locations';
+
+// CollectionPage schema for /locations. References the root Organization
+// (`#org`) and root WebSite (`#website`) shipped from Base.astro by `@id`.
+const collectionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  '@id': `${site.url}/locations#page`,
+  url: `${site.url}/locations`,
+  name: `Locations — ${site.name}`,
+  description:
+    'Regional pages for the East Valley and Phoenix metropolitan cities AEO Listings has direct experience with. One distinctive market dynamic per city.',
+  isPartOf: { '@id': `${site.url}/#website` },
+  about: { '@id': `${site.url}/#org` },
+  hasPart: locations.map((l) => ({
+    '@type': 'WebPage',
+    name: l.fullName,
+    url: `${site.url}/locations/${l.slug}`,
+    description: l.metaDescription,
+  })),
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  '@id': `${site.url}/locations#breadcrumbs`,
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${site.url}/` },
+    { '@type': 'ListItem', position: 2, name: 'Locations', item: `${site.url}/locations` },
+  ],
+};
+---
+<Base
+  title="Locations"
+  description="Regional pages for the East Valley and Phoenix metropolitan cities we have direct experience with — Mesa, Phoenix, Scottsdale, Tempe, Chandler, and Gilbert."
+  path="/locations"
+  schema={[collectionSchema, breadcrumbSchema]}
+>
+  <!-- =========================================================
+       HERO
+       ========================================================= -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-32">
+      <div class="mono-label">Locations · East Valley + Phoenix metro</div>
+
+      <h1 class="mt-8 text-balance max-w-[22ch]"
+          style="font-family: var(--font-serif); font-size: var(--text-display); line-height: 1.02;">
+        Where we work — and what we've learned about each market.
+      </h1>
+
+      <p class="mt-10 max-w-2xl text-lg md:text-xl leading-[1.6] text-[color:var(--color-fg-muted)]">
+        We are headquartered in Mesa, Arizona, and we work with clients across the
+        United States. The pages below are for the East Valley and Phoenix-metro
+        cities we have direct experience with — each one anchored to a specific local
+        market dynamic that changes how AEO has to be done there.
+      </p>
+
+      <p class="mt-6 max-w-2xl text-[color:var(--color-fg-muted)] leading-[1.65]">
+        We work with businesses outside this list too. The full service area is the
+        United States. These pages exist because the work in these specific cities is
+        where we have the most pattern recognition — and because generic
+        location pages are the kind of content AI chatbots and Google both penalize.
+        If your city isn't here, that's not a fit problem; we just don't have a
+        page worth shipping for it yet.
+      </p>
+    </Container>
+  </section>
+
+  <!-- =========================================================
+       CITY LIST
+       ========================================================= -->
+  <section>
+    <Container class="py-12 md:py-16">
+      <ul class="border-t border-[color:var(--color-hairline)]">
+        {locations.map((loc, i) => (
+          <li>
+            <a
+              href={`/locations/${loc.slug}`}
+              class="group grid md:grid-cols-[auto_1fr_auto] items-baseline gap-4 md:gap-8 py-8 md:py-10 border-b border-[color:var(--color-hairline)] transition-colors hover:bg-[color:var(--color-bg-2)] px-2 -mx-2"
+            >
+              <span class="mono-label tabular-nums shrink-0">
+                0{i + 1}
+              </span>
+              <div>
+                <h2 class="text-xl md:text-2xl font-medium tracking-tight leading-snug group-hover:text-[color:var(--color-accent)] transition-colors">
+                  {loc.fullName}
+                </h2>
+                <p class="mt-2 text-[color:var(--color-fg-muted)] max-w-2xl leading-relaxed">
+                  {loc.intro}
+                </p>
+                <div class="mt-3 flex flex-wrap gap-2">
+                  <span class="tag">{loc.metro}</span>
+                </div>
+              </div>
+              <span
+                class="hidden md:inline font-[family-name:var(--font-mono)] text-[color:var(--color-fg-muted)] group-hover:text-[color:var(--color-accent)] group-hover:translate-x-1 transition-transform"
+                aria-hidden="true"
+              >
+                →
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </Container>
+  </section>
+
+  <!-- =========================================================
+       FINAL CTA
+       ========================================================= -->
+  <section class="border-t border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28 text-center">
+      <p class="font-[family-name:var(--font-serif)] italic text-balance mx-auto max-w-3xl"
+         style="font-size: clamp(1.75rem, 3.5vw, 2.5rem); line-height: 1.2;">
+        Don't see your city? Email us anyway.
+      </p>
+      <p class="mt-6 max-w-xl mx-auto text-[color:var(--color-fg-muted)] leading-[1.65]">
+        These pages aren't a fence around our service area — they're just the cities
+        we have the most pattern recognition for. We work nationally and reply within
+        one business day.
+      </p>
+      <div class="mt-10 flex justify-center flex-wrap gap-4">
+        <a href="/contact" class="btn btn--primary">
+          <span>Start a project</span>
+          <span aria-hidden="true">→</span>
+        </a>
+        <a href={`mailto:${site.email}`} class="btn">
+          <span>Email us directly</span>
+        </a>
+      </div>
+    </Container>
+  </section>
+</Base>

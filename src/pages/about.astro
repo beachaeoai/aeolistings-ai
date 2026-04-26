@@ -3,34 +3,21 @@ import Base from '../layouts/Base.astro';
 import Container from '../components/Container.astro';
 import { site } from '../lib/site';
 
-// AboutPage schema
+// AboutPage schema. References the root Organization (`#org`) and the
+// Person entity (`#jake`) shipped site-wide from Base.astro by `@id`
+// rather than redeclaring them. The `mainEntity` link tells crawlers
+// this page is the canonical About-page for the founder Person too,
+// which strengthens the Person entity in the LLM knowledge graph.
 const aboutSchema = {
   '@context': 'https://schema.org',
   '@type': 'AboutPage',
+  '@id': `${site.url}/about#page`,
+  url: `${site.url}/about`,
   name: `About ${site.name}`,
-  url: site.url + '/about',
-  description:
-    `${site.name} is an Answer Engine Optimization agency for home service pros and local professionals.`,
-  about: {
-    '@type': 'Organization',
-    name: site.name,
-    url: site.url,
-    email: site.email,
-  },
-};
-
-// Person schema for the founder
-const founderSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Person',
-  name: site.founder.name,
-  jobTitle: site.founder.title,
-  worksFor: {
-    '@type': 'Organization',
-    name: site.name,
-    url: site.url,
-  },
-  email: site.email,
+  description: `${site.name} is an Answer Engine Optimization agency for home service pros and local professionals, headquartered in Mesa, Arizona, founded by ${site.founder.name}.`,
+  isPartOf: { '@id': `${site.url}/#website` },
+  about: { '@id': `${site.url}/#org` },
+  mainEntity: { '@id': `${site.url}/#jake` },
 };
 
 const principles = [
@@ -60,7 +47,7 @@ const principles = [
   title="About"
   description={`About ${site.name} — an Answer Engine Optimization agency for home service pros and local professionals.`}
   path="/about"
-  schema={[aboutSchema, founderSchema]}
+  schema={[aboutSchema]}
 >
   <!-- =========================================================
        HERO
@@ -133,69 +120,65 @@ const principles = [
   </section>
 
   <!-- =========================================================
-       FOUNDER — portrait + bio (placeholders pending user content)
+       FOUNDER
        ========================================================= -->
   <section class="border-b border-[color:var(--color-hairline)]">
     <Container class="py-20 md:py-28">
-      <div class="mono-label">02 · Who runs it</div>
-      <h2 class="mt-5"
-          style="font-size: var(--text-display); line-height: 1.05;">
-        Small roster.<br />Senior hands only.
-      </h2>
-
-      <div class="mt-14 grid md:grid-cols-[minmax(0,320px)_1fr] gap-12 md:gap-16 items-start">
-        <!-- Portrait placeholder -->
-        <div class="relative aspect-square border border-[color:var(--color-hairline)] bg-[color:var(--color-bg-2)] flex items-center justify-center">
-          <span class="mono-label">Portrait · pending</span>
+      <div class="grid md:grid-cols-[1fr_2fr] gap-12 md:gap-20">
+        <div>
+          <div class="mono-label">02 · Who runs it</div>
+          <h2 class="mt-5"
+              style="font-size: var(--text-display); line-height: 1.05;">
+            One desk.<br />Senior hands only.
+          </h2>
+          <p class="mt-6 text-[color:var(--color-fg-muted)] leading-[1.65] max-w-md">
+            Every engagement is run by the founder. No account managers, no junior
+            handoffs — the person you email is the person doing the work.
+          </p>
         </div>
 
-        <div>
-          <h3 class="font-[family-name:var(--font-serif)] text-[2rem] md:text-[2.5rem] leading-[1.05] tracking-[-0.01em]">
-            {site.founder.name}
-          </h3>
-          <p class="mt-3 mono-label">
-            {site.founder.title} · {site.name}
-          </p>
-
-          <div class="mt-8 space-y-5 text-[1.0625rem] leading-[1.7] max-w-[58ch]">
-            <p>
-              [PLACEHOLDER] Short bio paragraph one. Where the founder came from, what they
-              built before, and why traditional SEO stopped solving the real problem. Written
-              in third person, three to four sentences, concrete and specific — mention a
-              role, a result, a number.
-            </p>
-            <p class="text-[color:var(--color-fg-muted)]">
-              [PLACEHOLDER] Short bio paragraph two. Why they started {site.name}, who they
-              prefer to work with, and the one opinion that runs through every engagement.
-            </p>
+        <div class="max-w-[64ch]">
+          <!-- Portrait + name + title row -->
+          <div class="grid grid-cols-[auto_1fr] gap-6 md:gap-8 items-start">
+            <figure class="shrink-0">
+              <img
+                src={site.founder.portrait}
+                alt={`${site.founder.name}, ${site.founder.title} of ${site.name}`}
+                width={site.founder.portraitWidth}
+                height={site.founder.portraitHeight}
+                loading="lazy"
+                decoding="async"
+                class="block w-[140px] md:w-[180px] aspect-[3/4] object-cover bg-[color:var(--color-bg-2)] rounded-[2px]"
+              />
+            </figure>
+            <div class="pt-1">
+              <div class="mono-label">{site.founder.title}</div>
+              <h3 class="mt-3 font-[family-name:var(--font-serif)] text-[1.875rem] md:text-[2.25rem] leading-[1.05] tracking-[-0.01em]">
+                {site.founder.name}
+              </h3>
+              <ul class="mt-5 space-y-2 font-[family-name:var(--font-sans)] text-[0.9375rem]">
+                <li>
+                  <a href={`mailto:${site.email}`} class="link-slide text-[color:var(--color-fg)]">
+                    {site.email}
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href={site.founder.linkedin}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                    class="link-slide text-[color:var(--color-fg)]"
+                  >
+                    LinkedIn
+                  </a>
+                </li>
+              </ul>
+            </div>
           </div>
 
-          <div class="mt-10 border-t border-[color:var(--color-hairline)] pt-8">
-            <div class="mono-label mb-4">Credentials</div>
-            <ul class="space-y-3 text-[color:var(--color-fg-muted)] leading-[1.6]">
-              <li class="flex gap-3">
-                <span class="shrink-0 text-[color:var(--color-accent)] font-[family-name:var(--font-serif)]" aria-hidden="true">·</span>
-                <span>[PLACEHOLDER] Prior role or notable outcome</span>
-              </li>
-              <li class="flex gap-3">
-                <span class="shrink-0 text-[color:var(--color-accent)] font-[family-name:var(--font-serif)]" aria-hidden="true">·</span>
-                <span>[PLACEHOLDER] Prior role or notable outcome</span>
-              </li>
-              <li class="flex gap-3">
-                <span class="shrink-0 text-[color:var(--color-accent)] font-[family-name:var(--font-serif)]" aria-hidden="true">·</span>
-                <span>[PLACEHOLDER] Publication, talk, or certification</span>
-              </li>
-              <li class="flex gap-3">
-                <span class="shrink-0 text-[color:var(--color-accent)] font-[family-name:var(--font-serif)]" aria-hidden="true">·</span>
-                <span>[PLACEHOLDER] Area of focus or specialty</span>
-              </li>
-            </ul>
-          </div>
-
-          <div class="mt-10">
-            <a href={`mailto:${site.email}`} class="link-slide text-[color:var(--color-fg)]">
-              {site.email}
-            </a>
+          <!-- Bio -->
+          <div class="mt-10 space-y-5 text-[1.0625rem] leading-[1.65]">
+            <p>{site.founder.bio}</p>
           </div>
         </div>
       </div>

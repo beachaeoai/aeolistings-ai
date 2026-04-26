@@ -4,18 +4,16 @@ import Container from '../components/Container.astro';
 import { site } from '../lib/site';
 import { services } from '../lib/services';
 
-// Service schema (one entry per service)
+// Service schema (one entry per track). Provider references the root
+// Organization (`#org`) shipped from Base.astro instead of redeclaring it.
 const serviceSchemas = services.map((s) => ({
   '@context': 'https://schema.org',
   '@type': 'Service',
   name: s.name,
   description: s.summary,
-  provider: {
-    '@type': 'Organization',
-    name: site.name,
-    url: site.url,
-  },
+  provider: { '@id': `${site.url}/#org` },
   serviceType: 'Answer Engine Optimization',
+  areaServed: { '@type': 'Country', name: 'United States' },
 }));
 
 // BreadcrumbList schema
@@ -28,36 +26,69 @@ const breadcrumbSchema = {
   ],
 };
 
-const process = [
+const notIncluded = [
   {
-    num: '01',
-    title: 'Audit',
-    description:
-      "We run your business through every major AI chatbot — ChatGPT, Google AI, Perplexity, Claude, Gemini — with the questions your real customers ask. You'll see exactly where you stand and where your competitors beat you.",
+    label: 'Paid ads',
+    body: "No Google Ads, no Meta, no LSAs. If you need that, we'll recommend someone.",
   },
   {
-    num: '02',
-    title: 'Build',
-    description:
-      "We rebuild the foundation AI needs to trust you: Google Business Profile, consistent citations across 30+ directories, schema.org markup, and a canonical business description that lines up everywhere on the web.",
+    label: 'Website redesigns',
+    body: "We'll fix specific pages and add structured data. We will not rebuild your site.",
   },
   {
-    num: '03',
-    title: 'Write',
-    description:
-      "We rewrite your service pages, FAQ, and location pages so AI can cleanly quote them. Clear answers to real questions — the kind of content an AI assistant can drop into a conversation with your name attached.",
+    label: 'Outbound sales lead-gen',
+    body: 'No cold email, no list buying, no SDR work.',
   },
   {
-    num: '04',
-    title: 'Monitor',
-    description:
-      "Every month we run the same prompts and report what's changed. When a model updates or a competitor gets aggressive, we adjust. You stay ahead — and you always know where you stand.",
+    label: 'Social media management',
+    body: "We don't post for you, run your Instagram, or write LinkedIn content.",
   },
+  {
+    label: 'Generic SEO churn',
+    body: 'No 30-blog-posts-a-month content mills, no link buying, no keyword-stuffed location pages.',
+  },
+  {
+    label: 'Reputation laundering',
+    body: "We don't bury legitimate negative reviews or manufacture fake ones.",
+  },
+];
+
+const fitFor = [
+  'You run a home service business or local professional practice between roughly $500K and $10M in revenue.',
+  'You already get business from search and want to stay there as search changes.',
+  'You want to understand what you are paying for and ask hard questions about it.',
+  'You are patient enough to judge the work on a quarter, not a week.',
+  'Your service quality is genuinely good — AEO amplifies what is already true about you.',
+];
+
+const fitAgainst = [
+  'You are chasing pure volume — we are optimizing for the right calls, not the most calls.',
+  'You need leads next week — this is a 90-day-minimum compounding play.',
+  'You want a single dashboard with a green up-arrow and no conversation.',
+  'You are looking for someone to manage every channel — we run four services, not forty.',
+  'Your reviews and reputation problems are real and not yet addressed — fix the business first, then call us.',
+];
+
+const measureKeep = [
+  'AI citation share — across your prompt set, what percentage of answers name you, by model',
+  'Prompt coverage — how many of the prompts that should surface you actually do',
+  'Sentiment of mentions — when you are cited, how are you described',
+  'Competitive mention gap — your share vs. the three to five competitors we track with you',
+  'Foundation health — citation consistency, GBP completeness, structured-data coverage',
+  'Review velocity and rating trajectory — not just the star count, the slope',
+];
+
+const measureIgnore = [
+  'Keyword rankings on traditional SERPs — useful context, not the scoreboard',
+  'Raw traffic volume — a thousand wrong visitors is worse than fifty right ones',
+  'Follower counts and social engagement — not what we are hired for',
+  'Domain authority scores from third-party tools — proxy metrics, not outcomes',
+  'Number of blog posts published — output is not a measurement',
 ];
 ---
 <Base
   title="Services"
-  description="Four Answer Engine Optimization services for home service pros and local professionals: Local AI Audit, Get Listed Get Cited, Answer-Ready Pages, and an ongoing retainer."
+  description="Four Answer Engine Optimization services on a monthly retainer: Foundation, Visibility, Authority, and Operations. No annual contracts, cancel by email."
   path="/services"
   schema={[...serviceSchemas, breadcrumbSchema]}
 >
@@ -66,28 +97,37 @@ const process = [
        ========================================================= -->
   <section class="border-b border-[color:var(--color-hairline)]">
     <Container class="py-20 md:py-32">
-      <div class="mono-label">Services · Overview</div>
+      <div class="mono-label">Services · The work behind the answer</div>
 
-      <h1 class="mt-8 text-balance max-w-[22ch]"
+      <h1 class="mt-8 text-balance max-w-[24ch]"
           style="font-family: var(--font-serif); font-size: var(--text-display); line-height: 1.02;">
-        Four services. One outcome: your business gets recommended.
+        The work behind being the name AI recommends.
       </h1>
 
       <p class="mt-10 max-w-2xl text-lg md:text-xl leading-[1.6] text-[color:var(--color-fg-muted)]">
-        Answer Engine Optimization is the work of making your business the name AI
-        chatbots return when a prospect asks for a recommendation. Each service below is a
-        lever on that outcome — used alone, or stacked as a full retainer.
+        Four services on one retainer. Most clients run all four because they
+        compound; a few start on one or two when the situation calls for it.
+        No annual contracts. No setup fees. Cancel by email.
       </p>
 
       <div class="mt-10 flex flex-wrap items-center gap-4">
         <a href="/contact" class="btn btn--primary">
-          <span>Start a project</span>
+          <span>Email us</span>
           <span aria-hidden="true">→</span>
         </a>
-        <a href="/#faq" class="btn">
+        <a href="/faq" class="btn">
           <span>Read the FAQ</span>
         </a>
       </div>
+
+      <!-- Jump-nav to the four tracks -->
+      <nav aria-label="Services" class="mt-14 border-t border-[color:var(--color-hairline)] pt-6 flex flex-wrap gap-x-8 gap-y-3 font-[family-name:var(--font-sans)] text-[0.8125rem] uppercase tracking-[0.14em] font-medium">
+        {services.map((s) => (
+          <a href={`#${s.id}`} class="link-slide text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-accent)]">
+            <span class="text-[color:var(--color-fg-dim)] mr-2">{s.num}</span>{s.name}
+          </a>
+        ))}
+      </nav>
     </Container>
   </section>
 
@@ -106,24 +146,25 @@ const process = [
         </div>
         <div class="max-w-[60ch] space-y-6 text-[1.0625rem] leading-[1.65]">
           <p>
-            <strong class="font-semibold">Answer Engine Optimization</strong> — AEO — is how you
-            get recommended by AI chatbots. When someone asks ChatGPT, Google AI, Perplexity,
-            Claude, or Gemini "who's the best roofer near me," the AI gives them an
-            answer. Sometimes one name. Sometimes two or three. Almost never a list of ten.
+            <strong class="font-semibold">Answer Engine Optimization</strong> — AEO — is how
+            you get recommended by AI chatbots. When someone asks ChatGPT, Google AI,
+            Perplexity, Claude, or Gemini "who's the best roofer near me," the AI gives
+            them an answer. Sometimes one name. Sometimes two or three. Almost never a
+            list of ten.
           </p>
           <p class="text-[color:var(--color-fg-muted)]">
-            Our work is making sure the name is yours. We build the signals that AI models use
-            to decide who they trust enough to mention — then we keep those signals in
-            shape as the models change.
+            Our work is making sure the name is yours. We build the signals AI models use to
+            decide who they trust enough to mention — then we keep those signals in shape as
+            the models change.
           </p>
           <blockquote class="pullquote">
             Traditional SEO gets your website listed. AEO gets your business <em>named</em>.
           </blockquote>
           <p class="text-[color:var(--color-fg-muted)]">
             SEO and AEO aren't enemies. Most of what we build — consistent business data,
-            structured content, clear answers to buyer questions — helps both. But the
-            surfaces are different, and the signals each rewards are different. We focus on
-            the AI chatbot surface because almost nobody else is.
+            structured content, clear answers to buyer questions — helps both. The surfaces
+            are different and the signals each rewards are different. We focus on the AI
+            chatbot surface because almost nobody else is.
           </p>
           <div class="pt-4 flex flex-wrap gap-2">
             <span class="tag">Citations</span>
@@ -137,11 +178,11 @@ const process = [
   </section>
 
   <!-- =========================================================
-       SERVICES DETAIL — full-width rows per service
+       SERVICES DETAIL — full-width rows per track, with calendar
        ========================================================= -->
   <section class="border-b border-[color:var(--color-hairline)]">
     <Container class="py-20 md:py-28">
-      <div class="mono-label">02 · The services</div>
+      <div class="mono-label">02 · The four tracks</div>
       <h2 class="mt-5"
           style="font-size: var(--text-display); line-height: 1.05;">
         The stack.
@@ -152,7 +193,7 @@ const process = [
           <article
             id={s.id}
             class:list={[
-              'grid md:grid-cols-[1fr_2fr] gap-10 md:gap-16 py-14 md:py-20',
+              'grid md:grid-cols-[1fr_2fr] gap-10 md:gap-16 py-14 md:py-20 scroll-mt-8',
               i > 0 ? 'border-t border-[color:var(--color-hairline)]' : '',
             ]}
           >
@@ -166,7 +207,7 @@ const process = [
               </p>
             </div>
 
-            <div class="space-y-8">
+            <div class="space-y-10">
               <p class="text-[1.0625rem] leading-[1.7] text-[color:var(--color-fg)] max-w-[60ch]">
                 {s.summary}
               </p>
@@ -182,6 +223,23 @@ const process = [
                   ))}
                 </ul>
               </div>
+
+              <!-- 30/60/90 calendar — what the client actually sees, when -->
+              <div>
+                <div class="mono-label mb-4">First 90 days</div>
+                <div class="grid sm:grid-cols-3 gap-6 border-t border-[color:var(--color-hairline)] pt-6">
+                  {s.calendar.map((phase) => (
+                    <div>
+                      <div class="font-[family-name:var(--font-sans)] text-[0.75rem] uppercase tracking-[0.18em] text-[color:var(--color-accent)] font-semibold">
+                        {phase.marker}
+                      </div>
+                      <p class="mt-3 text-[0.9375rem] leading-[1.55] text-[color:var(--color-fg-muted)]">
+                        {phase.delivery}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </article>
         ))}
@@ -190,30 +248,130 @@ const process = [
   </section>
 
   <!-- =========================================================
-       PROCESS
+       WHAT'S NOT INCLUDED — drawing the line clearly
        ========================================================= -->
   <section class="border-b border-[color:var(--color-hairline)]">
     <Container class="py-20 md:py-28">
-      <div class="mono-label">03 · How the engagement runs</div>
+      <div class="grid md:grid-cols-[1fr_2fr] gap-12 md:gap-20">
+        <div>
+          <div class="mono-label">03 · What's not included</div>
+          <h2 class="mt-5"
+              style="font-size: var(--text-display); line-height: 1.05;">
+            We are not a full-service agency.
+          </h2>
+          <p class="mt-6 text-[color:var(--color-fg-muted)] max-w-sm leading-[1.65]">
+            Drawing the line clearly is part of the deal. If half of what you want
+            is on this list, we are the wrong agency, and a 15-minute email
+            exchange will save us both a quarter.
+          </p>
+        </div>
+
+        <ul class="border-t border-[color:var(--color-hairline)]">
+          {notIncluded.map((row) => (
+            <li class="grid grid-cols-[auto_1fr] gap-6 py-5 border-b border-[color:var(--color-hairline)]">
+              <span class="mono-label pt-1 whitespace-nowrap">{row.label}</span>
+              <span class="leading-[1.6] text-[color:var(--color-fg-muted)]">{row.body}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </Container>
+  </section>
+
+  <!-- =========================================================
+       FIT — Who this is and isn't for
+       ========================================================= -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28">
+      <div class="mono-label">04 · Fit</div>
       <h2 class="mt-5"
           style="font-size: var(--text-display); line-height: 1.05;">
-        Audit. Build. Write. Monitor.
+        Who this is — and isn't — for.
       </h2>
 
-      <div class="mt-16 grid gap-12 md:grid-cols-2 lg:grid-cols-4">
-        {process.map((step) => (
-          <div>
-            <div class="font-[family-name:var(--font-sans)] text-[0.8125rem] uppercase tracking-[0.18em] text-[color:var(--color-accent)] font-semibold">
-              Step {step.num}
-            </div>
-            <h3 class="mt-4 font-[family-name:var(--font-serif)] text-[1.75rem] leading-[1.1] tracking-[-0.01em]">
-              {step.title}
-            </h3>
-            <p class="mt-4 text-[color:var(--color-fg-muted)] leading-[1.65]">
-              {step.description}
-            </p>
+      <div class="mt-14 grid md:grid-cols-2 gap-12 md:gap-16">
+        <div>
+          <div class="font-[family-name:var(--font-sans)] text-[0.75rem] uppercase tracking-[0.18em] text-[color:var(--color-accent)] font-semibold">
+            This is for you if
           </div>
-        ))}
+          <ul class="mt-6 space-y-4 border-t border-[color:var(--color-hairline)] pt-6">
+            {fitFor.map((line) => (
+              <li class="flex gap-4 leading-[1.6]">
+                <span class="shrink-0 pt-1 text-[color:var(--color-accent)] font-[family-name:var(--font-serif)]" aria-hidden="true">·</span>
+                <span>{line}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <div class="font-[family-name:var(--font-sans)] text-[0.75rem] uppercase tracking-[0.18em] text-[color:var(--color-fg-dim)] font-semibold">
+            This is not for you if
+          </div>
+          <ul class="mt-6 space-y-4 border-t border-[color:var(--color-hairline)] pt-6">
+            {fitAgainst.map((line) => (
+              <li class="flex gap-4 leading-[1.6] text-[color:var(--color-fg-muted)]">
+                <span class="shrink-0 pt-1 text-[color:var(--color-fg-dim)] font-[family-name:var(--font-serif)]" aria-hidden="true">·</span>
+                <span>{line}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <p class="mt-12 max-w-[60ch] font-[family-name:var(--font-serif)] italic text-[1.125rem] leading-[1.5] text-[color:var(--color-fg-muted)]">
+        We'd rather lose a fit conversation than win a misfit one.
+      </p>
+    </Container>
+  </section>
+
+  <!-- =========================================================
+       MEASURE — What we measure, what we ignore
+       ========================================================= -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28">
+      <div class="grid md:grid-cols-[1fr_2fr] gap-12 md:gap-20">
+        <div>
+          <div class="mono-label">05 · Measurement</div>
+          <h2 class="mt-5"
+              style="font-size: var(--text-display); line-height: 1.05;">
+            What we measure, and what we ignore.
+          </h2>
+          <p class="mt-6 text-[color:var(--color-fg-muted)] max-w-sm leading-[1.65]">
+            If a metric doesn't connect to "is the right customer hearing your name
+            from the AI they trust," we don't put it in the report.
+          </p>
+        </div>
+
+        <div class="grid gap-10">
+          <div>
+            <div class="font-[family-name:var(--font-sans)] text-[0.75rem] uppercase tracking-[0.18em] text-[color:var(--color-accent)] font-semibold">
+              What we measure
+            </div>
+            <ul class="mt-5 border-t border-[color:var(--color-hairline)]">
+              {measureKeep.map((line) => (
+                <li class="flex items-start gap-4 py-4 border-b border-[color:var(--color-hairline)] leading-[1.6]">
+                  <span class="shrink-0 pt-1 text-[color:var(--color-accent)] font-[family-name:var(--font-serif)]" aria-hidden="true">·</span>
+                  <span>{line}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <div class="font-[family-name:var(--font-sans)] text-[0.75rem] uppercase tracking-[0.18em] text-[color:var(--color-fg-dim)] font-semibold">
+              What we ignore as primary metrics
+            </div>
+            <ul class="mt-5 border-t border-[color:var(--color-hairline)]">
+              {measureIgnore.map((line) => (
+                <li class="flex items-start gap-4 py-4 border-b border-[color:var(--color-hairline)] leading-[1.6] text-[color:var(--color-fg-muted)]">
+                  <span class="shrink-0 pt-1 text-[color:var(--color-fg-dim)] font-[family-name:var(--font-serif)]" aria-hidden="true">·</span>
+                  <span>{line}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
       </div>
     </Container>
   </section>
@@ -227,13 +385,17 @@ const process = [
          style="font-size: clamp(1.75rem, 3.5vw, 2.75rem); line-height: 1.2;">
         Ready to become the answer in your category?
       </p>
+      <p class="mt-6 max-w-xl mx-auto text-[color:var(--color-fg-muted)] leading-[1.65]">
+        The next step is an email, not a form. Tell us what you do, where you do
+        it, and what you've already tried. We reply within one business day.
+      </p>
       <div class="mt-10 flex justify-center flex-wrap gap-4">
-        <a href="/contact" class="btn btn--primary">
-          <span>Start a project</span>
+        <a href={`mailto:${site.email}`} class="btn btn--primary">
+          <span>Email us</span>
           <span aria-hidden="true">→</span>
         </a>
-        <a href="/" class="btn">
-          <span>Back to home</span>
+        <a href="/contact" class="btn">
+          <span>Use the form</span>
         </a>
       </div>
     </Container>

@@ -2,9 +2,21 @@
  * Service offerings — single source of truth.
  * Referenced by the home page preview and /services page.
  *
- * Voice: plain language for home service pros.
- * Structure follows the buyer journey: see it → fix it → build it → maintain it.
+ * Voice: editorial, plain English. Each service is named for the work, not
+ * the outcome — outcomes are the headline of the page; services are the
+ * mechanics. The four tracks compound: most clients run all four, but they
+ * are independently coherent so a misfit shop can still buy just one.
+ *
+ * Structure follows the buyer journey: see it (Foundation) → improve
+ * (Visibility) → reinforce (Authority) → maintain (Operations).
  */
+export interface ServiceCalendarPhase {
+  /** Day marker, e.g. "Day 30" or "Month 1". */
+  marker: string;
+  /** What ships at that marker. One sentence. */
+  delivery: string;
+}
+
 export interface Service {
   id: string;
   num: string;          // "01", "02" — used as numbering
@@ -12,63 +24,89 @@ export interface Service {
   tagline: string;      // one-line pitch — reads aloud well
   summary: string;      // 2–3 sentence summary in plain language
   deliverables: string[];
+  /** 30/60/90 (or month-1/2/3) calendar of what the client sees. */
+  calendar: ServiceCalendarPhase[];
 }
 
 export const services: Service[] = [
   {
-    id: 'local-ai-audit',
+    id: 'foundation',
     num: '01',
-    name: 'Local AI Audit',
-    tagline: 'See exactly what AI chatbots say about your business right now.',
+    name: 'Foundation',
+    tagline: 'The basics done correctly, once, so the rest of the work has something to stand on.',
     summary:
-      "We ask ChatGPT, Google AI, Perplexity, Claude, and Gemini the questions your customers actually ask — 'best plumber near me,' 'emergency roof repair,' 'HVAC replacement cost' — and report back what they say. Your name. Your competitors. The gaps. The fixes. You get a clear picture of where you stand before we do anything else.",
+      "Most local businesses are invisible to AI chatbots because their core data is inconsistent — the name, address, services, and hours don't match across the web. We rebuild your Google Business Profile, fix citation inconsistencies across the directories AI models actually read, and add structured data to your site so machines can parse you cleanly. One canonical record of your business, deployed everywhere it matters.",
     deliverables: [
-      'Fifty-plus buyer-intent prompts run across five major AI chatbots',
-      'Citation share report — how often you appear vs. your three top competitors',
-      'Gap analysis: where you should be getting mentioned but aren\'t',
-      'Prioritized fix list with expected impact',
+      'Google Business Profile audit and rebuild — categories, services, attributes, hours, photos, Q&A',
+      'Citation cleanup across the directory set the AI models actually weight',
+      'Schema.org structured data deployed on every page of your site',
+      'Duplicate listings resolved, unclaimed profiles claimed, NAP mismatches fixed',
+      'A single canonical record of your business so every future change has one source of truth',
+    ],
+    calendar: [
+      { marker: 'Day 30', delivery: 'Foundation audit document, GBP rebuilt, structured data deployed on core pages.' },
+      { marker: 'Day 60', delivery: 'Citation cleanup completed across the priority directory set; duplicates resolved.' },
+      { marker: 'Day 90', delivery: 'Monitoring in place; foundation moves into maintenance mode.' },
     ],
   },
   {
-    id: 'get-listed-get-cited',
+    id: 'visibility',
     num: '02',
-    name: 'Get Listed, Get Cited',
-    tagline: 'Build the signals AI chatbots need to trust and recommend you by name.',
+    name: 'Visibility',
+    tagline: 'Tracking where AI models cite you today and rebuilding the pages that should be cited tomorrow.',
     summary:
-      "AI chatbots recommend businesses they can verify. We fix your Google Business Profile, align your business information across directories, add structured data to your website, and build the digital paper trail that makes AI models confident enough to name you when a prospect asks for a recommendation.",
+      "AI chatbots quote pages that read like answers. We build a prompt set of the questions your real customers ask, run it weekly across ChatGPT, Claude, Perplexity, Gemini, and Google AI Overview, and identify the structural reasons your competitors get cited and you don't. Then we rewrite or build the pages that fix the gap — question-led headings, self-contained answers, retrievable shape.",
     deliverables: [
-      'Google Business Profile audit and rebuild',
-      'Citation consistency cleanup across 30+ directories',
-      'Schema.org structured data on every page of your site',
-      'Canonical business description deployed consistently across the web',
+      'A prompt set of 40–200 buyer-intent questions tailored to your business',
+      'Weekly tracking across ChatGPT, Claude, Perplexity, Gemini, and Google AI Overview',
+      'Citation share report — your share vs. three named competitors, by model',
+      'Rewrites or net-new pages designed for direct-answer retrieval',
+      'A monthly content roadmap that responds to citation movement',
+    ],
+    calendar: [
+      { marker: 'Day 30', delivery: 'Prompt set finalized; baseline citation report delivered.' },
+      { marker: 'Day 60', delivery: 'First batch of rebuilt or net-new pages live; second baseline run shows initial movement.' },
+      { marker: 'Day 90', delivery: 'Content roadmap for months 4–6 delivered; citation share trending against named competitors.' },
     ],
   },
   {
-    id: 'answer-ready-pages',
+    id: 'authority',
     num: '03',
-    name: 'Answer-Ready Pages',
-    tagline: 'Write the pages AI quotes when recommending you.',
+    name: 'Authority',
+    tagline: 'The off-site signals that tell models you are a real, trusted business, not a thin profile.',
     summary:
-      "AI doesn't read your website the way a person does. It extracts short factual passages and cites specific businesses. We rewrite your service pages, FAQs, and location pages so the AI can cleanly lift the right passage — with your business name attached — when answering a prospect's question.",
+      "Reviews, earned mentions, and third-party citations are how AI models verify a business is real. We build a review velocity system, pursue editorial mentions on the sites your category's models already trust, and track sentiment of mentions — not just count. The work coordinates with whatever PR or community work you already do.",
     deliverables: [
-      'Rewrites of up to 25 key pages in answer-engine-ready structure',
-      'FAQ expansion built around real buyer questions',
-      'llms.txt file added to your site to guide AI crawlers',
-      'Location pages for each of your primary service areas',
+      'Review velocity system — request cadence, response templates, recovery on negative reviews',
+      'Earned mentions on third-party sites the AI models weight (industry directories, local press, association pages)',
+      'Founder or business profile maintained on the platforms models read',
+      'Sentiment tracking of mentions, not just count',
+      'A quarterly outreach plan tied to your business calendar',
+    ],
+    calendar: [
+      { marker: 'Day 30', delivery: 'Review system deployed; baseline review velocity measured.' },
+      { marker: 'Day 60', delivery: 'First earned mentions placed or in motion; sentiment baseline established.' },
+      { marker: 'Day 90', delivery: 'Authority dashboard added to monthly report; quarterly outreach plan delivered.' },
     ],
   },
   {
-    id: 'retainer',
+    id: 'operations',
     num: '04',
-    name: 'Ongoing Retainer',
-    tagline: 'Stay ahead as AI keeps changing.',
+    name: 'Operations',
+    tagline: 'The recurring work that keeps the first three services honest as the models shift.',
     summary:
-      "ChatGPT releases a new model. Google updates AI Overviews. Perplexity changes how it cites sources. We monitor every month, adjust when something shifts, and keep your business recommended where it matters. Month-to-month. Cancel by email anytime — no contracts.",
+      "ChatGPT releases a new model. Google updates AI Overviews. Perplexity changes its citation logic. The work above only stays effective if someone is watching, adjusting, and reporting. Operations is that someone — a senior practitioner running the prompt set monthly, responding to model behavior changes, and writing the report that goes to your inbox each month.",
     deliverables: [
-      'Monthly AI citation monitoring across all major chatbots',
+      'Monthly prompt-set run and citation report delivered to your inbox',
       'Tactical response when models or surfaces update',
       'Ongoing content and schema refresh',
-      'Direct email or Slack channel with your strategist',
+      'Quarterly written strategy review',
+      'Direct email channel with your senior strategist',
+    ],
+    calendar: [
+      { marker: 'Day 30', delivery: 'First monthly report delivered.' },
+      { marker: 'Day 60', delivery: 'Second report shows movement against baseline; first tactical adjustment cycle complete.' },
+      { marker: 'Day 90', delivery: 'Quarter-one review delivered; roadmap for the next 90 days agreed.' },
     ],
   },
 ];

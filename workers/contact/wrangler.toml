@@ -1,0 +1,23 @@
+name = "aeolistings-contact"
+main = "src/index.ts"
+compatibility_date = "2026-04-25"
+workers_dev = false
+
+# Bind the Worker to https://aeolistings.ai/api/contact
+# Requires aeolistings.ai to be on a Cloudflare-managed zone (DNS or Pages).
+# If your site is hosted elsewhere, comment out [[routes]] and set
+# workers_dev = true above — the Worker will be reachable at
+# https://aeolistings-contact.<your-subdomain>.workers.dev and the form's
+# fetch URL must be updated to that absolute URL.
+[[routes]]
+pattern = "aeolistings.ai/api/contact"
+zone_name = "aeolistings.ai"
+
+# RESEND_API_KEY is set as an encrypted secret, NOT in this file.
+# Set it once with:    wrangler secret put RESEND_API_KEY
+# Rotate it later with: wrangler secret put RESEND_API_KEY  (overwrites)
+# List secrets with:   wrangler secret list
+
+# Observability: enabled by default. View logs with `wrangler tail`.
+[observability]
+enabled = true

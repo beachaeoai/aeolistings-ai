@@ -28,3 +28,7 @@ pnpm-debug.log*
 #  that should never be pushed to a shared repo)
 .claude/settings.local.json
 .claude/launch.json
+.claude/worktrees/
+
+# Wrangler local state (Cloudflare Worker dev cache)
+.wrangler/

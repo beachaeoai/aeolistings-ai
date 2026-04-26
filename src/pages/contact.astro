@@ -4,37 +4,18 @@ import Container from '../components/Container.astro';
 import { site } from '../lib/site';
 import { services as siteServices } from '../lib/services';
 
-// ContactPage schema
+// ContactPage schema. The root Organization + ContactPoint are shipped
+// site-wide from Base.astro; this just wires the page to that entity.
 const contactPageSchema = {
   '@context': 'https://schema.org',
   '@type': 'ContactPage',
-  name: `Contact — ${site.name}`,
+  '@id': `${site.url}/contact#page`,
   url: `${site.url}/contact`,
+  name: `Contact — ${site.name}`,
   description:
     'Get in touch with AEO Listings. Email is the fastest path for new projects and existing client requests, including cancellations.',
-};
-
-// Organization schema with nested ContactPoint
-const organizationWithContact = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: site.name,
-  url: site.url,
-  email: site.email,
-  contactPoint: [
-    {
-      '@type': 'ContactPoint',
-      contactType: 'customer support',
-      email: site.email,
-      availableLanguage: ['English'],
-    },
-    {
-      '@type': 'ContactPoint',
-      contactType: 'sales',
-      email: site.email,
-      availableLanguage: ['English'],
-    },
-  ],
+  isPartOf: { '@id': `${site.url}/#website` },
+  about: { '@id': `${site.url}/#org` },
 };
 
 const formServiceOptions = [
@@ -55,7 +36,7 @@ const socialRows = (
   title="Contact"
   description="Get in touch with AEO Listings. Email is the fastest path for new projects, existing clients, and cancellations."
   path="/contact"
-  schema={[contactPageSchema, organizationWithContact]}
+  schema={[contactPageSchema]}
 >
   <!-- =========================================================
        HERO
@@ -160,27 +141,32 @@ const socialRows = (
           </p>
 
           {/*
-            FORM SUBMISSION — PLACEHOLDER ONLY.
-            This uses `mailto:` as a no-backend fallback so the form isn't dead on launch.
-            Most browsers will open the user's default mail client with a pre-filled body.
-            Replace with a real endpoint before production:
-              - Resend (https://resend.com) via an Astro API route (src/pages/api/contact.ts),
-              - Formspree / Basin / Getform (drop-in POST endpoints), OR
-              - Custom serverless function (Cloudflare Workers fits since we're already deployed there).
-            When migrating, remove `enctype="text/plain"` and switch `action` to the endpoint URL.
+            Form submission posts JSON to /api/contact, a Cloudflare Worker
+            (workers/contact/) that validates, runs anti-spam checks, and
+            sends via Resend. See workers/contact/README.md for deploy.
+            If JS is disabled, the noscript fallback below points the user
+            at the mailto link in the left column.
           */}
           <form
+            id="inquiry-form"
             class="mt-10 space-y-6"
-            action={`mailto:${site.email}`}
-            method="POST"
-            enctype="text/plain"
+            novalidate
           >
+            <!-- Honeypot — hidden from humans, irresistible to bots. -->
+            <div aria-hidden="true" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;">
+              <label for="_company">Website (leave blank)</label>
+              <input id="_company" name="_company" type="text" tabindex="-1" autocomplete="off" />
+            </div>
+
+            <!-- Time-trap — populated by inline script on render. -->
+            <input id="_ts" name="_ts" type="hidden" value="" />
+
             <!-- Name -->
             <div>
               <label for="name" class="mono-label block">Name *</label>
               <input
                 id="name"
-                name="Name"
+                name="name"
                 type="text"
                 required
                 autocomplete="name"
@@ -193,7 +179,7 @@ const socialRows = (
               <label for="email" class="mono-label block">Email *</label>
               <input
                 id="email"
-                name="Email"
+                name="email"
                 type="email"
                 required
                 autocomplete="email"
@@ -203,10 +189,10 @@ const socialRows = (
 
             <!-- Business -->
             <div>
-              <label for="company" class="mono-label block">Business name</label>
+              <label for="business" class="mono-label block">Business name</label>
               <input
-                id="company"
-                name="Business"
+                id="business"
+                name="business"
                 type="text"
                 autocomplete="organization"
                 class="mt-2 block w-full bg-transparent border border-[color:var(--color-hairline-2)] px-3 py-3 font-[family-name:var(--font-sans)] text-[0.9375rem] text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-dim)] focus:border-[color:var(--color-accent)] focus:outline-none rounded-[2px]"
@@ -218,7 +204,7 @@ const socialRows = (
               <label for="city" class="mono-label block">City / service area</label>
               <input
                 id="city"
-                name="City"
+                name="city"
                 type="text"
                 placeholder="e.g. the primary city or region you serve"
                 class="mt-2 block w-full bg-transparent border border-[color:var(--color-hairline-2)] px-3 py-3 font-[family-name:var(--font-sans)] text-[0.9375rem] text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-dim)] focus:border-[color:var(--color-accent)] focus:outline-none rounded-[2px]"
@@ -230,7 +216,7 @@ const socialRows = (
               <label for="service" class="mono-label block">Interested in</label>
               <select
                 id="service"
-                name="Service"
+                name="service"
                 class="mt-2 block w-full bg-[color:var(--color-bg)] border border-[color:var(--color-hairline-2)] px-3 py-3 font-[family-name:var(--font-sans)] text-[0.9375rem] text-[color:var(--color-fg)] focus:border-[color:var(--color-accent)] focus:outline-none rounded-[2px]"
               >
                 {formServiceOptions.map((s) => (
@@ -244,7 +230,7 @@ const socialRows = (
               <label for="message" class="mono-label block">Message *</label>
               <textarea
                 id="message"
-                name="Message"
+                name="message"
                 rows="5"
                 required
                 placeholder="Tell us what you're trying to solve — the question your customers ask that you wish AI answered with your name."
@@ -252,16 +238,136 @@ const socialRows = (
               ></textarea>
             </div>
 
+            <!-- Inline error region -->
+            <div
+              id="inquiry-error"
+              role="alert"
+              aria-live="polite"
+              class="hidden border border-[color:var(--color-accent)] px-4 py-3 text-sm text-[color:var(--color-accent)] font-[family-name:var(--font-sans)] rounded-[2px]"
+            ></div>
+
             <div class="pt-2 flex flex-wrap items-center gap-4">
-              <button type="submit" class="btn btn--primary">
-                <span>Send inquiry</span>
-                <span aria-hidden="true">→</span>
+              <button id="inquiry-submit" type="submit" class="btn btn--primary">
+                <span class="inquiry-submit-label">Send inquiry</span>
+                <span aria-hidden="true" class="inquiry-submit-arrow">→</span>
               </button>
               <span class="font-[family-name:var(--font-sans)] text-xs text-[color:var(--color-fg-muted)]">
-                Opens your mail client
+                Goes to a real inbox — reply within one business day.
               </span>
             </div>
+
+            <noscript>
+              <p class="mt-4 text-sm text-[color:var(--color-fg-muted)] font-[family-name:var(--font-sans)]">
+                JavaScript is required for the form. Email
+                <a href={`mailto:${site.email}`} class="text-[color:var(--color-accent)] underline">
+                  {site.email}
+                </a>
+                directly instead.
+              </p>
+            </noscript>
           </form>
+
+          <!-- Success state — revealed after a successful submission. -->
+          <div
+            id="inquiry-success"
+            class="hidden mt-10 border border-[color:var(--color-hairline)] bg-[color:var(--color-bg-2)] p-8 rounded-[2px]"
+            role="status"
+            aria-live="polite"
+          >
+            <div class="mono-label text-[color:var(--color-accent)]">Sent</div>
+            <h3 class="mt-3 font-[family-name:var(--font-serif)] text-[1.75rem] leading-[1.15]">
+              Thanks. We'll be in touch.
+            </h3>
+            <p class="mt-4 text-[color:var(--color-fg-muted)] leading-[1.65]">
+              Your message landed in our inbox. A real person will reply from
+              <a href={`mailto:${site.email}`} class="link-slide text-[color:var(--color-fg)]">{site.email}</a>
+              — usually within one business day.
+            </p>
+          </div>
+
+          <!-- Inline submission script — vanilla JS, no framework. -->
+          <script is:inline>
+            (() => {
+              const form = document.getElementById('inquiry-form');
+              const tsField = document.getElementById('_ts');
+              const submitBtn = document.getElementById('inquiry-submit');
+              const errorBox = document.getElementById('inquiry-error');
+              const successBox = document.getElementById('inquiry-success');
+              if (!form || !tsField || !submitBtn || !errorBox || !successBox) return;
+
+              // Stamp the time-trap when the form is wired up (= page rendered).
+              tsField.value = String(Date.now());
+
+              const labelEl = submitBtn.querySelector('.inquiry-submit-label');
+              const arrowEl = submitBtn.querySelector('.inquiry-submit-arrow');
+              const originalLabel = labelEl ? labelEl.textContent : 'Send inquiry';
+
+              const setBusy = (busy) => {
+                submitBtn.disabled = busy;
+                if (labelEl) labelEl.textContent = busy ? 'Sending…' : originalLabel;
+                if (arrowEl) arrowEl.style.opacity = busy ? '0.4' : '1';
+              };
+
+              const showError = (msg) => {
+                errorBox.textContent = msg;
+                errorBox.classList.remove('hidden');
+              };
+
+              const clearError = () => {
+                errorBox.textContent = '';
+                errorBox.classList.add('hidden');
+              };
+
+              const ERROR_COPY = {
+                missing_fields: 'Please fill in name, email, and message.',
+                invalid_email: 'That email address looks off — could you double-check?',
+                field_too_long: 'One of those fields is too long. Trim it down a bit?',
+                send_failed: "We couldn't deliver that just now. Email us directly and we'll catch it from there.",
+                network: "We couldn't reach the server. Check your connection and try again, or email us directly.",
+                unknown: "Something went wrong. Email us directly and we'll handle it from there.",
+              };
+
+              form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                clearError();
+
+                if (!form.reportValidity()) return;
+
+                const fd = new FormData(form);
+                const payload = {};
+                fd.forEach((value, key) => { payload[key] = value; });
+                if (payload._ts) payload._ts = Number(payload._ts);
+
+                setBusy(true);
+                let res;
+                try {
+                  res = await fetch('/api/contact', {
+                    method: 'POST',
+                    headers: { 'content-type': 'application/json' },
+                    body: JSON.stringify(payload),
+                  });
+                } catch {
+                  setBusy(false);
+                  showError(ERROR_COPY.network);
+                  return;
+                }
+
+                let data = null;
+                try { data = await res.json(); } catch { /* fall through */ }
+
+                if (res.ok && data && data.ok) {
+                  form.style.display = 'none';
+                  successBox.classList.remove('hidden');
+                  successBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  return;
+                }
+
+                setBusy(false);
+                const code = data && data.error ? data.error : 'unknown';
+                showError(ERROR_COPY[code] || ERROR_COPY.unknown);
+              });
+            })();
+          </script>
         </div>
       </div>
     </Container>

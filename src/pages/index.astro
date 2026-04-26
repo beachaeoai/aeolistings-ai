@@ -3,43 +3,33 @@ import Base from '../layouts/Base.astro';
 import Container from '../components/Container.astro';
 import { site } from '../lib/site';
 import { services } from '../lib/services';
-import { faq } from '../lib/faq';
+import { faq, homepageFaq } from '../lib/faq';
 
-// FAQPage schema — prime AEO fuel
+// FAQPage schema — ships the FULL 10-question set as JSON-LD even though only
+// the homepage teaser (3 items) is visually rendered. The schema is prime AEO
+// fuel and there is no penalty for the schema being broader than the visible
+// FAQ section. The full set is also visually rendered on /faq.
+//
+// Organization + WebSite are now shipped as the site-wide root @graph from
+// Base.astro and are intentionally not duplicated here.
 const faqSchema = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
+  '@id': `${site.url}/#faq`,
+  isPartOf: { '@id': `${site.url}/#website` },
+  about: { '@id': `${site.url}/#org` },
   mainEntity: faq.map(({ question, answer }) => ({
     '@type': 'Question',
     name: question,
     acceptedAnswer: { '@type': 'Answer', text: answer },
   })),
 };
-
-// WebSite schema
-const websiteSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  name: site.name,
-  url: site.url,
-  description: site.description,
-};
-
-// Organization schema — professional services firm
-const organizationSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'ProfessionalService',
-  name: site.name,
-  description: site.description,
-  url: site.url,
-  email: site.email,
-};
 ---
 <Base
   title="Answer Engine Optimization for home service pros"
   description={site.description}
   path="/"
-  schema={[faqSchema, websiteSchema, organizationSchema]}
+  schema={[faqSchema]}
 >
   <!-- =========================================================
        HERO — leads with the buyer's problem in plain language
@@ -197,7 +187,7 @@ const organizationSchema = {
         </div>
 
         <div class="border-t border-[color:var(--color-hairline)]">
-          {faq.map((item, i) => (
+          {homepageFaq.map((item, i) => (
             <details class="group border-b border-[color:var(--color-hairline)]">
               <summary class="list-none cursor-pointer py-6 flex items-start justify-between gap-6 font-[family-name:var(--font-serif)] text-[1.25rem] md:text-[1.5rem] leading-[1.25] tracking-[-0.01em]">
                 <span class="flex gap-5 items-baseline">
@@ -214,6 +204,11 @@ const organizationSchema = {
               </div>
             </details>
           ))}
+          <div class="pt-8">
+            <a href="/faq" class="link-slide font-[family-name:var(--font-sans)] text-[0.8125rem] uppercase tracking-[0.14em] font-medium text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-accent)]">
+              All {faq.length} questions →
+            </a>
+          </div>
         </div>
       </div>
     </Container>

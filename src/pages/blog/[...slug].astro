@@ -26,24 +26,26 @@ const fmt = new Intl.DateTimeFormat('en-US', {
   day: 'numeric',
 });
 
+// BlogPosting — author/publisher reference the root Organization (`#org`)
+// shipped site-wide from Base.astro by `@id` rather than redeclaring it.
+const postUrl = `${site.url}/blog/${post.id}`;
 const articleSchema = {
   '@context': 'https://schema.org',
   '@type': 'BlogPosting',
+  '@id': `${postUrl}#article`,
   headline: post.data.title,
   description: post.data.description,
   datePublished: post.data.pubDate.toISOString(),
   ...(post.data.updatedDate && { dateModified: post.data.updatedDate.toISOString() }),
-  author: {
-    '@type': 'Organization',
-    name: post.data.author,
-    url: site.url,
-  },
-  publisher: {
-    '@type': 'Organization',
-    name: site.name,
-    url: site.url,
-  },
-  mainEntityOfPage: `${site.url}/blog/${post.id}`,
+  author:
+    post.data.author === site.name
+      ? { '@id': `${site.url}/#org` }
+      : { '@type': 'Person', name: post.data.author },
+  publisher: { '@id': `${site.url}/#org` },
+  isPartOf: { '@id': `${site.url}/blog#blog` },
+  mainEntityOfPage: postUrl,
+  url: postUrl,
+  inLanguage: 'en-US',
 };
 ---
 <Base

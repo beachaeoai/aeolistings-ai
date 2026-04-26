@@ -1,24 +1,61 @@
 # AEO Listings
 
-> Answer Engine Optimization agency. We make businesses the canonical answer that ChatGPT, Claude, Perplexity, and Google AI return when prospects ask.
+> Answer Engine Optimization agency for home service pros and local professionals. Headquartered in Mesa, Arizona; serving the United States. We make your business the name ChatGPT, Claude, Perplexity, Google AI Overview, and Gemini return when prospects ask who to hire.
 
-AEO Listings is a specialist agency that helps businesses become the answer engines' go-to source. Unlike traditional SEO, which targets ranked link lists, Answer Engine Optimization (AEO) targets the direct, synthesized answers that large language models produce. Our work spans entity definition, structured data, content optimization for retrieval-augmented generation, and measurement against LLM answer surfaces.
+AEO Listings is a specialist Answer Engine Optimization (AEO) agency headquartered in Mesa, Arizona, with a local concentration in the East Valley and Phoenix metropolitan area. AEO is the discipline of making a business the name large language models cite when answering buyer-intent questions — distinct from traditional SEO, which optimizes for ranked link lists. Our work spans entity discipline (Google Business Profile, citations, structured data), citation tracking across the major AI chatbots, content rewrites for direct-answer retrieval, review velocity, and ongoing operations as the models change.
+
+We work on a monthly retainer with no annual contracts. Cancellation is one email. We focus on home service pros (plumbers, roofers, HVAC, electricians, landscapers, painters, remodelers) and local professionals (CPAs, attorneys, dentists, vets) doing roughly $500K to $10M in annual revenue. Engagements are delivered remotely; the Mesa headquarters is a registered business address, not a walk-in office.
 
 ## Core pages
 
-- [Home](https://aeolistings.ai/): Overview of AEO Listings and what we do.
-- [Services](https://aeolistings.ai/services): What Answer Engine Optimization entails and the services we provide.
-- [About](https://aeolistings.ai/about): Who we are, why we started AEO Listings, and our positioning.
-- [Contact](https://aeolistings.ai/contact): How to engage the agency.
+- [Home](https://aeolistings.ai/): Overview, hero question, the four-track service stack, why-now facts, and the homepage FAQ teaser.
+- [Services](https://aeolistings.ai/services): The four AEO tracks — Foundation, Visibility, Authority, Operations — each with deliverables and a 30/60/90 calendar. Includes "what's not included," fit criteria, and what we measure.
+- [About](https://aeolistings.ai/about): Why AEO Listings exists, our four operating principles, and how we run engagements.
+- [FAQ](https://aeolistings.ai/faq): Ten direct-answer Q&A blocks covering AEO basics, timelines, pricing model, monthly deliverables, and cancellation.
+- [Contact](https://aeolistings.ai/contact): Email-first contact, an optional inquiry form, and the cancel-by-email guarantee for current clients.
 
-## Blog
+## Locations
 
-- [Blog](https://aeolistings.ai/blog): Essays and research on Answer Engine Optimization.
+Pages describing local market dynamics for the East Valley + Phoenix metro cities we have direct experience with. Each page is anchored to one verifiable local fact rather than generic city description.
+
+- [Locations index](https://aeolistings.ai/locations): All current regional pages.
+- [Mesa, AZ](https://aeolistings.ai/locations/mesa): Headquarters city. Entity-disambiguation problem caused by Mesa being Arizona's third-largest city while sitting inside the larger Phoenix metro.
+- [Phoenix, AZ](https://aeolistings.ai/locations/phoenix): Fifth-largest U.S. city, fastest-growing major metro, dense year-round HVAC and pool services market.
+- [Scottsdale, AZ](https://aeolistings.ai/locations/scottsdale): Luxury-tier services market with median home values roughly twice the metro average.
+- [Tempe, AZ](https://aeolistings.ai/locations/tempe): ASU-driven services market — student rentals, off-campus housing, out-of-state parent buyers.
+- [Chandler, AZ](https://aeolistings.ai/locations/chandler): Intel semiconductor hub; concentrated high-wage tech-worker households.
+- [Gilbert, AZ](https://aeolistings.ai/locations/gilbert): Master-planned neighborhood districts (Agritopia, Heritage, Epicenter); neighborhood-level AEO dynamics.
+
+## Notes (blog)
+
+- [Blog index](https://aeolistings.ai/blog): Editorial notes and research on Answer Engine Optimization — fundamentals, tactics, and measurement.
 
 ## Key facts
 
 - Company name: AEO Listings
 - Primary domain: aeolistings.ai
 - Service focus: Answer Engine Optimization (AEO)
-- Engagement model: Retainer-based. Cancel by emailing the agency.
+- Engagement model: Monthly retainer, no annual contract, cancel by email
+- Headquarters: Mesa, Arizona
+- Local concentration: East Valley + Phoenix metropolitan area (Mesa, Phoenix, Scottsdale, Tempe, Chandler, Gilbert)
+- Service area: United States (no geographic restriction on engagements; we work remotely with clients nationwide)
 - Primary contact: hello@aeolistings.ai
+- Voice: editorial, plain English, calm authority — no hype words
+
+## What we measure
+
+- AI citation share across ChatGPT, Claude, Perplexity, Gemini, and Google AI Overview
+- Prompt coverage across a defined buyer-intent prompt set
+- Sentiment of mentions, not just count
+- Competitive citation gap vs. named competitors
+- Foundation health: citation consistency, GBP completeness, structured-data coverage
+- Review velocity and rating trajectory
+
+## What we do not do
+
+- Paid ads (Google Ads, Meta, LSAs)
+- Website redesigns
+- Outbound sales lead-gen, cold email, SDR work
+- Social media management
+- Generic SEO churn (link buying, keyword-stuffed pages, content mills)
+- Reputation laundering or fake reviews

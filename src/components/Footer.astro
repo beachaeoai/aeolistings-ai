@@ -29,6 +29,9 @@ const year = new Date().getFullYear();
               <a href={href} class="link-slide text-[color:var(--color-fg)] hover:text-[color:var(--color-accent)]">{label}</a>
             </li>
           ))}
+          <li>
+            <a href="/locations" class="link-slide text-[color:var(--color-fg)] hover:text-[color:var(--color-accent)]">Locations</a>
+          </li>
         </ul>
       </div>
 
@@ -41,6 +44,9 @@ const year = new Date().getFullYear();
             </a>
           </li>
           <li class="text-[color:var(--color-fg-dim)] text-[0.9rem]">Cancel anytime by email</li>
+          <li class="text-[color:var(--color-fg-dim)] text-[0.9rem] pt-2 border-t border-[color:var(--color-hairline)] mt-3">
+            {site.geo.label}
+          </li>
         </ul>
       </div>
     </div>
