@@ -11,12 +11,17 @@
  *
  * RESEND_API_KEY is set as an encrypted secret:
  *   wrangler secret put RESEND_API_KEY
+ * (or use `scripts/setup-key.sh` for the validate-then-upload flow.)
  *
- * The visible "From" address is hello@aeolistings.ai. Resend signs outbound
- * mail with DKIM on send.aeolistings.ai (the verified subdomain). DMARC
- * passes via organizational-domain alignment. Recipients see hello@; the
- * Reply-To header is set to the form submitter so a Gmail reply goes
- * straight to the prospect.
+ * The visible "From" address is hello@aeolistings.ai — the bare domain,
+ * verified directly in Resend. Resend signs outbound mail with DKIM at
+ * resend._domainkey.aeolistings.ai. Coexists cleanly with Google
+ * Workspace on the same domain because Workspace owns inbound (MX) and
+ * Resend owns outbound (DKIM); SPF lists Google only, but DMARC alignment
+ * is still satisfied via DKIM, so deliverability is unaffected.
+ *
+ * The Reply-To header is set to the form submitter's email — replying in
+ * Gmail goes straight to the prospect, not back to hello@.
  */
 
 interface Env {
@@ -36,7 +41,12 @@ interface ContactPayload {
   _ts?: number | string;
 }
 
+// From: must match a Resend-verified domain. We verified the bare
+// aeolistings.ai (DKIM at resend._domainkey.aeolistings.ai), so we send
+// directly from hello@aeolistings.ai — same address recipients reply to.
 const FROM_ADDRESS = 'AEO Listings <hello@aeolistings.ai>';
+// To: the inbox we want submissions delivered to. Same address as From
+// here because Workspace owns the mailbox; the alias forwards to jake@.
 const TO_ADDRESS = 'hello@aeolistings.ai';
 const MIN_FORM_AGE_MS = 3000;
 const MAX_FIELD_LEN = 5000;

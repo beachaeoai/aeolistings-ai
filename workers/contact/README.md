@@ -5,7 +5,7 @@ aeolistings.ai, validates them, runs anti-spam checks, and sends the email
 through Resend.
 
 Bound to: `https://aeolistings.ai/api/contact`
-Sends from: `hello@aeolistings.ai` (DKIM-signed via `send.aeolistings.ai`)
+Sends from: `AEO Listings <hello@aeolistings.ai>` (bare domain, Resend-verified, DKIM-signed)
 Sends to: `hello@aeolistings.ai` (Google Workspace alias → jake@'s inbox)
 Reply-To: the form submitter's email
 
@@ -16,9 +16,13 @@ You need this once, ever:
 ```bash
 cd workers/contact
 npm install
-npx wrangler login                      # opens browser, log in to Cloudflare
-npx wrangler secret put RESEND_API_KEY   # paste your Resend key when prompted
-npx wrangler deploy                      # builds and deploys
+
+# Auth — pick one:
+#   A) export CLOUDFLARE_API_TOKEN=... in your shell (recommended; survives reboots)
+#   B) npx wrangler login (opens browser; OAuth flow can fail on some networks)
+
+scripts/setup-key.sh                    # one-shot: validates Resend key, uploads, tests
+npx wrangler deploy                      # ships the Worker code
 ```
 
 After `wrangler deploy` completes, the Worker is live at
@@ -51,11 +55,20 @@ Generate a fresh key in the Resend dashboard, then:
 
 ```bash
 cd workers/contact
+scripts/setup-key.sh
+# Validates the key against Resend, uploads it as the wrangler secret,
+# and runs a live test of /api/contact. No redeploy needed.
+```
+
+Revoke the old key in Resend after the new one is confirmed working.
+
+If you'd rather do it the manual way:
+
+```bash
+cd workers/contact
 npx wrangler secret put RESEND_API_KEY
 # paste the new key — it overwrites the old one immediately
 ```
-
-Revoke the old key in Resend after the new one is deployed.
 
 ## Local development
 
@@ -98,22 +111,28 @@ volume ever materializes despite this, the next layer is Cloudflare Turnstile
   `wrangler.toml` makes `aeolistings.ai/api/contact` go to this Worker
   while every other path on aeolistings.ai still serves the static site.
   No CORS, no preflight, no cross-domain cookies.
-- **Subdomain DKIM**: Resend signs outbound mail with DKIM on
-  `send.aeolistings.ai`, but the visible "From" is `hello@aeolistings.ai`.
-  DMARC passes via organizational-domain alignment. This is the standard
-  pattern for transactional email from a domain that already has a primary
-  mail provider on the root.
-- **Coexistence with Google Workspace**: the root MX records still point to
-  Google Workspace. This Worker only sends; it never touches the inbound
-  mail flow. `hello@aeolistings.ai` is a Workspace alias of jake@'s mailbox,
-  so all replies land in your normal Gmail inbox.
+- **Bare-domain From**: We verified `aeolistings.ai` directly in Resend
+  (DKIM TXT at `resend._domainkey.aeolistings.ai`), so the From address
+  is `hello@aeolistings.ai` — same address recipients reply to. Cleanest
+  possible setup; no subdomain visible in headers.
+- **Coexistence with Google Workspace**: the root MX records still point
+  to Google Workspace (Workspace owns inbound). Resend owns outbound via
+  DKIM. Root SPF lists Google only, but DMARC alignment is satisfied via
+  DKIM signing alone, so deliverability is unaffected. The only
+  optional improvement would be merging `include:amazonses.com` into the
+  root SPF for belt-and-suspenders authentication — not required.
+- **Reply flow**: Reply-To header is set to the form submitter's email,
+  so hitting Reply in Gmail goes straight to the prospect rather than
+  back to `hello@`. The friendly name "AEO Listings" is what recipients
+  see in their inbox From column.
 
 ## Files
 
-| File              | Purpose                                            |
-|-------------------|----------------------------------------------------|
-| `src/index.ts`    | Worker handler — validation, spam checks, send     |
-| `wrangler.toml`   | Cloudflare deploy config + route binding           |
-| `package.json`    | Wrangler + types as devDependencies                |
-| `tsconfig.json`   | TypeScript config (Workers runtime types)          |
-| `.gitignore`      | Excludes `.dev.vars` and `.wrangler/` from commits |
+| File                     | Purpose                                            |
+|--------------------------|----------------------------------------------------|
+| `src/index.ts`           | Worker handler — validation, spam checks, send     |
+| `wrangler.toml`          | Cloudflare deploy config + route binding           |
+| `package.json`           | Wrangler + types as devDependencies                |
+| `tsconfig.json`          | TypeScript config (Workers runtime types)          |
+| `.gitignore`             | Excludes `.dev.vars` and `.wrangler/` from commits |
+| `scripts/setup-key.sh`   | Validate Resend key + upload secret + live test    |

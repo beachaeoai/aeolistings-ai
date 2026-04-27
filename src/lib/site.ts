@@ -85,11 +85,9 @@ export const site = {
   },
   social: {
     // Organization-level URLs only. Personal social profiles live under
-    // `founder` above. Add the COMPANY LinkedIn page URL here once it
-    // exists — the personal one is intentionally not listed.
-    // sameAs is the single highest-ROI schema field for entity
-    // disambiguation in LLMs, so populating these later is high-priority.
-    linkedin: '', // Company page URL, when one exists.
+    // `founder` above. sameAs is the single highest-ROI schema field for
+    // entity disambiguation in LLMs.
+    linkedin: 'https://www.linkedin.com/company/aeo-listings-llc/',
     x: '',
     github: '',
   },
