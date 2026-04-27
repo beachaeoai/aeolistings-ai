@@ -4,7 +4,6 @@ description: "A practical, repeatable method for testing whether ChatGPT, Claude
 pubDate: 2026-04-22
 author: "AEO Listings"
 tags: ["measurement", "audit", "tactics"]
-draft: true
 ---
 
 **The fastest way to check whether ChatGPT (or Claude, Perplexity, or Google AI Overview) recommends your business: write a list of ten to twenty buyer-intent questions a real prospect would type — phrased the way prospects actually phrase them — then run each through every chatbot in a clean session, three times each, recording every business named. Track three numbers: how often you appear at all (citation rate), in what position relative to competitors (rank), and whether you're described correctly (sentiment). Doing this once is an audit. Doing it monthly is measurement.**

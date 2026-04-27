@@ -29,6 +29,8 @@ Pages describing local market dynamics for the East Valley + Phoenix metro citie
 ## Notes (blog)
 
 - [Blog index](https://aeolistings.ai/blog): Editorial notes and research on Answer Engine Optimization — fundamentals, tactics, and measurement.
+- [What is Answer Engine Optimization (AEO)?](https://aeolistings.ai/blog/what-is-aeo): A definitional introduction to AEO — what it is, how it differs from SEO, and why it matters now.
+- [How to check if ChatGPT recommends your business](https://aeolistings.ai/blog/how-to-check-if-chatgpt-recommends-your-business): A practical, repeatable method for running an AI-citation audit across ChatGPT, Claude, Perplexity, and Google AI Overview — including the prompt set, methodology, and what to do with the results.
 
 ## Key facts
 
