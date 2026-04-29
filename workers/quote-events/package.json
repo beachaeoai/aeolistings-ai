@@ -1,0 +1,19 @@
+{
+  "name": "aeolistings-quote-events-worker",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Cloudflare Worker that records quote view + accept events and emails the agency via Resend.",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail",
+    "secret:resend": "wrangler secret put RESEND_API_KEY",
+    "kv:create": "wrangler kv namespace create QUOTE_EVENTS",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20251001.0",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.30.0"
+  }
+}

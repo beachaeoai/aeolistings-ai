@@ -1,0 +1,26 @@
+name = "aeolistings-quote-events"
+main = "src/index.ts"
+compatibility_date = "2026-04-25"
+workers_dev = false
+
+# Bind the Worker to https://aeolistings.ai/api/quote-event
+# Requires aeolistings.ai to be on a Cloudflare-managed zone (DNS or Pages).
+[[routes]]
+pattern = "aeolistings.ai/api/quote-event"
+zone_name = "aeolistings.ai"
+
+# KV namespace for view + accept event history.
+# Create once with:    wrangler kv namespace create QUOTE_EVENTS
+# Then paste the returned id below (and a separate one for preview if you
+# plan to run `wrangler dev` against a local KV).
+[[kv_namespaces]]
+binding = "QUOTE_EVENTS"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+# preview_id = "REPLACE_WITH_PREVIEW_KV_NAMESPACE_ID"
+
+# RESEND_API_KEY is set as an encrypted secret, NOT in this file.
+# Set it once with:    wrangler secret put RESEND_API_KEY
+# (The same Resend API key used by the contact Worker is fine to reuse.)
+
+[observability]
+enabled = true

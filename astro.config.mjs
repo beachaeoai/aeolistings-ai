@@ -13,5 +13,11 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
   },
-  integrations: [sitemap()],
+  integrations: [
+    sitemap({
+      // Quote pages are private to the recipient — keep them out of the
+      // public sitemap. The pages also ship `noindex` via Base.astro.
+      filter: (page) => !page.includes('/quote/'),
+    }),
+  ],
 });
