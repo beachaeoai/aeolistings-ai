@@ -2,7 +2,7 @@
 quoteId: "AEO-2026-001"
 client:
   business: "Stag Electric Arizona"
-  contact: "[Contact first name]"
+  contact: "Chris Bradshaw"
   domain: "stagelectricarizona.com"
 preparedBy: "Jake Beach"
 preparedOn: 2026-04-29
