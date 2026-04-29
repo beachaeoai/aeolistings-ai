@@ -15,7 +15,7 @@ zone_name = "aeolistings.ai"
 # plan to run `wrangler dev` against a local KV).
 [[kv_namespaces]]
 binding = "QUOTE_EVENTS"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+id = "697b82c1f69443c0a9849de671a823c7"
 # preview_id = "REPLACE_WITH_PREVIEW_KV_NAMESPACE_ID"
 
 # RESEND_API_KEY is set as an encrypted secret, NOT in this file.
