@@ -5,7 +5,9 @@
  * event kinds:
  *
  *   { event: 'view',   slug, quoteId, business, ts, referrer }
- *   { event: 'accept', slug, quoteId, business, name, email, includeOptional, note, ts }
+ *   { event: 'accept', slug, quoteId, business, name, email, note,
+ *                      selectedItems: [{ id, name, price, section }],
+ *                      totals: { oneTimeSubtotal, oneTimeDiscount, oneTimeTotal, recurringTotal } }
  *
  * Both are persisted to the QUOTE_EVENTS KV namespace as one record per
  * event (key prefix `view:` or `accept:`). The agency is notified by
@@ -38,12 +40,27 @@ interface ViewPayload extends BasePayload {
   referrer?: string;
 }
 
+interface SelectedItem {
+  id?: string;
+  name?: string;
+  price?: number;
+  section?: 'one-time' | 'recurring';
+}
+
+interface AcceptTotals {
+  oneTimeSubtotal?: number;
+  oneTimeDiscount?: number;
+  oneTimeTotal?: number;
+  recurringTotal?: number;
+}
+
 interface AcceptPayload extends BasePayload {
   event?: 'accept';
   name?: string;
   email?: string;
-  includeOptional?: boolean;
   note?: string;
+  selectedItems?: SelectedItem[];
+  totals?: AcceptTotals;
 }
 
 const FROM_ADDRESS = 'AEO Listings <hello@aeolistings.ai>';
@@ -177,13 +194,63 @@ function buildViewEmail(p: {
   return { subject, html, text };
 }
 
+interface CleanSelectedItem {
+  id: string;
+  name: string;
+  price: number;
+  section: 'one-time' | 'recurring';
+}
+
+interface CleanTotals {
+  oneTimeSubtotal: number;
+  oneTimeDiscount: number;
+  oneTimeTotal: number;
+  recurringTotal: number;
+}
+
+function fmtUSD(n: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(n || 0);
+}
+
+function selectedItemsRowsHtml(items: CleanSelectedItem[]): string {
+  if (items.length === 0) {
+    return `<tr><td colspan="3" style="padding:8px 14px;font-size:13px;color:#8B2F2F;font-style:italic;">(no services selected)</td></tr>`;
+  }
+  return items
+    .map((it) => {
+      const priceLabel = it.section === 'recurring' ? `${fmtUSD(it.price)}/mo` : fmtUSD(it.price);
+      const sectionLabel = it.section === 'recurring' ? 'Recurring' : 'One-time';
+      return `<tr>
+  <td style="padding:8px 14px;font-size:14px;border-bottom:1px solid #E5E1D6;">${escapeHtml(it.name)}</td>
+  <td style="padding:8px 14px;font-size:12px;color:#666;border-bottom:1px solid #E5E1D6;">${sectionLabel}</td>
+  <td style="padding:8px 14px;font-size:14px;font-family:ui-monospace,Menlo,monospace;text-align:right;border-bottom:1px solid #E5E1D6;">${priceLabel}</td>
+</tr>`;
+    })
+    .join('');
+}
+
+function selectedItemsTextLines(items: CleanSelectedItem[]): string {
+  if (items.length === 0) return '  (no services selected)';
+  return items
+    .map((it) => {
+      const priceLabel = it.section === 'recurring' ? `${fmtUSD(it.price)}/mo` : fmtUSD(it.price);
+      return `  · ${it.name.padEnd(48, ' ')} ${priceLabel}`;
+    })
+    .join('\n');
+}
+
 function buildAcceptAgencyEmail(p: {
   business: string;
   quoteId: string;
   slug: string;
   name: string;
   email: string;
-  includeOptional: boolean;
+  selectedItems: CleanSelectedItem[];
+  totals: CleanTotals;
   note: string;
   ip: string;
   ua: string;
@@ -191,31 +258,53 @@ function buildAcceptAgencyEmail(p: {
   acceptanceId: string;
 }): { subject: string; html: string; text: string } {
   const url = QUOTE_BASE_URL + p.slug;
-  const subject = `ACCEPTED: ${p.business} (${p.quoteId})`;
+  const subject = `ACCEPTED: ${p.business} (${p.quoteId}) — ${fmtUSD(p.totals.oneTimeTotal)} upfront, ${fmtUSD(p.totals.recurringTotal)}/mo`;
 
   const text = [
     `${p.business} accepted quote ${p.quoteId}.`,
     '',
-    `Signed by:        ${p.name}`,
-    `Email:            ${p.email}`,
-    `Optional retainer:${p.includeOptional ? ' YES' : ' no'}`,
-    `Acceptance ID:    ${p.acceptanceId}`,
-    `When:             ${p.whenIso}`,
-    `Quote URL:        ${url}`,
-    `IP:               ${p.ip || '(unknown)'}`,
-    `UA:               ${p.ua || '(unknown)'}`,
+    `Signed by:     ${p.name}`,
+    `Email:         ${p.email}`,
+    `Acceptance ID: ${p.acceptanceId}`,
+    `When:          ${p.whenIso}`,
+    `Quote URL:     ${url}`,
+    `IP:            ${p.ip || '(unknown)'}`,
+    `UA:            ${p.ua || '(unknown)'}`,
     '',
-    p.note ? `Note from client:\n${p.note}` : '(no note)',
-  ].join('\n');
+    'SELECTED SCOPE',
+    selectedItemsTextLines(p.selectedItems),
+    '',
+    'TOTALS',
+    `  One-time subtotal:  ${fmtUSD(p.totals.oneTimeSubtotal)}`,
+    p.totals.oneTimeDiscount > 0 ? `  Discount:           −${fmtUSD(p.totals.oneTimeDiscount)}` : '',
+    `  One-time total:     ${fmtUSD(p.totals.oneTimeTotal)}`,
+    `  Monthly total:      ${fmtUSD(p.totals.recurringTotal)}/mo`,
+    '',
+    p.note ? `NOTE FROM CLIENT\n${p.note}` : '(no note)',
+  ].filter(Boolean).join('\n');
 
   const html = `<!DOCTYPE html>
-<html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1a1a1a;max-width:600px;margin:0 auto;padding:24px;background:#FAF8F1;">
+<html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1a1a1a;max-width:640px;margin:0 auto;padding:24px;background:#FAF8F1;">
   <h2 style="font-size:20px;margin:0 0 8px;font-weight:600;color:#1a1a1a;">Quote accepted</h2>
-  <p style="font-size:15px;margin:0 0 20px;color:#1a1a1a;">${escapeHtml(p.business)} accepted quote <strong>${escapeHtml(p.quoteId)}</strong>.</p>
+  <p style="font-size:15px;margin:0 0 24px;color:#1a1a1a;">${escapeHtml(p.business)} accepted quote <strong>${escapeHtml(p.quoteId)}</strong> — ${fmtUSD(p.totals.oneTimeTotal)} upfront, ${fmtUSD(p.totals.recurringTotal)}/mo recurring.</p>
+
+  <h3 style="font-size:12px;color:#666;margin:24px 0 8px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Selected scope</h3>
+  <table style="border-collapse:collapse;width:100%;margin-bottom:8px;border-top:1px solid #E5E1D6;">
+    ${selectedItemsRowsHtml(p.selectedItems)}
+  </table>
+
+  <h3 style="font-size:12px;color:#666;margin:24px 0 8px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Totals</h3>
+  <table style="border-collapse:collapse;width:100%;margin-bottom:24px;">
+    <tr><td style="padding:4px 14px 4px 0;font-size:13px;color:#666;">One-time subtotal</td><td style="padding:4px 0;font-size:14px;text-align:right;font-family:ui-monospace,Menlo,monospace;">${fmtUSD(p.totals.oneTimeSubtotal)}</td></tr>
+    ${p.totals.oneTimeDiscount > 0 ? `<tr><td style="padding:4px 14px 4px 0;font-size:13px;color:#8B2F2F;">Discount</td><td style="padding:4px 0;font-size:14px;text-align:right;font-family:ui-monospace,Menlo,monospace;color:#8B2F2F;">−${fmtUSD(p.totals.oneTimeDiscount)}</td></tr>` : ''}
+    <tr><td style="padding:6px 14px 6px 0;font-size:14px;font-weight:600;border-top:2px solid #1a1a1a;">One-time total</td><td style="padding:6px 0;font-size:16px;text-align:right;font-family:ui-monospace,Menlo,monospace;font-weight:600;border-top:2px solid #1a1a1a;">${fmtUSD(p.totals.oneTimeTotal)}</td></tr>
+    <tr><td style="padding:6px 14px 6px 0;font-size:14px;font-weight:600;">Monthly total</td><td style="padding:6px 0;font-size:16px;text-align:right;font-family:ui-monospace,Menlo,monospace;font-weight:600;">${fmtUSD(p.totals.recurringTotal)}/mo</td></tr>
+  </table>
+
+  <h3 style="font-size:12px;color:#666;margin:24px 0 8px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Acceptance details</h3>
   <table style="border-collapse:collapse;width:100%;margin-bottom:24px;">
     <tr><td style="padding:6px 16px 6px 0;color:#666;font-size:13px;vertical-align:top;white-space:nowrap;">Signed by</td><td style="padding:6px 0;font-size:14px;">${escapeHtml(p.name)}</td></tr>
     <tr><td style="padding:6px 16px 6px 0;color:#666;font-size:13px;vertical-align:top;white-space:nowrap;">Email</td><td style="padding:6px 0;font-size:14px;"><a href="mailto:${escapeHtml(p.email)}" style="color:#8B2F2F;">${escapeHtml(p.email)}</a></td></tr>
-    <tr><td style="padding:6px 16px 6px 0;color:#666;font-size:13px;vertical-align:top;white-space:nowrap;">Optional retainer</td><td style="padding:6px 0;font-size:14px;font-weight:${p.includeOptional ? '600' : '400'};color:${p.includeOptional ? '#8B2F2F' : '#1a1a1a'};">${p.includeOptional ? 'YES — include AEO retainer' : 'No'}</td></tr>
     <tr><td style="padding:6px 16px 6px 0;color:#666;font-size:13px;vertical-align:top;white-space:nowrap;">Acceptance ID</td><td style="padding:6px 0;font-size:13px;font-family:ui-monospace,Menlo,monospace;color:#666;">${escapeHtml(p.acceptanceId)}</td></tr>
     <tr><td style="padding:6px 16px 6px 0;color:#666;font-size:13px;vertical-align:top;white-space:nowrap;">When</td><td style="padding:6px 0;font-size:14px;">${escapeHtml(p.whenIso)}</td></tr>
     <tr><td style="padding:6px 16px 6px 0;color:#666;font-size:13px;vertical-align:top;white-space:nowrap;">Quote URL</td><td style="padding:6px 0;font-size:14px;"><a href="${escapeHtml(url)}" style="color:#8B2F2F;">${escapeHtml(url)}</a></td></tr>
@@ -236,18 +325,24 @@ function buildAcceptClientReceipt(p: {
   name: string;
   acceptanceId: string;
   whenIso: string;
-  includeOptional: boolean;
+  selectedItems: CleanSelectedItem[];
+  totals: CleanTotals;
 }): { subject: string; html: string; text: string } {
   const url = QUOTE_BASE_URL + p.slug;
   const subject = `Receipt: quote ${p.quoteId} accepted — AEO Listings`;
+  const firstName = p.name.split(' ')[0] || '';
+
   const text = [
-    `Hi ${p.name.split(' ')[0] || ''},`.trim(),
+    `Hi ${firstName},`.trim(),
     '',
     `This confirms you accepted AEO Listings quote ${p.quoteId} on behalf of ${p.business}.`,
     '',
-    p.includeOptional
-      ? 'Scope includes the optional ongoing AEO retainer.'
-      : 'Scope is upfront work plus social media management. (You can add the AEO retainer later by replying to this email.)',
+    'YOUR SELECTED SCOPE',
+    selectedItemsTextLines(p.selectedItems),
+    '',
+    'TOTALS',
+    `  One-time:   ${fmtUSD(p.totals.oneTimeTotal)}`,
+    `  Monthly:    ${fmtUSD(p.totals.recurringTotal)}/mo`,
     '',
     `Acceptance ID: ${p.acceptanceId}`,
     `Recorded:      ${p.whenIso}`,
@@ -263,10 +358,19 @@ function buildAcceptClientReceipt(p: {
   ].join('\n');
 
   const html = `<!DOCTYPE html>
-<html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1a1a1a;max-width:600px;margin:0 auto;padding:24px;background:#FAF8F1;">
-  <p style="font-size:15px;margin:0 0 16px;">Hi ${escapeHtml(p.name.split(' ')[0] || '')},</p>
-  <p style="font-size:15px;line-height:1.55;margin:0 0 16px;">This confirms you accepted AEO Listings quote <strong>${escapeHtml(p.quoteId)}</strong> on behalf of <strong>${escapeHtml(p.business)}</strong>.</p>
-  <p style="font-size:14px;line-height:1.55;margin:0 0 24px;color:#444;">${escapeHtml(p.includeOptional ? 'Scope includes the optional ongoing AEO retainer.' : 'Scope is upfront work plus social media management. (You can add the AEO retainer later by replying to this email.)')}</p>
+<html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1a1a1a;max-width:640px;margin:0 auto;padding:24px;background:#FAF8F1;">
+  <p style="font-size:15px;margin:0 0 16px;">Hi ${escapeHtml(firstName)},</p>
+  <p style="font-size:15px;line-height:1.55;margin:0 0 24px;">This confirms you accepted AEO Listings quote <strong>${escapeHtml(p.quoteId)}</strong> on behalf of <strong>${escapeHtml(p.business)}</strong>.</p>
+
+  <h3 style="font-size:12px;color:#666;margin:0 0 8px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Your selected scope</h3>
+  <table style="border-collapse:collapse;width:100%;margin-bottom:8px;border-top:1px solid #E5E1D6;">
+    ${selectedItemsRowsHtml(p.selectedItems)}
+  </table>
+  <table style="border-collapse:collapse;width:100%;margin-bottom:24px;">
+    <tr><td style="padding:6px 14px 6px 0;font-size:14px;font-weight:600;border-top:2px solid #1a1a1a;">One-time</td><td style="padding:6px 0;font-size:16px;text-align:right;font-family:ui-monospace,Menlo,monospace;font-weight:600;border-top:2px solid #1a1a1a;">${fmtUSD(p.totals.oneTimeTotal)}</td></tr>
+    <tr><td style="padding:6px 14px 6px 0;font-size:14px;font-weight:600;">Monthly</td><td style="padding:6px 0;font-size:16px;text-align:right;font-family:ui-monospace,Menlo,monospace;font-weight:600;">${fmtUSD(p.totals.recurringTotal)}/mo</td></tr>
+  </table>
+
   <table style="border-collapse:collapse;width:100%;margin-bottom:24px;border:1px solid #E5E1D6;">
     <tr><td style="padding:8px 14px;color:#666;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;border-bottom:1px solid #E5E1D6;">Acceptance ID</td><td style="padding:8px 14px;font-size:13px;font-family:ui-monospace,Menlo,monospace;border-bottom:1px solid #E5E1D6;">${escapeHtml(p.acceptanceId)}</td></tr>
     <tr><td style="padding:8px 14px;color:#666;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;border-bottom:1px solid #E5E1D6;">Recorded</td><td style="padding:8px 14px;font-size:13px;border-bottom:1px solid #E5E1D6;">${escapeHtml(p.whenIso)}</td></tr>
@@ -395,7 +499,6 @@ export default {
       const name = (a.name ?? '').toString().trim().slice(0, MAX_FIELD_LEN);
       const email = (a.email ?? '').toString().trim().slice(0, MAX_FIELD_LEN);
       const note = (a.note ?? '').toString().trim().slice(0, MAX_NOTE_LEN);
-      const includeOptional = Boolean(a.includeOptional);
 
       if (!name || !email) {
         return jsonResponse({ ok: false, error: 'missing_fields' }, 400);
@@ -403,6 +506,34 @@ export default {
       if (!isValidEmail(email)) {
         return jsonResponse({ ok: false, error: 'invalid_email' }, 400);
       }
+
+      // Sanitize selectedItems — accept only well-formed entries.
+      const selectedItems: CleanSelectedItem[] = Array.isArray(a.selectedItems)
+        ? a.selectedItems
+            .map((it): CleanSelectedItem | null => {
+              if (!it || typeof it !== 'object') return null;
+              const id = typeof it.id === 'string' ? it.id.trim().slice(0, 100) : '';
+              const itemName = typeof it.name === 'string' ? it.name.trim().slice(0, MAX_FIELD_LEN) : '';
+              const price = typeof it.price === 'number' && Number.isFinite(it.price) ? it.price : 0;
+              const section = it.section === 'recurring' ? 'recurring' : 'one-time';
+              if (!id || !itemName) return null;
+              return { id, name: itemName, price, section };
+            })
+            .filter((x): x is CleanSelectedItem => x !== null)
+            .slice(0, 50)
+        : [];
+
+      if (selectedItems.length === 0) {
+        return jsonResponse({ ok: false, error: 'empty_scope' }, 400);
+      }
+
+      const totalsIn = a.totals ?? {};
+      const totals: CleanTotals = {
+        oneTimeSubtotal: typeof totalsIn.oneTimeSubtotal === 'number' && Number.isFinite(totalsIn.oneTimeSubtotal) ? totalsIn.oneTimeSubtotal : 0,
+        oneTimeDiscount: typeof totalsIn.oneTimeDiscount === 'number' && Number.isFinite(totalsIn.oneTimeDiscount) ? totalsIn.oneTimeDiscount : 0,
+        oneTimeTotal: typeof totalsIn.oneTimeTotal === 'number' && Number.isFinite(totalsIn.oneTimeTotal) ? totalsIn.oneTimeTotal : 0,
+        recurringTotal: typeof totalsIn.recurringTotal === 'number' && Number.isFinite(totalsIn.recurringTotal) ? totalsIn.recurringTotal : 0,
+      };
 
       const acceptanceId = newId();
       const record = {
@@ -412,7 +543,8 @@ export default {
         business,
         name,
         email,
-        includeOptional,
+        selectedItems,
+        totals,
         note,
         ip,
         ua,
@@ -435,7 +567,8 @@ export default {
         slug,
         name,
         email,
-        includeOptional,
+        selectedItems,
+        totals,
         note,
         ip,
         ua,
@@ -464,7 +597,8 @@ export default {
         name,
         acceptanceId,
         whenIso,
-        includeOptional,
+        selectedItems,
+        totals,
       });
       ctx.waitUntil(
         sendEmail(env, {

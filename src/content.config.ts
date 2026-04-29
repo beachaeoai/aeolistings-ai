@@ -32,6 +32,8 @@ const blog = defineCollection({
  * a random token to the filename, e.g. `stag-electric-arizona-x7k2m.md`.
  */
 const lineItem = z.object({
+  /** Stable identifier — used for toggle state and accept payload. */
+  id: z.string(),
   /** Short title for the line — shows in the table. */
   name: z.string(),
   /** 1–3 sentence plain-English description of what's included. */
@@ -43,10 +45,18 @@ const lineItem = z.object({
   /** Inline note shown beneath the line — e.g. "Discounted from $1,500 standard." */
   note: z.string().optional(),
   /**
-   * Optional add-on. Rendered, but NOT included in the recurring subtotal.
-   * Useful for AEO retainer / future-phase line items the client opts into.
+   * If true, the client can toggle this item in/out of their scope using
+   * a checkbox. If false (default), the item is always included.
    */
-  optional: z.boolean().default(false),
+  togglable: z.boolean().default(false),
+  /**
+   * Items that share a `toggleGroup` are toggled together. E.g. social
+   * setup and social management both belong to the "social" group, so
+   * unchecking either unchecks both.
+   */
+  toggleGroup: z.string().optional(),
+  /** Whether the item is checked by default when the page loads. */
+  defaultIncluded: z.boolean().default(true),
 });
 
 const quotes = defineCollection({
@@ -67,12 +77,16 @@ const quotes = defineCollection({
     oneTime: z.array(lineItem).default([]),
     /**
      * Discount applied to the one-time subtotal. Shown as its own line
-     * between subtotal and total. Skip the field for no discount.
+     * between subtotal and total. Provide exactly one of `percent` or
+     * `amount`. Use `percent` (e.g. 25 for 25%) if you want the dollar
+     * value to scale when the client toggles services on/off; use
+     * `amount` for a flat-dollar discount that stays constant.
      */
     oneTimeDiscount: z
       .object({
         label: z.string(),
-        amount: z.number(),
+        percent: z.number().optional(),
+        amount: z.number().optional(),
       })
       .optional(),
     recurring: z.array(lineItem).default([]),

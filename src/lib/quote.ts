@@ -4,20 +4,50 @@
  * Quote data lives in `src/content/quotes/*.md` with the schema defined in
  * `src/content.config.ts`. These helpers compute totals and format currency
  * so the Astro page stays declarative.
+ *
+ * Totals here represent the *default* state when the page loads — the
+ * client-side toggle script in the page recomputes these in the browser
+ * when the recipient checks/unchecks togglable line items.
  */
 
 export interface QuoteLineItem {
+  id: string;
   name: string;
   description: string;
   price: number;
   regularPrice?: number;
   note?: string;
-  optional: boolean;
+  togglable: boolean;
+  toggleGroup?: string;
+  defaultIncluded: boolean;
 }
 
 export interface QuoteDiscount {
   label: string;
-  amount: number;
+  /** Percent off the subtotal (e.g. 25 for 25%). Mutually exclusive with `amount`. */
+  percent?: number;
+  /** Flat-dollar discount. Mutually exclusive with `percent`. */
+  amount?: number;
+}
+
+/**
+ * Resolve a discount to a concrete dollar amount given the current subtotal.
+ * Percent discounts are computed against the live subtotal so the dollar
+ * value scales when the client toggles items on/off; flat amounts stay constant.
+ * Result is rounded to the nearest whole dollar.
+ */
+export function resolveDiscount(
+  discount: QuoteDiscount | undefined,
+  subtotal: number,
+): number {
+  if (!discount) return 0;
+  if (typeof discount.percent === 'number') {
+    return Math.round((subtotal * discount.percent) / 100);
+  }
+  if (typeof discount.amount === 'number') {
+    return discount.amount;
+  }
+  return 0;
 }
 
 /** US dollars. Whole-dollar quotes look more confident than $7,499.99. */
@@ -31,18 +61,19 @@ export function formatUSD(n: number): string {
   return usd.format(n);
 }
 
-export function sumPrices(items: QuoteLineItem[]): number {
-  return items.reduce((acc, i) => acc + i.price, 0);
+/**
+ * An item is "included by default" when it's either non-togglable
+ * (always included) or togglable + defaultIncluded:true. The page
+ * loads with these items checked.
+ */
+export function defaultIncluded(item: QuoteLineItem): boolean {
+  return !item.togglable || item.defaultIncluded;
 }
 
-/** Subtotal = all required (non-optional) items only. */
-export function requiredSubtotal(items: QuoteLineItem[]): number {
-  return items.filter((i) => !i.optional).reduce((acc, i) => acc + i.price, 0);
-}
-
-/** Subtotal of optional add-ons — shown separately, never auto-summed in. */
-export function optionalSubtotal(items: QuoteLineItem[]): number {
-  return items.filter((i) => i.optional).reduce((acc, i) => acc + i.price, 0);
+export function defaultSubtotal(items: QuoteLineItem[]): number {
+  return items
+    .filter(defaultIncluded)
+    .reduce((acc, i) => acc + i.price, 0);
 }
 
 export interface QuoteTotals {
@@ -50,7 +81,6 @@ export interface QuoteTotals {
   oneTimeDiscount: number;
   oneTimeTotal: number;
   recurringSubtotal: number;
-  recurringOptional: number;
 }
 
 export function computeTotals(
@@ -58,14 +88,13 @@ export function computeTotals(
   recurring: QuoteLineItem[],
   discount?: QuoteDiscount,
 ): QuoteTotals {
-  const oneTimeSubtotal = requiredSubtotal(oneTime);
-  const oneTimeDiscount = discount?.amount ?? 0;
+  const oneTimeSubtotal = defaultSubtotal(oneTime);
+  const oneTimeDiscount = resolveDiscount(discount, oneTimeSubtotal);
   return {
     oneTimeSubtotal,
     oneTimeDiscount,
     oneTimeTotal: oneTimeSubtotal - oneTimeDiscount,
-    recurringSubtotal: requiredSubtotal(recurring),
-    recurringOptional: optionalSubtotal(recurring),
+    recurringSubtotal: defaultSubtotal(recurring),
   };
 }
 
@@ -79,6 +108,14 @@ export function computeTotals(
 export const dateFmt = new Intl.DateTimeFormat('en-US', {
   year: 'numeric',
   month: 'long',
+  day: 'numeric',
+  timeZone: 'UTC',
+});
+
+/** Compact ISO-style date used in the footer. */
+export const dateFmtCompact = new Intl.DateTimeFormat('en-US', {
+  year: 'numeric',
+  month: 'short',
   day: 'numeric',
   timeZone: 'UTC',
 });
