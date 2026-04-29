@@ -42,7 +42,7 @@ recurring:
     note: "Discounted from $1,500/mo standard rate."
     togglable: true
     toggleGroup: aeo-retainer
-    defaultIncluded: false
+    defaultIncluded: true
 terms:
   - "Cancel any active retainer with one email — no forms, no phone calls, no retention pitches."
   - "This quote is valid for 30 days from the issue date."
