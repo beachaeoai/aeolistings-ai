@@ -18,8 +18,8 @@ oneTime:
     description: "Full claim and rebuild of the existing GBP listing. Categories audited and corrected, services and service areas filled with the language your buyers use, business attributes completed, photo strategy with initial shoot guidance, Q&A seeded with the questions customers actually ask, and a review request workflow you can run from your phone. Duplicate listings resolved if any exist."
     price: 1250
   - id: social-setup
-    name: "Social media setup"
-    description: "Audit of any existing accounts. Claim and brand any unclaimed handles on Facebook, Instagram, and TikTok. Three to five content pillars matched to your service mix."
+    name: "Social media foundation"
+    description: "The strategic foundation the monthly management runs against. Brand consistency across Facebook, Instagram, and TikTok — same business name, profile photo, banner, and bio language on every platform, so AI search engines and humans both associate the right entity with your business. Full profile setup on each platform: bio copy, business categories, contact info, services list, hours, and primary CTA. Three to five content pillars matched to your service mix (panel upgrades, EV chargers, troubleshooting, etc.) and to what each platform rewards. Any unclaimed handles claimed and branded so a competitor can't grab them later."
     price: 750
     togglable: true
     toggleGroup: social
