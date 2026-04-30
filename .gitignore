@@ -32,3 +32,7 @@ pnpm-debug.log*
 
 # Wrangler local state (Cloudflare Worker dev cache)
 .wrangler/
+
+.dev.vars*
+!.dev.vars.example
+!.env.example
