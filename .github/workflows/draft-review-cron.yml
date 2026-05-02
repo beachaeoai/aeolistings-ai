@@ -1,0 +1,59 @@
+name: Draft review
+
+# What this does:
+#   Every ~6 days, find the oldest draft blog post, open a pull request to
+#   publish it, and send Jake a notification email with the post preview.
+#
+# How approval works:
+#   - Merge the PR  → post publishes (Cloudflare Pages auto-deploys)
+#   - Close the PR  → post stays draft, surfaces again on next cron tick
+#   - Edit-then-merge → tweak in GitHub UI, commit to PR branch, merge
+#
+# Cadence: cron doesn't support "every N days" cleanly across month
+# boundaries, so we approximate by firing on fixed days of each month.
+# Days 1, 7, 13, 19, 25 give an average gap of ~6 days. To change cadence,
+# edit the cron expression below.
+#
+# Manual trigger: Actions tab → "Draft review" → "Run workflow" button.
+# Useful for testing without waiting for the scheduled tick.
+
+on:
+  schedule:
+    # Days 1, 7, 13, 19, 25 at 16:00 UTC = 09:00 America/Phoenix.
+    # Adjust the times if you'd rather get the email at a different hour.
+    - cron: '0 16 1,7,13,19,25 * *'
+  workflow_dispatch:
+
+# Need write access to push the publish/<slug> branch and to open the PR.
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+        with:
+          # Need full history so the bot can push a new branch from the
+          # current HEAD without shallow-clone errors.
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run draft-review script
+        env:
+          # GH_TOKEN is read by the `gh` CLI for PR creation. The default
+          # GITHUB_TOKEN provided by Actions has the scopes we need given
+          # the `permissions:` block above.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # RESEND_API_KEY must be set as a repo secret in:
+          #   Settings → Secrets and variables → Actions → New repository secret
+          # (Use the same key you stored in the contact Worker — they're
+          # interchangeable; same Resend account, same domain verification.)
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: node scripts/draft-review.mjs
