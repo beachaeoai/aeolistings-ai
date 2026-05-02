@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Aeolistings GBP Audit — Eco Roofing Solutions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:         #FAF8F1;
+    --bg-2:       #F4F1E8;
+    --bg-3:       #EFECE2;
+    --fg:         #1A1A1A;
+    --fg-muted:   #6B6B6B;
+    --fg-dim:     #9A9A9A;
+    --hairline:   #E5E1D6;
+    --hairline-2: #D8D3C5;
+    --accent:     #8B2F2F;
+    --accent-ink: #FAF8F1;
+    --font-sans:  "Instrument Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    --font-serif: "Instrument Serif", Georgia, "Times New Roman", serif;
+  }
+  @page { size: Letter; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-size: 10pt;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    width: 8.5in;
+    height: 11in;
+    padding: 0.55in 0.7in 0.55in 0.7in;
+    position: relative;
+    page-break-after: always;
+    overflow: hidden;
+  }
+  .page:last-child { page-break-after: auto; }
+
+  /* Running header / footer */
+  .runner {
+    position: absolute;
+    top: 0.35in;
+    left: 0.7in;
+    right: 0.7in;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 7.5pt;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    font-weight: 500;
+    padding-bottom: 6pt;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .runner__brand { color: var(--fg); font-weight: 600; }
+  .runner__brand .accent { color: var(--accent); }
+  .footer {
+    position: absolute;
+    bottom: 0.35in;
+    left: 0.7in;
+    right: 0.7in;
+    display: flex;
+    justify-content: space-between;
+    font-size: 7.5pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+    padding-top: 6pt;
+    border-top: 1px solid var(--hairline);
+  }
+
+  /* Type */
+  h1, h2, h3 {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    letter-spacing: -0.018em;
+    line-height: 1.05;
+    margin: 0 0 0.35em;
+  }
+  h1 { font-size: 30pt; }
+  h2 { font-size: 22pt; margin-top: 0; }
+  h3 { font-size: 13pt; }
+  .display { font-family: var(--font-serif); }
+  .eyebrow {
+    font-size: 8pt;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    font-weight: 500;
+    display: block;
+    margin-bottom: 6pt;
+  }
+  .eyebrow--accent { color: var(--accent); }
+
+  /* Cover top */
+  .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 14pt;
+    border-bottom: 1px solid var(--fg);
+    margin-bottom: 18pt;
+  }
+  .head img { height: 22pt; width: auto; display: block; }
+  .head__meta {
+    text-align: right;
+    font-size: 7.5pt;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    font-weight: 500;
+    line-height: 1.5;
+  }
+  .head__meta strong { color: var(--fg); }
+  .head__meta .accent { color: var(--accent); }
+
+  /* Lede */
+  .kicker {
+    display: inline-block;
+    font-size: 7.5pt;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    border-top: 1px solid var(--accent);
+    padding-top: 5pt;
+    margin: 0 0 10pt;
+  }
+  .lede {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 14pt;
+    line-height: 1.32;
+    color: var(--fg-muted);
+    margin: 0 0 14pt;
+    max-width: 6in;
+  }
+  .method {
+    font-size: 8.5pt;
+    color: var(--fg-muted);
+    line-height: 1.45;
+    margin: 0 0 12pt;
+    padding: 8pt 12pt;
+    background: var(--bg-2);
+    border-left: 2px solid var(--accent);
+    max-width: 6.2in;
+  }
+  .method strong { color: var(--fg); font-weight: 600; }
+
+  /* Stats strip */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border-top: 1px solid var(--hairline);
+    border-bottom: 1px solid var(--hairline);
+    padding: 10pt 0;
+    margin-bottom: 14pt;
+  }
+  .stat { padding: 0 14pt; border-right: 1px solid var(--hairline); }
+  .stat:last-child { border-right: 0; }
+  .stat .label {
+    font-size: 7pt;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    font-weight: 500;
+    margin-bottom: 4pt;
+  }
+  .stat .value {
+    font-family: var(--font-serif);
+    font-size: 22pt;
+    line-height: 1;
+    color: var(--accent);
+  }
+  .stat .value small { color: var(--fg); font-size: 13pt; }
+  .stat .note { font-size: 7.5pt; color: var(--fg-muted); margin-top: 4pt; line-height: 1.35; }
+
+  /* Hero finding */
+  .hero {
+    background: var(--fg);
+    color: var(--bg);
+    padding: 18pt 22pt;
+    margin: 14pt 0 6pt;
+  }
+  .hero .eyebrow {
+    color: rgba(250,248,241,0.5);
+    margin-bottom: 4pt;
+  }
+  .hero h2 {
+    color: var(--bg);
+    font-size: 18pt;
+    margin: 0 0 6pt;
+    line-height: 1.15;
+  }
+  .hero h2 em { color: rgba(250,248,241,1); font-style: italic; }
+  .hero p {
+    margin: 0;
+    font-size: 9.5pt;
+    line-height: 1.5;
+    color: rgba(250,248,241,0.9);
+  }
+
+  /* Comparison table — current vs best practice */
+  table.gbp {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8.5pt;
+    margin-top: 6pt;
+  }
+  table.gbp th, table.gbp td {
+    text-align: left;
+    padding: 4pt 8pt;
+    vertical-align: top;
+    border-bottom: 1px solid var(--hairline);
+    font-size: 8.2pt;
+    line-height: 1.35;
+  }
+  table.gbp thead th {
+    font-family: var(--font-sans);
+    font-size: 7pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    font-weight: 600;
+    border-bottom: 1px solid var(--fg);
+    padding-bottom: 5pt;
+  }
+  table.gbp tbody th {
+    font-family: var(--font-serif);
+    font-size: 10pt;
+    font-weight: 400;
+    color: var(--fg);
+    width: 1.7in;
+  }
+  table.gbp .observed { width: 1.45in; }
+  table.gbp .target { width: 1.55in; color: var(--fg-muted); }
+  table.gbp .gap-cell { width: 0.85in; text-align: right; }
+  .badge {
+    display: inline-block;
+    font-size: 6.8pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 2pt 6pt;
+    border-radius: 2pt;
+    white-space: nowrap;
+  }
+  .badge--crit { background: var(--accent); color: var(--accent-ink); }
+  .badge--high { background: var(--fg); color: var(--bg); }
+  .badge--med { background: transparent; color: var(--fg-muted); border: 1px solid var(--hairline-2); }
+  .badge--ok { background: transparent; color: #2d5a3d; border: 1px solid #2d5a3d; }
+
+  /* Reviews chart */
+  .chart-frame {
+    border: 1px solid var(--hairline);
+    background: var(--bg);
+    padding: 14pt 16pt 12pt;
+    margin: 0 0 14pt;
+  }
+  .chart-frame h3 {
+    font-size: 13pt;
+    margin: 0 0 2pt;
+    line-height: 1.1;
+  }
+  .chart-frame .sub {
+    font-size: 8.5pt;
+    color: var(--fg-muted);
+    margin: 0 0 10pt;
+  }
+
+  /* Gap list */
+  .gaplist {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: g;
+  }
+  .gaplist li {
+    display: grid;
+    grid-template-columns: 20pt 1fr auto;
+    gap: 4pt 9pt;
+    padding: 4pt 0;
+    border-bottom: 1px dotted var(--hairline-2);
+    counter-increment: g;
+  }
+  .gaplist li::before {
+    content: counter(g, decimal-leading-zero);
+    font-family: var(--font-serif);
+    color: var(--accent);
+    font-size: 10pt;
+    line-height: 1.2;
+  }
+  .gaplist .what {
+    font-family: var(--font-serif);
+    font-size: 10.5pt;
+    color: var(--fg);
+    line-height: 1.2;
+  }
+  .gaplist .why {
+    font-size: 7.8pt;
+    color: var(--fg-muted);
+    margin-top: 1pt;
+    line-height: 1.35;
+    display: block;
+  }
+
+  /* Phase plan */
+  .phases {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12pt;
+    margin-top: 8pt;
+  }
+  .phase {
+    border: 1px solid var(--hairline);
+    background: var(--bg);
+    padding: 10pt 12pt 12pt;
+  }
+  .phase__win {
+    font-size: 7pt;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 3pt;
+  }
+  .phase__title {
+    font-family: var(--font-serif);
+    font-size: 13pt;
+    line-height: 1.1;
+    margin-bottom: 6pt;
+    padding-bottom: 4pt;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .phase ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 8.5pt;
+  }
+  .phase li {
+    padding: 3pt 0 3pt 10pt;
+    position: relative;
+    line-height: 1.4;
+    color: var(--fg);
+  }
+  .phase li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    top: 3pt;
+    color: var(--accent);
+  }
+
+  /* Crosswalk box */
+  .crosswalk {
+    margin-top: 14pt;
+    padding: 14pt 18pt;
+    background: var(--bg-2);
+    border: 1px solid var(--hairline);
+  }
+  .crosswalk h3 {
+    font-size: 13pt;
+    margin: 0 0 4pt;
+  }
+  .crosswalk p {
+    font-size: 9pt;
+    color: var(--fg);
+    margin: 0 0 4pt;
+    line-height: 1.5;
+  }
+  .crosswalk strong { color: var(--accent); font-weight: 600; }
+
+  /* Closing */
+  .closing {
+    background: var(--fg);
+    color: var(--bg);
+    padding: 18pt 22pt;
+    margin-top: 14pt;
+  }
+  .closing .eyebrow { color: rgba(250,248,241,0.5); margin-bottom: 4pt; }
+  .closing h2 {
+    color: var(--bg);
+    font-size: 18pt;
+    margin: 0 0 6pt;
+    line-height: 1.15;
+  }
+  .closing p {
+    color: rgba(250,248,241,0.92);
+    font-size: 9.5pt;
+    margin: 0;
+    line-height: 1.5;
+  }
+  .closing em { color: rgba(250,248,241,1); }
+
+  code {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 0.9em;
+    background: var(--bg-2);
+    padding: 0.1em 0.3em;
+    border-radius: 2px;
+  }
+
+  .pull {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 14pt;
+    line-height: 1.28;
+    color: var(--fg);
+    border-left: 2px solid var(--accent);
+    padding: 4pt 0 4pt 14pt;
+    margin: 12pt 0;
+    max-width: 6in;
+  }
+</style>
+</head>
+<body>
+
+<!-- =========================================================== -->
+<!-- PAGE 1                                                       -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="head">
+    <img src="aeolistings-wordmark-paper.png" alt="Aeolistings" />
+    <div class="head__meta">
+      Visibility Audit · GBP Supplement<br/>
+      <strong>No. 001-A</strong> <span class="accent">·</span> April 2026
+    </div>
+  </div>
+
+  <span class="kicker">Eco Roofing Solutions · Gilbert, AZ</span>
+  <h1 class="display">Google Business<br/>Profile, <em style="color:var(--accent);">audited.</em></h1>
+  <p class="lede">A focused supplement to the main visibility audit. The GBP is the single biggest lever for "roofer near me" visibility — and Eco Roof's profile is leaving most of that lever untouched.</p>
+
+  <p class="method"><strong>Methodology.</strong> The live GBP panel can't be loaded directly from this environment, so this audit reads the profile through three lenses: a Google-data aggregator that surfaces the same fields Google publishes (poyst.com), cross-platform comparison against the same business's Yelp / BBB / HomeAdvisor presence, and the 2026 best-practice baseline for roofing contractors specifically. Where a finding is inferred rather than directly observed, it's flagged.</p>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="label">Google rating</div>
+      <div class="value">4.6<small>★</small></div>
+      <div class="note">Borderline — 4.7+ is competitive</div>
+    </div>
+    <div class="stat">
+      <div class="label">Google reviews</div>
+      <div class="value">5</div>
+      <div class="note">vs. 31 on Yelp · hundreds-implied on HomeAdvisor</div>
+    </div>
+    <div class="stat">
+      <div class="label">Photos on listing</div>
+      <div class="value">0</div>
+      <div class="note">Top-ranking roofers run 100+</div>
+    </div>
+    <div class="stat">
+      <div class="label">Owner reply rate</div>
+      <div class="value">0%</div>
+      <div class="note">Tracked as a ranking signal</div>
+    </div>
+  </div>
+
+  <div class="hero">
+    <span class="eyebrow">The headline finding</span>
+    <h2>Eco Roof is collecting reviews <em>on the wrong platforms.</em></h2>
+    <p>31 Yelp reviews, hundreds-implied on HomeAdvisor, BBB-accredited since 2020 — and only 5 reviews on Google. The Google Business Profile is the surface that decides Local Pack visibility, where 80%+ of "roofing contractor near me" traffic flows. Reviews on Yelp and HomeAdvisor help with trust once a customer has found you. They don't help you get found in the first place.</p>
+  </div>
+
+  <p class="pull" style="margin-top:14pt;font-size:13pt;">"After 25 years, BBB accreditation, and a third-generation owner, this should be one of the most visible roofers in the East Valley. It isn't — primarily because the GBP is treated as a directory listing instead of a marketing asset."</p>
+
+  <div class="footer">
+    <span>GBP Supplement · 01</span>
+    <span>Eco Roofing Solutions · ecoroofaz.com</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 2                                                       -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>GBP Supplement · State &amp; Best Practice</span>
+    <span class="runner__brand">Eco Roofing Solutions <span class="accent">·</span> ecoroofaz.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">Reviews — across platforms</span>
+  <h2 class="display" style="margin-bottom:6pt;">Where the trust is, vs. where the rankings are.</h2>
+  <p style="font-size:9.5pt;color:var(--fg-muted);max-width:6.2in;margin:0 0 8pt;">This is the same business, the same customers, the same 25 years of work — distributed across review surfaces that don't all carry the same weight in Google's local rankings.</p>
+
+  <div class="chart-frame" style="margin-bottom:12pt;">
+    REVIEWS_PLACEHOLDER
+    <p style="font-size:8pt;color:var(--fg-muted);margin:6pt 0 0;line-height:1.4;">Bar length reflects review count. <strong style="color:var(--accent);">Oxblood</strong> = the platform Google's Local Pack actually weights. Grey = trust assets that don't currently improve Local Pack visibility.</p>
+  </div>
+
+  <h3 style="margin-top:0;">Current state vs. 2026 best practice</h3>
+  <table class="gbp">
+    <thead>
+      <tr>
+        <th>GBP field</th>
+        <th class="observed">What's there</th>
+        <th class="target">Best-practice target</th>
+        <th class="gap-cell">Impact</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th>Google rating</th>
+        <td>4.6★</td>
+        <td>4.7★+</td>
+        <td class="gap-cell"><span class="badge badge--med">Borderline</span></td>
+      </tr>
+      <tr>
+        <th>Review count</th>
+        <td>5</td>
+        <td>20+ to compete in 3-pack</td>
+        <td class="gap-cell"><span class="badge badge--crit">Critical</span></td>
+      </tr>
+      <tr>
+        <th>Photos</th>
+        <td>0</td>
+        <td>50+, refreshed weekly</td>
+        <td class="gap-cell"><span class="badge badge--crit">Critical</span></td>
+      </tr>
+      <tr>
+        <th>Owner responses</th>
+        <td>None visible</td>
+        <td>100% reply rate, &lt;48hr</td>
+        <td class="gap-cell"><span class="badge badge--crit">Critical</span></td>
+      </tr>
+      <tr>
+        <th>Review velocity</th>
+        <td>Latest 3–5 mo old</td>
+        <td>2–4 new reviews / month</td>
+        <td class="gap-cell"><span class="badge badge--high">High</span></td>
+      </tr>
+      <tr>
+        <th>Primary category</th>
+        <td>"Roofing" (verify)</td>
+        <td>Roofing Contractor</td>
+        <td class="gap-cell"><span class="badge badge--med">Verify</span></td>
+      </tr>
+      <tr>
+        <th>Secondary categories</th>
+        <td>None visible</td>
+        <td>5–9 relevant ones</td>
+        <td class="gap-cell"><span class="badge badge--high">High</span></td>
+      </tr>
+      <tr>
+        <th>Google Posts</th>
+        <td>None visible</td>
+        <td>2+/week (also AI Overview signal)</td>
+        <td class="gap-cell"><span class="badge badge--high">High</span></td>
+      </tr>
+      <tr>
+        <th>Q&amp;A</th>
+        <td>Unknown / minimal</td>
+        <td>5–15 owner-seeded</td>
+        <td class="gap-cell"><span class="badge badge--high">High</span></td>
+      </tr>
+      <tr>
+        <th>Identity attributes</th>
+        <td>Family-owned not surfaced</td>
+        <td>Family-owned, 3rd-gen, free est.</td>
+        <td class="gap-cell"><span class="badge badge--high">High</span></td>
+      </tr>
+      <tr>
+        <th>Products</th>
+        <td>None</td>
+        <td>5–10 entries (AI summary source)</td>
+        <td class="gap-cell"><span class="badge badge--med">Medium</span></td>
+      </tr>
+      <tr>
+        <th>Eco / cool-roof angle</th>
+        <td>Not expressed on GBP</td>
+        <td>In services, posts, attributes, photos</td>
+        <td class="gap-cell"><span class="badge badge--high">High</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="font-size:7.8pt;color:var(--fg-muted);margin:6pt 0 0;font-style:italic;font-family:var(--font-serif);">NAP consistency and posted hours (Mon–Sat 8a–5p) are correct as-is — no changes needed there.</p>
+
+  <div class="footer">
+    <span>GBP Supplement · 02</span>
+    <span>Eco Roofing Solutions · ecoroofaz.com</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 3 — Critical gaps                                       -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>GBP Supplement · Critical Gaps</span>
+    <span class="runner__brand">Eco Roofing Solutions <span class="accent">·</span> ecoroofaz.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">Critical gaps — ranked by impact</span>
+  <h2 class="display" style="margin-bottom:4pt;">Ten fixes that change Local Pack visibility.</h2>
+  <p style="font-size:9pt;color:var(--fg-muted);max-width:6.2in;margin:0 0 6pt;">In priority order. The first three are recoverable inside week one and account for the largest share of the visibility lift.</p>
+
+  <ul class="gaplist">
+    <li>
+      <span></span>
+      <span><span class="what">Reviews going to the wrong platform</span><span class="why">5 Google reviews after 25+ years; Yelp has 31, HomeAdvisor hundreds. Pointing the review-request workflow at Google instead unlocks more ranking lift than any other single change.</span></span>
+      <span class="badge badge--crit">Critical</span>
+    </li>
+    <li>
+      <span></span>
+      <span><span class="what">Zero photos on the listing</span><span class="why">Top-ranking East Valley roofers run 100+ photos. Eco Roof has 0 — actively suppressing rankings and click-through. Existing project photos exist on the website and Yelp; they need to be on the GBP.</span></span>
+      <span class="badge badge--crit">Critical</span>
+    </li>
+    <li>
+      <span></span>
+      <span><span class="what">No owner responses to reviews</span><span class="why">Google explicitly tracks response rate and speed as ranking signals. Replying to all 5 existing reviews (positive and the mixed one) is a free week-one win.</span></span>
+      <span class="badge badge--crit">Critical</span>
+    </li>
+    <li>
+      <span></span>
+      <span><span class="what">Likely missing 5–9 secondary categories</span><span class="why">Tile, foam, flat, shingle, residential, commercial, repair — each maps to a valid Google category. Operating with one primary leaves 80% of category-driven discovery on the table.</span></span>
+      <span class="badge badge--high">High</span>
+    </li>
+    <li>
+      <span></span>
+      <span><span class="what">No Google Posts cadence</span><span class="why">Posts are now both a top-tier ranking signal and an AI Overview citation signal. With weekly blog content already produced, repurposing is essentially free.</span></span>
+      <span class="badge badge--high">High</span>
+    </li>
+    <li>
+      <span></span>
+      <span><span class="what">Eco / cool-roof angle invisible on the GBP</span><span class="why">The brand's most defensible asset isn't in services, attributes, posts, or photos. The GBP is one of the highest-leverage surfaces for asserting that positioning.</span></span>
+      <span class="badge badge--high">High</span>
+    </li>
+    <li>
+      <span></span>
+      <span><span class="what">No Q&amp;A seeded</span><span class="why">Owner-posted Q&amp;A behaves identically to FAQ schema for AI Overview citation. Same fix as the website FAQ rewrite, in a different surface.</span></span>
+      <span class="badge badge--med">Medium</span>
+    </li>
+    <li>
+      <span></span>
+      <span><span class="what">No identity / service attributes</span><span class="why">Family-owned, third-generation (Eric Perry as named expert), free estimates, free drone inspections — each is a filter Google uses in conversational Maps queries.</span></span>
+      <span class="badge badge--med">Medium</span>
+    </li>
+    <li>
+      <span></span>
+      <span><span class="what">No Products entries</span><span class="why">Foam systems, tile, cool-roof coatings, drone inspection — even for service businesses, AI Maps summaries pull from Products entries.</span></span>
+      <span class="badge badge--med">Medium</span>
+    </li>
+    <li>
+      <span></span>
+      <span><span class="what">Mixed review without an owner reply</span><span class="why">An unanswered negative review is a louder signal than a thoughtful response acknowledging the issue — and AI assistants summarizing the brand will surface it as-is.</span></span>
+      <span class="badge badge--med">Medium</span>
+    </li>
+  </ul>
+
+  <div class="footer">
+    <span>GBP Supplement · 03</span>
+    <span>Eco Roofing Solutions · ecoroofaz.com</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 4 — 90-day plan + crosswalk + closing                   -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>GBP Supplement · 90-Day Plan</span>
+    <span class="runner__brand">Eco Roofing Solutions <span class="accent">·</span> ecoroofaz.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">90-day rollout</span>
+  <h2 class="display" style="margin-bottom:8pt;">A steady, weekly cadence —<br/>not a redesign.</h2>
+  <p style="font-size:9.5pt;color:var(--fg-muted);max-width:6.2in;margin:0 0 12pt;">Sequenced so the highest-leverage changes happen in week one, the cadence-building work fills weeks 2–4, and the velocity ramp compounds across days 30–90.</p>
+
+  <div class="phases">
+    <div class="phase">
+      <div class="phase__win">Week 1 · Quick wins</div>
+      <div class="phase__title">Foundation</div>
+      <ul>
+        <li>Confirm primary category = Roofing Contractor</li>
+        <li>Add 5–9 secondary categories</li>
+        <li>Reply to all 5 existing reviews</li>
+        <li>Upload 30+ existing project photos</li>
+        <li>Add identity + service attributes</li>
+        <li>Update business description with East Valley + eco</li>
+        <li>Seed 5–7 owner-posted Q&amp;A entries</li>
+      </ul>
+    </div>
+    <div class="phase">
+      <div class="phase__win">Weeks 2–4 · Activate</div>
+      <div class="phase__title">Build cadence</div>
+      <ul>
+        <li>Wire review-request workflow to Google specifically</li>
+        <li>Begin 2 Google Posts / week (mix of project + offer)</li>
+        <li>Add 5–8 Products entries with photos &amp; pricing ranges</li>
+        <li>Photo cadence: 5+ new per week</li>
+        <li>Confirm service-area cities match website footer (cap 20)</li>
+      </ul>
+    </div>
+    <div class="phase">
+      <div class="phase__win">Days 30–90 · Compound</div>
+      <div class="phase__title">Ramp velocity</div>
+      <ul>
+        <li>Target 4+ new Google reviews / month — drives 5 → 20+ in 90 days</li>
+        <li>Sustained 2 posts / week (now the floor)</li>
+        <li>Sustained weekly photo cadence — target 75+ total</li>
+        <li>Q&amp;A monitoring &lt;48 hours</li>
+        <li>Track Local Pack visibility for "roofing contractor Mesa AZ", "roof repair Gilbert AZ", "tile roof Mesa", "foam roof Phoenix"</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="crosswalk">
+    <h3>Crosswalk to the proposed Scope of Services</h3>
+    <p>The audit's <strong>Google Business Profile Optimization</strong> line item ($1,250 one-time) covers the Week 1 work above — claim, categories, photos, attributes, service area, business description, Q&amp;A seeding, and the review-response sweep.</p>
+    <p>The ongoing posts cadence, photo cadence, and review-velocity ramp are best handled inside the <strong>AEO Authority + Operations Retainer</strong> ($1,000/mo) — which already includes a review-velocity system and weekly performance summary.</p>
+    <p style="margin-top:6pt;">This supplement reinforces the scope already proposed. It doesn't add new line items — it explains why the GBP optimization line is the highest-leverage one in the bundle for a roofer in this position.</p>
+  </div>
+
+  <div class="closing">
+    <span class="eyebrow">Bottom line</span>
+    <h2>The GBP is recoverable in 90 days. <em>Without redesigning anything.</em></h2>
+    <p>Most of what's broken on this profile is broken because no one's been actively running it. The work is steady, weekly, and unglamorous — but it compounds, and it changes who shows up when an East Valley homeowner searches "roofer near me." That's the whole game.</p>
+  </div>
+
+  <div class="footer">
+    <span>GBP Supplement · 04</span>
+    <span>Aeolistings · aeolistings.ai</span>
+  </div>
+</section>
+
+</body>
+</html>

@@ -1,0 +1,1735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Aeolistings Visibility Audit — Stag Electric</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  /* ===========================================================
+     Tokens — editorial minimalism (matches aeolistings.ai brand)
+     =========================================================== */
+  :root {
+    --bg:         #FAF8F1;
+    --bg-2:       #F4F1E8;
+    --bg-3:       #EFECE2;
+    --fg:         #1A1A1A;
+    --fg-muted:   #6B6B6B;
+    --fg-dim:     #9A9A9A;
+    --hairline:   #E5E1D6;
+    --hairline-2: #D8D3C5;
+    --accent:     #8B2F2F; /* oxblood */
+    --accent-ink: #FAF8F1;
+
+    --font-sans:  "Instrument Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    --font-serif: "Instrument Serif", Georgia, "Times New Roman", serif;
+  }
+
+  /* ===========================================================
+     Page setup — print-first, US Letter
+     =========================================================== */
+  @page {
+    size: Letter;
+    margin: 0;
+  }
+  @page :first {
+    margin: 0;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-size: 10.5pt;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .page {
+    width: 8.5in;
+    height: 11in;
+    padding: 0.7in 0.8in 0.85in 0.8in;
+    position: relative;
+    page-break-after: always;
+    overflow: hidden;
+  }
+  .page:last-child { page-break-after: auto; }
+
+  /* Running header on inner pages */
+  .runner {
+    position: absolute;
+    top: 0.4in;
+    left: 0.8in;
+    right: 0.8in;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 8pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    font-weight: 500;
+    padding-bottom: 8pt;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .runner__brand { color: var(--fg); font-weight: 600; }
+  .runner__brand .accent { color: var(--accent); }
+
+  .footer {
+    position: absolute;
+    bottom: 0.4in;
+    left: 0.8in;
+    right: 0.8in;
+    display: flex;
+    justify-content: space-between;
+    font-size: 8pt;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+    padding-top: 8pt;
+    border-top: 1px solid var(--hairline);
+  }
+
+  /* ===========================================================
+     Type
+     =========================================================== */
+  .display {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.02;
+  }
+  h1, h2, h3 {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    letter-spacing: -0.015em;
+    line-height: 1.05;
+    color: var(--fg);
+    margin: 0 0 0.35em;
+  }
+  h1 { font-size: 30pt; }
+  h2 { font-size: 20pt; margin-top: 0; }
+  h3 { font-size: 13pt; margin-top: 0.8em; }
+
+  p { margin: 0 0 0.7em; }
+  p + p { margin-top: 0; }
+  strong { font-weight: 600; }
+  em { font-family: var(--font-serif); font-style: italic; }
+
+  .eyebrow {
+    font-family: var(--font-sans);
+    font-size: 8.5pt;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    font-weight: 500;
+    margin-bottom: 0.5em;
+    display: block;
+  }
+  .eyebrow--accent { color: var(--accent); }
+
+  hr.hairline {
+    border: 0;
+    border-top: 1px solid var(--hairline);
+    margin: 18pt 0;
+  }
+
+  /* Drop cap for editorial overview */
+  .dropcap::first-letter {
+    font-family: var(--font-serif);
+    font-size: 56pt;
+    line-height: 0.9;
+    float: left;
+    padding: 6pt 8pt 0 0;
+    color: var(--accent);
+    font-weight: 400;
+  }
+
+  /* ===========================================================
+     COVER
+     =========================================================== */
+  .cover {
+    height: 11in;
+    padding: 0.9in 0.9in 0.9in 0.9in;
+    background:
+      radial-gradient(1100px 600px at 110% -10%, rgba(139,47,47,0.08), transparent 60%),
+      var(--bg);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+  }
+  .cover__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .cover__brand img {
+    height: 28pt;
+    width: auto;
+    display: block;
+  }
+  .cover__meta {
+    text-align: right;
+    font-size: 8.5pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    font-weight: 500;
+  }
+  .cover__meta strong { color: var(--fg); }
+
+  .cover__main {
+    margin-top: 1.4in;
+  }
+  .cover__kicker {
+    font-family: var(--font-sans);
+    font-size: 9pt;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 22pt;
+    display: inline-block;
+    border-top: 1px solid var(--accent);
+    padding-top: 8pt;
+  }
+  .cover__title {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: 64pt;
+    line-height: 0.96;
+    letter-spacing: -0.025em;
+    margin: 0 0 18pt 0;
+    max-width: 6.5in;
+  }
+  .cover__title em { font-style: italic; color: var(--accent); }
+  .cover__sub {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 18pt;
+    line-height: 1.3;
+    color: var(--fg-muted);
+    max-width: 5.4in;
+  }
+
+  .cover__bottom {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 18pt;
+    border-top: 1px solid var(--fg);
+    padding-top: 18pt;
+  }
+  .cover__bottom .label {
+    font-size: 8pt;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    font-weight: 500;
+    margin-bottom: 4pt;
+  }
+  .cover__bottom .value {
+    font-family: var(--font-serif);
+    font-size: 14pt;
+    line-height: 1.2;
+    color: var(--fg);
+  }
+
+  /* ===========================================================
+     Generic content blocks
+     =========================================================== */
+  .lead {
+    font-family: var(--font-serif);
+    font-size: 15pt;
+    line-height: 1.3;
+    color: var(--fg);
+    margin: 0 0 16pt;
+    max-width: 6.4in;
+  }
+  .twocol {
+    column-count: 2;
+    column-gap: 28pt;
+    column-rule: 1px solid var(--hairline);
+  }
+  .twocol p { margin-bottom: 0.6em; }
+
+  .keyfacts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10pt 24pt;
+    background: var(--bg-2);
+    border: 1px solid var(--hairline);
+    padding: 18pt 22pt;
+  }
+  .keyfacts dt {
+    font-size: 8pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    font-weight: 500;
+    margin-bottom: 2pt;
+  }
+  .keyfacts dd {
+    font-family: var(--font-serif);
+    font-size: 13pt;
+    line-height: 1.3;
+    color: var(--fg);
+    margin: 0 0 6pt 0;
+  }
+  .keyfacts dd em { color: var(--accent); }
+
+  .pull {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 18pt;
+    line-height: 1.28;
+    color: var(--fg);
+    border-left: 2px solid var(--accent);
+    padding: 4pt 0 4pt 16pt;
+    margin: 16pt 0;
+  }
+
+  /* Competitor cards */
+  .compset {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10pt;
+    margin-top: 8pt;
+  }
+  .comp {
+    border: 1px solid var(--hairline);
+    background: var(--bg);
+    padding: 10pt 11pt 12pt;
+  }
+  .comp h4 {
+    font-family: var(--font-serif);
+    font-size: 13pt;
+    margin: 0 0 1pt;
+    line-height: 1.1;
+  }
+  .comp .url {
+    font-size: 7.8pt;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+    margin-bottom: 5pt;
+    display: block;
+    word-break: break-all;
+  }
+  .comp .why {
+    font-size: 8.5pt;
+    color: var(--fg);
+    margin: 0 0 5pt;
+    line-height: 1.4;
+  }
+  .comp .verdict {
+    font-size: 8pt;
+    color: var(--fg-muted);
+    line-height: 1.4;
+  }
+  .comp .verdict strong { color: var(--fg); }
+
+  /* Findings list */
+  .finding {
+    margin: 10pt 0 12pt;
+    page-break-inside: avoid;
+  }
+  .finding h3 {
+    margin: 0 0 3pt;
+    font-size: 14pt;
+  }
+  .finding .lede {
+    font-family: var(--font-sans);
+    font-size: 9.8pt;
+    color: var(--fg-muted);
+    margin: 0 0 5pt;
+    line-height: 1.4;
+  }
+  .finding .body { font-size: 9.5pt; line-height: 1.45; }
+  .finding .body p { margin-bottom: 5pt; }
+  .finding .body ul {
+    margin: 4pt 0 0;
+    padding-left: 14pt;
+  }
+  .finding .body li { margin-bottom: 2pt; }
+
+  /* Comparison table */
+  table.compare {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8.5pt;
+    margin-top: 10pt;
+  }
+  table.compare th, table.compare td {
+    text-align: left;
+    padding: 7pt 8pt;
+    vertical-align: top;
+    border-bottom: 1px solid var(--hairline);
+  }
+  table.compare thead th {
+    font-family: var(--font-sans);
+    font-size: 7.5pt;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    font-weight: 600;
+    border-bottom: 1px solid var(--fg);
+    padding-bottom: 6pt;
+  }
+  table.compare tbody th {
+    font-family: var(--font-serif);
+    font-size: 10pt;
+    font-weight: 400;
+    color: var(--fg);
+    width: 1.5in;
+  }
+  .score {
+    display: inline-block;
+    font-family: var(--font-serif);
+    font-size: 14pt;
+    color: var(--fg);
+    margin-right: 4pt;
+    line-height: 1;
+  }
+  .score--target { color: var(--accent); }
+  .scorebar {
+    display: inline-block;
+    height: 4pt;
+    background: var(--bg-3);
+    width: 60pt;
+    border-radius: 2pt;
+    overflow: hidden;
+    vertical-align: middle;
+    margin-left: 4pt;
+  }
+  .scorebar i {
+    display: block;
+    height: 100%;
+    background: var(--fg);
+    border-radius: 2pt;
+  }
+  .compare .target .scorebar i { background: var(--accent); }
+  .compare .target { background: rgba(139,47,47,0.04); }
+  .compare td .note {
+    display: block;
+    color: var(--fg-muted);
+    font-size: 7.8pt;
+    margin-top: 1pt;
+  }
+
+  /* Gaps grid */
+  .gaps {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10pt 14pt;
+  }
+  .gap {
+    border: 1px solid var(--hairline);
+    padding: 10pt 12pt;
+    background: var(--bg);
+    page-break-inside: avoid;
+  }
+  .gap__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8pt;
+    margin-bottom: 4pt;
+  }
+  .gap__title {
+    font-family: var(--font-serif);
+    font-size: 11.5pt;
+    color: var(--fg);
+    line-height: 1.2;
+  }
+  .badge {
+    display: inline-block;
+    font-size: 7pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 2pt 6pt;
+    border-radius: 2pt;
+    white-space: nowrap;
+  }
+  .badge--high { background: var(--accent); color: var(--accent-ink); }
+  .badge--medium { background: var(--fg); color: var(--bg); }
+  .badge--found { background: transparent; color: var(--fg-muted); border: 1px solid var(--hairline-2); }
+  .gap__why {
+    font-size: 9pt;
+    color: var(--fg-muted);
+    margin: 0;
+  }
+
+  /* Roadmap / checklist */
+  .phase {
+    margin: 8pt 0 10pt;
+    page-break-inside: avoid;
+  }
+  .phase__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--fg);
+    padding-bottom: 4pt;
+    margin-bottom: 4pt;
+  }
+  .phase__title {
+    font-family: var(--font-serif);
+    font-size: 15pt;
+    line-height: 1;
+  }
+  .phase__win {
+    font-size: 7.5pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .phase ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .phase li {
+    display: grid;
+    grid-template-columns: 16pt 1fr 56pt;
+    gap: 2pt 8pt;
+    padding: 3pt 0;
+    border-bottom: 1px dotted var(--hairline-2);
+    font-size: 8.5pt;
+    line-height: 1.35;
+  }
+  .phase li:last-child { border-bottom: 0; }
+  .phase .num {
+    font-family: var(--font-serif);
+    color: var(--accent);
+    font-size: 10pt;
+    line-height: 1.25;
+  }
+  .phase .what { color: var(--fg); }
+  .phase .what strong { font-weight: 600; }
+  .phase .what em {
+    color: var(--fg-muted);
+    font-style: italic;
+    font-family: var(--font-serif);
+    margin-left: 4pt;
+    font-size: 8.2pt;
+  }
+  .phase .tag {
+    display: inline-block;
+    font-size: 7pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 2pt 5pt;
+    border: 1px solid var(--hairline-2);
+    color: var(--fg-muted);
+    border-radius: 2pt;
+    text-align: center;
+    align-self: start;
+    white-space: nowrap;
+  }
+  .phase .tag--seo { color: var(--fg); border-color: var(--fg); }
+  .phase .tag--aeo { color: var(--accent); border-color: var(--accent); }
+  .phase .tag--both {
+    color: var(--bg);
+    background: var(--fg);
+    border-color: var(--fg);
+  }
+
+  /* Closing notes */
+  .closing {
+    background: var(--fg);
+    color: var(--bg);
+    padding: 22pt 28pt 24pt;
+    margin-top: 10pt;
+  }
+  .closing .eyebrow { color: rgba(250,248,241,0.6); }
+  .closing h2 {
+    color: var(--bg);
+    font-size: 22pt;
+    margin: 0 0 10pt;
+    line-height: 1.1;
+  }
+  .closing p { color: rgba(250,248,241,0.92); font-size: 9.5pt; line-height: 1.5; }
+  .closing em { color: rgba(250,248,241,1); }
+  .closing ol { padding-left: 18pt; margin: 0; }
+  .closing ol li { margin-bottom: 4pt; }
+  .closing .signoff {
+    margin-top: 14pt;
+    padding-top: 10pt;
+    border-top: 1px solid rgba(250,248,241,0.25);
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 11pt;
+    color: rgba(250,248,241,0.85);
+    line-height: 1.4;
+  }
+
+  /* Chart frames */
+  .chart {
+    background: var(--bg);
+    border: 1px solid var(--hairline);
+    padding: 12pt 14pt 10pt;
+    margin: 6pt 0 10pt;
+  }
+  .chart__title {
+    font-family: var(--font-serif);
+    font-size: 14pt;
+    margin: 0 0 1pt;
+    line-height: 1.1;
+  }
+  .chart__sub {
+    font-size: 8.5pt;
+    color: var(--fg-muted);
+    margin: 0 0 8pt;
+  }
+  .chart__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12pt;
+    font-size: 8pt;
+    color: var(--fg-muted);
+    margin-top: 6pt;
+  }
+  .chart__legend .swatch {
+    display: inline-block;
+    width: 10pt;
+    height: 10pt;
+    border-radius: 2pt;
+    margin-right: 4pt;
+    vertical-align: -1pt;
+  }
+
+  /* Scope of services */
+  .scope-intro {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 11pt;
+    line-height: 1.32;
+    color: var(--fg-muted);
+    margin: 0 0 10pt;
+    padding: 0 0 0 12pt;
+    border-left: 1px solid var(--accent);
+    max-width: 6in;
+  }
+
+  .svc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7pt;
+  }
+  .svc {
+    border: 1px solid var(--hairline);
+    background: var(--bg);
+    padding: 8pt 11pt 9pt;
+    page-break-inside: avoid;
+    display: flex;
+    flex-direction: column;
+  }
+  .svc__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8pt;
+    border-bottom: 1px solid var(--hairline);
+    padding-bottom: 4pt;
+    margin-bottom: 4pt;
+  }
+  .svc__name {
+    font-family: var(--font-serif);
+    font-size: 11.5pt;
+    line-height: 1.12;
+    color: var(--fg);
+    flex: 1;
+  }
+  .svc__price {
+    font-family: var(--font-serif);
+    font-size: 13pt;
+    color: var(--accent);
+    white-space: nowrap;
+    line-height: 1;
+  }
+  .svc__price small {
+    font-size: 8pt;
+    color: var(--fg-muted);
+    font-style: italic;
+    font-family: var(--font-serif);
+    margin-left: 2pt;
+  }
+  .svc__desc {
+    font-size: 8pt;
+    line-height: 1.4;
+    color: var(--fg);
+    margin: 0 0 4pt;
+    flex: 1;
+  }
+  .svc__addresses {
+    font-size: 7pt;
+    color: var(--fg-muted);
+    line-height: 1.35;
+    border-top: 1px dotted var(--hairline-2);
+    padding-top: 4pt;
+    margin: 0;
+  }
+  .svc__addresses strong {
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-size: 6.5pt;
+    display: inline;
+    margin-right: 3pt;
+  }
+
+  .svc--full { grid-column: 1 / -1; }
+
+  /* Subtotal block */
+  .subtotal {
+    margin-top: 8pt;
+    padding: 8pt 12pt 9pt;
+    background: var(--bg-2);
+    border: 1px solid var(--hairline);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2pt 14pt;
+    align-items: baseline;
+  }
+  .subtotal .lbl {
+    font-size: 8.5pt;
+    color: var(--fg-muted);
+  }
+  .subtotal .val {
+    font-family: var(--font-serif);
+    font-size: 12pt;
+    color: var(--fg);
+    text-align: right;
+    line-height: 1;
+  }
+  .subtotal .lbl--accent { color: var(--accent); font-weight: 600; }
+  .subtotal .val--accent { color: var(--accent); }
+  .subtotal .lbl--total {
+    font-size: 10.5pt;
+    color: var(--fg);
+    font-weight: 600;
+    border-top: 1px solid var(--fg);
+    padding-top: 5pt;
+    margin-top: 2pt;
+  }
+  .subtotal .val--total {
+    font-size: 16pt;
+    color: var(--fg);
+    border-top: 1px solid var(--fg);
+    padding-top: 5pt;
+    margin-top: 2pt;
+  }
+
+  /* Investment table */
+  .invest {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9pt;
+    margin-top: 6pt;
+  }
+  .invest th, .invest td {
+    text-align: left;
+    padding: 6pt 10pt;
+    vertical-align: top;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .invest thead th {
+    font-family: var(--font-sans);
+    font-size: 7.5pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    font-weight: 600;
+    border-bottom: 1px solid var(--fg);
+    padding-bottom: 6pt;
+  }
+  .invest tbody th {
+    font-family: var(--font-serif);
+    font-size: 11pt;
+    font-weight: 400;
+    color: var(--fg);
+    width: 2.4in;
+  }
+  .invest .price {
+    font-family: var(--font-serif);
+    font-size: 12pt;
+    color: var(--fg);
+    white-space: nowrap;
+    text-align: right;
+    width: 1in;
+  }
+  .invest .price strike {
+    color: var(--fg-dim);
+    font-size: 9pt;
+    text-decoration: line-through;
+    margin-right: 4pt;
+  }
+  .invest .price--accent { color: var(--accent); }
+  .invest .note { color: var(--fg-muted); font-size: 8.5pt; }
+  .invest tr.discount td {
+    color: var(--accent);
+    font-style: italic;
+    font-family: var(--font-serif);
+    font-size: 10.5pt;
+  }
+  .invest tr.total td {
+    font-family: var(--font-serif);
+    font-size: 14pt;
+    font-weight: 400;
+    color: var(--fg);
+    border-bottom: 0;
+    border-top: 1px solid var(--fg);
+    padding-top: 10pt;
+  }
+  .invest tr.total .price {
+    font-size: 18pt;
+    color: var(--fg);
+  }
+
+  /* Optional add-ons block */
+  .addons {
+    margin-top: 8pt;
+    padding: 8pt 12pt 9pt;
+    border: 1px dashed var(--hairline-2);
+    background: var(--bg);
+  }
+  .addons h4 {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: 11pt;
+    margin: 0 0 3pt;
+    color: var(--fg);
+  }
+  .addons p {
+    font-size: 8.2pt;
+    color: var(--fg-muted);
+    margin: 0 0 4pt;
+    line-height: 1.4;
+  }
+  .addons ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2pt 14pt;
+    font-size: 8.5pt;
+  }
+  .addons li {
+    display: flex;
+    justify-content: space-between;
+    padding: 2pt 0;
+    border-bottom: 1px dotted var(--hairline-2);
+  }
+  .addons li span:first-child { color: var(--fg); }
+  .addons li span:last-child {
+    font-family: var(--font-serif);
+    color: var(--accent);
+  }
+
+  /* Terms ribbon */
+  .terms {
+    margin-top: 8pt;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10pt;
+  }
+  .terms .term {
+    border-top: 1px solid var(--hairline-2);
+    padding-top: 4pt;
+  }
+  .terms .term .lbl {
+    font-size: 6.5pt;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 2pt;
+  }
+  .terms .term .val {
+    font-family: var(--font-serif);
+    font-size: 9pt;
+    line-height: 1.25;
+    color: var(--fg);
+  }
+
+  /* TOC */
+  .toc {
+    list-style: none;
+    margin: 8pt 0 0;
+    padding: 0;
+    font-size: 11pt;
+  }
+  .toc li {
+    display: flex;
+    align-items: baseline;
+    border-bottom: 1px dotted var(--hairline);
+    padding: 8pt 0;
+  }
+  .toc .num {
+    font-family: var(--font-serif);
+    color: var(--accent);
+    width: 38pt;
+    font-size: 14pt;
+  }
+  .toc .ttl {
+    flex: 1;
+    font-family: var(--font-serif);
+    font-size: 14pt;
+  }
+  .toc .pg {
+    font-family: var(--font-sans);
+    font-size: 9pt;
+    color: var(--fg-muted);
+    letter-spacing: 0.1em;
+  }
+</style>
+</head>
+<body>
+
+<!-- =========================================================== -->
+<!-- COVER                                                        -->
+<!-- =========================================================== -->
+<section class="page cover">
+  <div class="cover__top">
+    <div class="cover__brand">
+      <img src="aeolistings-wordmark-paper.png" alt="Aeolistings" />
+    </div>
+    <div class="cover__meta">
+      Visibility Audit<br/>
+      <strong>No. 001</strong> · April 2026
+    </div>
+  </div>
+
+  <div class="cover__main">
+    <span class="cover__kicker">AEO &amp; Local Search Audit</span>
+    <h1 class="cover__title">Stag<br/>Electric, <em>audited.</em></h1>
+    <p class="cover__sub">A pre-engagement baseline on how clearly a Mesa-based residential electrician shows up in Google, ChatGPT, Perplexity, and the answer engines reshaping how Phoenix homeowners find their tradesperson.</p>
+  </div>
+
+  <div class="cover__bottom">
+    <div>
+      <div class="label">Prepared for</div>
+      <div class="value">Stag Electric, LLC<br/>Mesa, Arizona</div>
+    </div>
+    <div>
+      <div class="label">Prepared by</div>
+      <div class="value">Aeolistings<br/><em>aeolistings.ai</em></div>
+    </div>
+    <div>
+      <div class="label">Audit window</div>
+      <div class="value">April 2026<br/>v1.0</div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 2 — TOC + Executive overview opening                    -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>Aeolistings · Visibility Audit</span>
+    <span class="runner__brand">Stag Electric <span class="accent">·</span> stagelectricarizona.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">Inside this report</span>
+  <h2 class="display">Contents</h2>
+
+  <ol class="toc">
+    <li><span class="num">01</span><span class="ttl">Executive overview</span><span class="pg">PAGE 03</span></li>
+    <li><span class="num">02</span><span class="ttl">Business &amp; local search snapshot</span><span class="pg">PAGE 04</span></li>
+    <li><span class="num">03</span><span class="ttl">Competitor set &amp; comparison</span><span class="pg">PAGE 05</span></li>
+    <li><span class="num">04</span><span class="ttl">Detailed findings</span><span class="pg">PAGE 07</span></li>
+    <li><span class="num">05</span><span class="ttl">Strengths vs. gaps at a glance</span><span class="pg">PAGE 09</span></li>
+    <li><span class="num">06</span><span class="ttl">Key gaps holding back visibility</span><span class="pg">PAGE 10</span></li>
+    <li><span class="num">07</span><span class="ttl">90-day priority roadmap</span><span class="pg">PAGE 11</span></li>
+    <li><span class="num">08</span><span class="ttl">Strategic notes</span><span class="pg">PAGE 13</span></li>
+    <li><span class="num">09</span><span class="ttl">Scope of services &amp; pricing</span><span class="pg">PAGE 14</span></li>
+    <li><span class="num">10</span><span class="ttl">Investment summary &amp; next step</span><span class="pg">PAGE 15</span></li>
+  </ol>
+
+  <hr class="hairline" />
+
+  <span class="eyebrow">A note on method</span>
+  <p style="font-size:10pt;color:var(--fg-muted);max-width:5.6in;">
+    This audit is grounded in what's directly observable on each site at time of review. We do not invent rankings, traffic numbers, or backlink counts. Where something is inferred rather than certain, we flag it. Competitors were selected for direct overlap with Stag Electric's Mesa-anchored residential intent — they are who an actual Phoenix-metro homeowner would weigh against this brand.
+  </p>
+
+  <div class="footer">
+    <span>Aeolistings · aeolistings.ai</span>
+    <span>02</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 3 — Executive Overview                                   -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>01 · Executive Overview</span>
+    <span class="runner__brand">Stag Electric <span class="accent">·</span> stagelectricarizona.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">01 — Executive Overview</span>
+  <h2 class="display">Real credentials,<br/>no AEO surface area.</h2>
+
+  <p class="lead">
+    Stag Electric has the trust components a 2026 Phoenix electrician needs — two AZ ROC licenses, BBB accreditation, BuildZoom score 95, 5.0★ on HomeAdvisor with named-tech testimonials. The current single-page website doesn't give any of that surface area to be ranked or cited.
+  </p>
+
+  <div class="twocol">
+    <p class="dropcap">Stag Electric is a Mesa-based, owner-led residential + commercial electrical contractor founded August 2018 by Christopher Bradshaw. The team's actual differentiator is the wedge of <em>panel upgrades, EV chargers, and troubleshooting</em> — exactly the right service mix for the 2026 Phoenix market, where home electrification demand is accelerating. The credentials backing that positioning are real: AZ ROC #343438 + #322448, BBB Accredited since January 2024, BuildZoom score of 95 (top 22% of Arizona contractors), and a 5.0/5 HomeAdvisor rating across 6 verified reviews — including testimonials that name a specific tech ("Brandon").</p>
+
+    <p>The problem isn't credentials. It's that the live site is essentially a single page. The audit could only find one indexable URL — no service pages, no city pages, no FAQ, no schema, no blog. Stag's quote (issued 2026-04-29) commits Aeolistings to building exactly that infrastructure; this audit baselines what the work is starting from.</p>
+
+    <p>The bigger immediate issue is what's <em>not</em> merchandised. EV charger installation is one of the fastest-growing Phoenix-metro buyer queries, and Stag's service mix includes it — but there's no EV page, no Tesla / Qmerit mention. Castle Electrical &amp; Lighting (Tesla Certified, Qmerit partner) currently dominates AI answers for "EV charger installer Phoenix." That lane is winnable inside 90 days — but only if the site exists.</p>
+
+    <p><strong>Local SEO structure: weak.</strong> Single-page site means no internal linking, no service-page schema, no city-page coverage. The strongest signals (BBB, ROC, BuildZoom) aren't surfaced in indexed copy.</p>
+
+    <p><strong>AEO readiness: weak.</strong> No FAQ block, no schema, no blog footprint. Queries Stag could win — "EV charger install cost Phoenix", "panel upgrade cost Mesa", "Tesla Wall Connector installer near me" — currently surface competitors. None of those answers are hard to write; the surface doesn't exist yet.</p>
+
+    <p>Five biggest opportunities, in priority order: (1) ship the multi-page site as scoped, with a dedicated EV charger page leading; (2) display ROC# 343438 in the footer of every page from day one; (3) rebuild the GBP and wire HomeAdvisor reviewers onto Google; (4) publish FAQPage + LocalBusiness + Service schema across the new pages; (5) pursue Qmerit and Tesla Certified Installer status — they unlock referrals competitors are currently capturing.</p>
+  </div>
+
+  <div class="pull">"Stag has every credential a serious Phoenix electrician needs. None of them currently have a place to live on the website — that's the entire 90-day fix."</div>
+
+  <div class="footer">
+    <span>01 · Executive Overview</span>
+    <span>03</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 4 — Snapshot                                            -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>02 · Business &amp; Local Search Snapshot</span>
+    <span class="runner__brand">Stag Electric <span class="accent">·</span> stagelectricarizona.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">02 — Snapshot</span>
+  <h2 class="display">The basics, as the site<br/>communicates them today.</h2>
+
+  <dl class="keyfacts">
+    <div>
+      <dt>Business type &amp; services</dt>
+      <dd>Residential &amp; commercial electrical — panel upgrades, EV charger installation, troubleshooting, full house wiring, custom home wiring, can lights, remodels, tenant improvements, lighting upgrades. <em>Sweet-spot wedge: panel + EV + troubleshooting.</em></dd>
+    </div>
+    <div>
+      <dt>Service area</dt>
+      <dd>HQ: 458 N New Haven, Mesa, AZ 85205. Phone (480) 243-5732. <em>Messaging target: Mesa, Gilbert, Chandler, Tempe, Scottsdale, Apache Junction, Queen Creek, Phoenix.</em></dd>
+    </div>
+    <div>
+      <dt>Ideal customer (inferred)</dt>
+      <dd>Phoenix-metro homeowners — older-Mesa-housing-stock panel work, EV charger installs, monsoon-related troubleshooting — plus commercial tenant-improvement clients.</dd>
+    </div>
+    <div>
+      <dt>Tenure &amp; trust</dt>
+      <dd>Founded August 2018 (~7 yrs) by Christopher Bradshaw · AZ ROC #343438 + #322448 · BBB Accredited (Jan 2024) · BuildZoom 95 (top 22% of AZ) · HomeAdvisor 5.0★ over 6 reviews · named tech (Brandon) in real testimonials.</dd>
+    </div>
+  </dl>
+
+  <h3>Key search intents the brand should win</h3>
+  <ul style="font-size:10pt;line-height:1.6;column-count:2;column-gap:24pt;">
+    <li>"electrician Mesa AZ"</li>
+    <li>"electrical panel upgrade cost Phoenix"</li>
+    <li>"EV charger installer Phoenix"</li>
+    <li>"Tesla Wall Connector installer near me"</li>
+    <li>"how much to install EV charger at home Arizona"</li>
+    <li>"why is my breaker tripping in summer"</li>
+    <li>"do I need a permit for panel upgrade Phoenix"</li>
+    <li>"family-owned electrician Mesa"</li>
+    <li>"older home electrical safety Mesa"</li>
+    <li>"panel upgrade Mesa AZ"</li>
+  </ul>
+
+  <h3>Where the site aligns — and where it doesn't</h3>
+  <p style="font-size:10pt;">Aligns conceptually with a broad residential + commercial mix in the indexed copy. <strong>Notably absent:</strong> any dedicated EV charger merchandising despite EV install being part of the service mix. <strong>Notably missing:</strong> ROC# display in the indexed footer, FAQ content, schema markup, dedicated service pages, dedicated city pages. <strong>Notably ambiguous:</strong> the "over 15 years of hands-on experience" line refers to team experience, not company tenure (founded 2018 = ~7 years) — worth clarifying for honesty + trust.</p>
+
+  <div class="footer">
+    <span>02 · Snapshot</span>
+    <span>04</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 5 — Competitor set                                      -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>03 · Competitor Set</span>
+    <span class="runner__brand">Stag Electric <span class="accent">·</span> stagelectricarizona.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">03 — Competitor Set</span>
+  <h2 class="display">Three real competitors<br/>in Phoenix residential electric.</h2>
+  <p style="font-size:11pt;color:var(--fg-muted);max-width:5.6in;">
+    Selected because a Phoenix-metro homeowner with a panel-upgrade or EV-charger need would realistically encounter and compare these three. Penguin Air, Hot Shot Electric, and Wermers Electric were considered but excluded — their HVAC-led, narrower-coverage, or commercial-heavy mixes make them less direct head-to-heads for Stag's residential wedge.
+  </p>
+
+  <div class="compset">
+    <div class="comp">
+      <h4>Castle Electrical &amp; Lighting</h4>
+      <span class="url">castleaz.com</span>
+      <p class="why"><strong>Why selected:</strong> The "what good looks like" benchmark — Tesla Certified Installer + Qmerit partner is exactly the EV positioning Stag should occupy.</p>
+      <p class="verdict"><strong>Better at:</strong> Tesla Certified, Qmerit partner, 5.0/448 Google reviews, ROC ×2, BBB-accredited 2021, dedicated Phoenix &amp; Scottsdale city pages.<br/><strong>About the same:</strong> Mesa-AZ residential focus.<br/><strong>Less effective:</strong> Scottsdale-anchored — Mesa proximity is winnable for Stag.</p>
+    </div>
+    <div class="comp">
+      <h4>Turn It On Electric</h4>
+      <span class="url">turnitonelectric.com</span>
+      <p class="why"><strong>Why selected:</strong> Phoenix's volume leader for residential electrical — 333 Yelp reviews, dedicated EV charger page + EV charger FAQ blog. The AI-search ceiling.</p>
+      <p class="verdict"><strong>Better at:</strong> 333 Yelp reviews, ~575 Birdeye, dedicated EV-charger page with FAQ blog, 24/7 service, military / first-responder discount.<br/><strong>About the same:</strong> residential + commercial mix.<br/><strong>Less effective:</strong> Phoenix-anchored, no manufacturer certs surfaced.</p>
+    </div>
+    <div class="comp">
+      <h4>Just Right Electric</h4>
+      <span class="url">justrightphx.com</span>
+      <p class="why"><strong>Why selected:</strong> Closest in size to Stag — family-owned, similar tenure, BuildZoom score 120 (top 1%). Demonstrates the page architecture Stag needs at this stage.</p>
+      <p class="verdict"><strong>Better at:</strong> dedicated EV / panel / smart-home / lighting service pages, transparent pricing ($459–$699 EV install), service-area index, BuildZoom 120, ROC #332269.<br/><strong>About the same:</strong> family-owned, Mesa-area metro target.<br/><strong>Less effective:</strong> no manufacturer certs, no BBB confirmed.</p>
+    </div>
+  </div>
+
+  <hr class="hairline" />
+
+  <h3 style="margin-top:0;">How the four stack up — at a glance</h3>
+  <p style="font-size:10pt;color:var(--fg-muted);">Scored 1–5 on seven dimensions that drive both traditional search rankings and AI-search citations. Detailed scoring on the next page.</p>
+
+  <!-- ============ RADAR CHART ============ -->
+  <div class="chart" style="margin-top:6pt;padding:14pt 14pt 8pt;">
+    <p class="chart__title" style="font-size:13pt;margin:0 0 2pt;">Visibility profile — radar comparison</p>
+    <p class="chart__sub" style="margin:0 0 6pt;">Higher = stronger on that dimension. Stag Electric in oxblood; competitors in greys.</p>
+
+    RADAR_PLACEHOLDER
+
+    <div class="chart__legend">
+      <span><span class="swatch" style="background:var(--accent);"></span>Stag Electric</span>
+      <span><span class="swatch" style="background:#1A1A1A;"></span>Castle Electrical</span>
+      <span><span class="swatch" style="background:#6B6B6B;"></span>Turn It On Electric</span>
+      <span><span class="swatch" style="background:#9A9A9A;"></span>Just Right Electric</span>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>03 · Competitor Set</span>
+    <span>05</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 6 — Comparison table                                    -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>03 · Competitor Set</span>
+    <span class="runner__brand">Stag Electric <span class="accent">·</span> stagelectricarizona.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">03 — Competitor Set, continued</span>
+  <h2 class="display">The detailed scorecard.</h2>
+  <p style="font-size:10pt;color:var(--fg-muted);max-width:5.6in;">
+    Each cell shows a 1–5 score and a short rationale. The Stag column is highlighted; oxblood bars indicate the target site's score.
+  </p>
+
+  <table class="compare">
+    <thead>
+      <tr>
+        <th>Dimension</th>
+        <th class="target">Stag Electric</th>
+        <th>AZ Roofing Works</th>
+        <th>Johnson Roofing</th>
+        <th>Weather-Tite Roofing</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th>Local positioning clarity</th>
+        <td class="target"><span class="score score--target">2</span><span class="scorebar"><i style="width:40%"></i></span><span class="note">Brand-led, not city-led</span></td>
+        <td><span class="score">4</span><span class="scorebar"><i style="width:80%"></i></span><span class="note">Mesa / Chandler / Scottsdale in title</span></td>
+        <td><span class="score">4</span><span class="scorebar"><i style="width:80%"></i></span><span class="note">Mesa / Gilbert / Chandler clear</span></td>
+        <td><span class="score">4</span><span class="scorebar"><i style="width:80%"></i></span><span class="note">Mesa / East Valley anchored</span></td>
+      </tr>
+      <tr>
+        <th>Service clarity / depth</th>
+        <td class="target"><span class="score score--target">3</span><span class="scorebar"><i style="width:60%"></i></span><span class="note">Broad list, thin pages</span></td>
+        <td><span class="score">4</span><span class="scorebar"><i style="width:80%"></i></span><span class="note">Clear service splits</span></td>
+        <td><span class="score">4</span><span class="scorebar"><i style="width:80%"></i></span><span class="note">Flat-rate offers stand out</span></td>
+        <td><span class="score">4</span><span class="scorebar"><i style="width:80%"></i></span><span class="note">Wide trades, deep certs</span></td>
+      </tr>
+      <tr>
+        <th>Service area clarity</th>
+        <td class="target"><span class="score score--target">2</span><span class="scorebar"><i style="width:40%"></i></span><span class="note">Long list, key page broken</span></td>
+        <td><span class="score">3</span><span class="scorebar"><i style="width:60%"></i></span><span class="note">Cities named, pages light</span></td>
+        <td><span class="score">4</span><span class="scorebar"><i style="width:80%"></i></span><span class="note">Dedicated city pages</span></td>
+        <td><span class="score">5</span><span class="scorebar"><i style="width:100%"></i></span><span class="note">Strong city-page coverage</span></td>
+      </tr>
+      <tr>
+        <th>FAQ &amp; direct-answer strength</th>
+        <td class="target"><span class="score score--target">2</span><span class="scorebar"><i style="width:40%"></i></span><span class="note">Vague, not citable</span></td>
+        <td><span class="score">3</span><span class="scorebar"><i style="width:60%"></i></span><span class="note">7 Qs, moderate depth</span></td>
+        <td><span class="score">2</span><span class="scorebar"><i style="width:40%"></i></span><span class="note">Minimal FAQ content</span></td>
+        <td><span class="score">3</span><span class="scorebar"><i style="width:60%"></i></span><span class="note">FAQ page exists</span></td>
+      </tr>
+      <tr>
+        <th>Trust &amp; proof signals</th>
+        <td class="target"><span class="score score--target">3</span><span class="scorebar"><i style="width:60%"></i></span><span class="note">Owner, tenure, HA badges</span></td>
+        <td><span class="score">4</span><span class="scorebar"><i style="width:80%"></i></span><span class="note">BBB, ROCs, warranty stated</span></td>
+        <td><span class="score">4</span><span class="scorebar"><i style="width:80%"></i></span><span class="note">A+ BBB, flat-rate pricing</span></td>
+        <td><span class="score">5</span><span class="scorebar"><i style="width:100%"></i></span><span class="note">Awards + cert stack</span></td>
+      </tr>
+      <tr>
+        <th>AEO readiness</th>
+        <td class="target"><span class="score score--target">2</span><span class="scorebar"><i style="width:40%"></i></span><span class="note">Eco angle latent</span></td>
+        <td><span class="score">3</span><span class="scorebar"><i style="width:60%"></i></span><span class="note">Clear entity, no schema</span></td>
+        <td><span class="score">3</span><span class="scorebar"><i style="width:60%"></i></span><span class="note">Pricing helps citations</span></td>
+        <td><span class="score">3</span><span class="scorebar"><i style="width:60%"></i></span><span class="note">Entity clear, no eco angle</span></td>
+      </tr>
+      <tr>
+        <th>Overall findability</th>
+        <td class="target"><span class="score score--target">2</span><span class="scorebar"><i style="width:40%"></i></span><span class="note">Broken Mesa page hurts</span></td>
+        <td><span class="score">4</span><span class="scorebar"><i style="width:80%"></i></span><span class="note">Solid local presence</span></td>
+        <td><span class="score">4</span><span class="scorebar"><i style="width:80%"></i></span><span class="note">Flat-rate + cities help</span></td>
+        <td><span class="score">5</span><span class="scorebar"><i style="width:100%"></i></span><span class="note">Best of the four overall</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="pull" style="margin-top:18pt;">"Stag's trust components exist — they're just not yet stacked, schema-marked, or merchandised the way the three comparators do it."</p>
+
+  <div class="footer">
+    <span>03 · Competitor Set</span>
+    <span>06</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 7 — Detailed findings part 1                            -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>04 · Detailed Findings</span>
+    <span class="runner__brand">Stag Electric <span class="accent">·</span> stagelectricarizona.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">04 — Detailed Findings</span>
+  <h2 class="display">What we saw,<br/>section by section.</h2>
+
+  <div class="finding">
+    <h3>4.1 &nbsp;Local SEO structure</h3>
+    <p class="lede">The single-page architecture means no city pages, no service pages, no FAQ block, no schema — a structural ceiling on every other AEO/local-search lever.</p>
+    <div class="body">
+      <p>The homepage exists but no service-specific or city-specific landing pages were detected in the indexed URL set — only the root URL surfaces in search. By contrast, Castle Electrical has dedicated <code>/service-areas/phoenix-az/</code>, <code>/service-areas/scottsdale-az/</code>, and individual service pages; Just Right Electric has dedicated EV / panel / smart-home / lighting service pages plus a service-area index.</p>
+      <p>The bigger structural issue is the absence of multi-page architecture. With one indexable URL, every dimension downstream — service-page schema, city-page coverage, FAQ blocks, internal linking — is structurally impossible. The Aeolistings quote already commits to a 5–7 page build that fixes exactly this.</p>
+    </div>
+  </div>
+
+  <div class="finding">
+    <h3>4.2 &nbsp;On-page optimization</h3>
+    <div class="body">
+      <p>Title tag and meta description audit pending — only a single page is indexed. URL pattern (root only) is consistent but offers no surface area for service / city splits. Internal linking is by definition zero (no other pages to link to). The full service-page architecture is in the quote scope and will create the linking graph.</p>
+    </div>
+  </div>
+
+  <div class="finding">
+    <h3>4.3 &nbsp;Service page quality</h3>
+    <div class="body">
+      <p>The residential roofing page is <em>adequate but thin</em> — roughly 300–400 words of unique service description before transitioning into a blog feed. It explains the four material types at a high level and references Arizona's climate, but it does <strong>not</strong> include process / what-to-expect, pricing range, warranty terms, project timelines, embedded photos of completed projects, embedded testimonials, or page-specific FAQs.</p>
+      <p><strong>Six concrete improvements:</strong></p>
+      <ul>
+        <li>Build a dedicated EV Charger Installation page with cost ranges ($1,096 median no-panel-work; $2,744 with panel upgrade), permit info, panel-compatibility table, Tesla Wall Connector mention, and 30% federal tax credit context.</li>
+        <li>Build a dedicated Electrical Panel Upgrade page with cost ranges ($1,500–$4,000), permit cost ($50–$300), typical timeline, and a section on common older-Mesa-home panel issues.</li>
+        <li>Build a Troubleshooting / Diagnostics page — "why is my breaker tripping in summer" is high-volume in monsoon season and currently unowned by Stag.</li>
+        <li>Build a Generator Installation page if Stag offers it — Generac PowerPro certification opens a referral pipeline most Mesa electricians don't have.</li>
+        <li>Build a Commercial Tenant Improvements page — Stag's existing TI work is one of two services already in the indexed copy, but has no dedicated page.</li>
+        <li>Build a Smart Home / Whole-Home Surge Protection page — emerging category, low competition in Mesa-area indexed content.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>04 · Detailed Findings</span>
+    <span>07</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 8 — Detailed findings part 2                            -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>04 · Detailed Findings</span>
+    <span class="runner__brand">Stag Electric <span class="accent">·</span> stagelectricarizona.com</span>
+  </div>
+
+  <span class="eyebrow">Detailed Findings, continued</span>
+
+  <div class="finding">
+    <h3>4.4 &nbsp;Service area &amp; local relevance</h3>
+    <div class="body">
+      <p>No city pages currently exist. For a Mesa-anchored business serving Mesa / Gilbert / Chandler / Tempe / Scottsdale / Apache Junction / Queen Creek / Phoenix, that's eight winnable city-search lanes with zero on-page surface area. Local proof on the indexed page is limited to the address (Mesa) and a generic "locally owned" line. Just Right Electric demonstrates the city-pages-as-asset pattern at Stag's stage and size.</p>
+    </div>
+  </div>
+
+  <div class="finding">
+    <h3>4.5 &nbsp;Trust &amp; conversion signals</h3>
+    <div class="body">
+      <p><strong>What's working:</strong> phone visible, multiple CTAs, HomeAdvisor Top Rated / Elite Service badges, ARCA &amp; Roofing Institute affiliations, named owner, 25+ years tenure, family-owned framing.</p>
+      <p><strong>Gaps relative to competitors:</strong></p>
+      <ul>
+        <li><strong>ROC license number not surfaced</strong> in the indexed footer copy — both AZ ROC #343438 and #322448 should be visible on every page (also a ROC compliance requirement for contractor advertising).</li>
+        <li><strong>No manufacturer certifications.</strong> Castle Electrical's Tesla Certified + Qmerit positioning currently captures the highest-intent EV install referrals — a lane Stag can compete in once certified.</li>
+        <li><strong>No transparent pricing.</strong> Just Right Electric publishes EV charger install starting prices ($459–$699) — strong both for conversion and AEO citation.</li>
+        <li><strong>HomeAdvisor 5.0★ not surfaced on site.</strong> The 6 verified HomeAdvisor reviews + named-tech testimonials should be embedded with Review schema.</li>
+        <li><strong>BBB accreditation badge not surfaced</strong> on the indexed page — Stag was accredited January 2024.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="finding">
+    <h3>4.6 &nbsp;AEO &amp; answer-engine readiness</h3>
+    <div class="body">
+      <p>AEO readiness is currently zero — no schema markup, no FAQ block, no AEO content footprint. Every Phoenix-electrician AI query (cost, EV install, panel upgrade, breaker troubleshooting, Tesla Wall Connector) currently surfaces competitors instead of Stag. The flip side: the underlying credentials Stag will mark up are stronger than what's visible on most competitor sites — the AEO catch-up is mostly mechanical.</p>
+      <p><strong>Eight specific AEO improvements:</strong></p>
+      <ul>
+        <li>Build a citation-worthy FAQ block on the homepage and each service page — each answer 60–120 words with real numbers (cost ranges, permit timelines, voltage specs).</li>
+        <li>Add FAQPage schema markup to every page with a FAQ block — drives both Local Pack rich results and Google AI Overview citations.</li>
+        <li>Add LocalBusiness schema sitewide with the Gilbert NAP, service area, hours, and ROC license number.</li>
+        <li>Build a definitional EV Charger Installation hub page — own the "how much does it cost / how long does it take / what panel do I need" answers AI assistants surface.</li>
+        <li>Add transparent "starting at" pricing on the EV charger and panel-upgrade pages — standard practice in this category in 2026.</li>
+        <li>Add a clear, structured service-area block at the bottom of each service page (city + ZIPs).</li>
+        <li>Add named-expert content — a short bio block for Christopher Bradshaw + Brandon (the named tech). Named experts are an emerging AI-search trust signal.</li>
+        <li>Add "process" and "what to expect" step lists to each service page (estimate → permit → install → inspection).</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>04 · Detailed Findings</span>
+    <span>08</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 9 — Strengths vs Gaps visual                            -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>05 · Strengths vs. Gaps</span>
+    <span class="runner__brand">Stag Electric <span class="accent">·</span> stagelectricarizona.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">05 — Strengths vs. Gaps</span>
+  <h2 class="display">What's working,<br/>what's holding visibility back.</h2>
+  <p style="font-size:11pt;color:var(--fg-muted);max-width:5.6in;">A diverging view: assets in oxblood pull right; gaps in dark ink pull left. Bar length reflects relative weight on overall findability.</p>
+
+  <div class="chart" style="padding:16pt 14pt 12pt;">
+    DIVERGING_PLACEHOLDER
+
+    <div class="chart__legend">
+      <span><span class="swatch" style="background:var(--accent);"></span>Strengths (already working)</span>
+      <span><span class="swatch" style="background:#1A1A1A;"></span>Gaps (holding back visibility)</span>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14pt;margin-top:6pt;">
+    <div>
+      <h3 style="font-size:13pt;margin-top:0;color:var(--accent);">What's already working</h3>
+      <p style="font-size:10pt;">Stag comes into this audit with real assets: two AZ ROC licenses, BBB accreditation since January 2024, a BuildZoom score of 95 (top 22% of AZ contractors), 5.0★ on HomeAdvisor over 6 verified reviews, real testimonials that name a specific tech (Brandon), and a service-mix wedge — panel + EV charger + troubleshooting — that perfectly fits the 2026 Phoenix market.</p>
+    </div>
+    <div>
+      <h3 style="font-size:13pt;margin-top:0;">Where the gap is real</h3>
+      <p style="font-size:10pt;">The gap to competitors is structural: the live site is a single page, so there's no service-page schema, no city-page coverage, no FAQ block, no AEO content, no internal linking, and the existing trust signals (BBB, ROC, BuildZoom 95, HomeAdvisor 5.0) aren't surfaced where Google or AI assistants can read them. The quote already commits to fixing exactly this — this audit baselines the starting state.</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>05 · Strengths vs. Gaps</span>
+    <span>09</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 10 — Gaps detail                                        -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>06 · Key Gaps</span>
+    <span class="runner__brand">Stag Electric <span class="accent">·</span> stagelectricarizona.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">06 — Key Gaps</span>
+  <h2 class="display">Twelve things holding<br/>back visibility today.</h2>
+  <p style="font-size:10pt;color:var(--fg-muted);max-width:5.6in;">Each gap is tagged by impact level — High, Medium, or Foundational — to help prioritize the work.</p>
+
+  <div class="gaps">
+    <div class="gap">
+      <div class="gap__row"><span class="gap__title">Single-page site — no service / city pages</span><span class="badge badge--high">High</span></div>
+      <p class="gap__why">Single-page architecture caps every dimension downstream — schema, internal linking, city coverage, FAQ surface area.</p>
+    </div>
+    <div class="gap">
+      <div class="gap__row"><span class="gap__title">EV charger work not merchandised</span><span class="badge badge--found">Foundational</span></div>
+      <p class="gap__why">Castle Electrical owns this lane today (Tesla Certified + Qmerit). Recoverable inside 90 days with a real EV page + certification pursuit.</p>
+    </div>
+    <div class="gap">
+      <div class="gap__row"><span class="gap__title">ROC #343438 not displayed sitewide</span><span class="badge badge--high">High</span></div>
+      <p class="gap__why">Two AZ ROC licenses + BBB accreditation aren't visible in the indexed copy — every direct competitor displays at least one.</p>
+    </div>
+    <div class="gap">
+      <div class="gap__row"><span class="gap__title">No FAQ block / FAQPage schema</span><span class="badge badge--high">High</span></div>
+      <p class="gap__why">No FAQ block exists. Citation-worthy answers + FAQPage schema are the cleanest AEO win available once the multi-page site ships.</p>
+    </div>
+    <div class="gap">
+      <div class="gap__row"><span class="gap__title">GBP underbuilt (claim, photos, Q&amp;A)</span><span class="badge badge--high">High</span></div>
+      <p class="gap__why">GBP needs claim/rebuild — already in scope. Wiring HomeAdvisor reviewers onto Google is the highest-leverage move.</p>
+    </div>
+    <div class="gap">
+      <div class="gap__row"><span class="gap__title">No LocalBusiness / Service schema</span><span class="badge badge--medium">Medium</span></div>
+      <p class="gap__why">No LocalBusiness / Service / FAQPage schema visible. Foundational before any AEO content can compound.</p>
+    </div>
+    <div class="gap">
+      <div class="gap__row"><span class="gap__title">No transparent EV / panel pricing</span><span class="badge badge--medium">Medium</span></div>
+      <p class="gap__why">No transparent "starting at" pricing on EV / panel work. Just Right Electric uses this for both conversion and AEO.</p>
+    </div>
+    <div class="gap">
+      <div class="gap__row"><span class="gap__title">Years-in-business ambiguous (15 vs 7)</span><span class="badge badge--high">High</span></div>
+      <p class="gap__why">The site claims "15 years of hands-on experience" but the company is ~7 years old (founded Aug 2018). Worth clarifying for trust.</p>
+    </div>
+    <div class="gap">
+      <div class="gap__row"><span class="gap__title">No Mesa / Gilbert / Chandler city pages</span><span class="badge badge--medium">Medium</span></div>
+      <p class="gap__why">Mesa, Gilbert, Chandler, Tempe each represent recoverable local-search demand once city pages exist.</p>
+    </div>
+    <div class="gap">
+      <div class="gap__row"><span class="gap__title">No Tesla / Qmerit / Generac certs</span><span class="badge badge--found">Foundational</span></div>
+      <p class="gap__why">Tesla Certified + Qmerit + Generac PowerPro pursuit. 60–120 day workstream that unlocks a real referral pipeline.</p>
+    </div>
+    <div class="gap">
+      <div class="gap__row"><span class="gap__title">No GBP photo cadence</span><span class="badge badge--medium">Medium</span></div>
+      <p class="gap__why">Photo cadence missing — GBP photos drive ranking and conversion both. Stag has real job-site work to surface.</p>
+    </div>
+    <div class="gap">
+      <div class="gap__row"><span class="gap__title">Spanish-language attribute / page absent</span><span class="badge badge--found">Foundational</span></div>
+      <p class="gap__why">Spanish-language attribute on GBP + Spanish service page would unlock significant East Valley demand if accurate.</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>06 · Key Gaps</span>
+    <span>10</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 11 — Roadmap timeline                                   -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>07 · 90-Day Priority Roadmap</span>
+    <span class="runner__brand">Stag Electric <span class="accent">·</span> stagelectricarizona.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">07 — 90-Day Roadmap</span>
+  <h2 class="display">A 90-day arc that<br/>compounds.</h2>
+  <p style="font-size:11pt;color:var(--fg-muted);max-width:5.8in;">Sequenced so each phase makes the next one work harder. Fix infrastructure first; rewrite for AI second; build content third; layer in polish fourth.</p>
+
+  <div class="chart" style="padding:14pt 14pt 14pt;">
+    <p class="chart__title" style="font-size:13pt;margin-bottom:2pt;">Phased rollout — days 0 to 90+</p>
+    <p class="chart__sub" style="margin-bottom:8pt;">Bar length = expected work window. Oxblood = highest priority. Foundational items continue beyond day 90.</p>
+
+    TIMELINE_PLACEHOLDER
+
+    <div class="chart__legend">
+      <span><span class="swatch" style="background:var(--accent);"></span>Highest priority (0–30d)</span>
+      <span><span class="swatch" style="background:#1A1A1A;"></span>Near-term growth (30–90d)</span>
+      <span><span class="swatch" style="background:#9A9A9A;"></span>Foundational (ongoing)</span>
+      <span><span class="swatch" style="background:#D8D3C5;"></span>Optional polish</span>
+    </div>
+  </div>
+
+  <p style="font-size:10pt;color:var(--fg-muted);margin-top:10pt;">
+    The Week 1 work — site shell, ROC display, GBP rebuild — unlocks everything downstream. Once the multi-page site exists, schema rollout and AEO content compound. EV-charger-specific queries are the highest-leverage near-term win since competitors haven't fully locked them up yet.
+  </p>
+
+  <div class="footer">
+    <span>07 · 90-Day Roadmap</span>
+    <span>11</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 12 — Priority checklist                                 -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>07 · Priority Checklist</span>
+    <span class="runner__brand">Stag Electric <span class="accent">·</span> stagelectricarizona.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">07 — Priority Checklist</span>
+  <h2 class="display">The work, item by item.</h2>
+
+  <div class="phase">
+    <div class="phase__head">
+      <span class="phase__title">Highest priority</span>
+      <span class="phase__win">0–30 DAYS · QUICK WINS</span>
+    </div>
+    <ul>
+      <li><span class="num">01</span><span class="what"><strong>Ship the multi-page site as scoped.</strong> Home + 4–5 service pages + service area + about + contact. <em>Single-page presence caps every other channel.</em></span><span class="tag tag--both">SEO + AEO</span></li>
+      <li><span class="num">02</span><span class="what"><strong>Display ROC# 343438 in the footer of every page.</strong> Compliance + trust signal in one move.</span><span class="tag tag--both">SEO + AEO</span></li>
+      <li><span class="num">03</span><span class="what"><strong>Build a dedicated EV Charger Installation page</strong> with cost ranges, panel-compatibility, Tesla Wall Connector mention, federal tax credit context. <em>Highest near-term AEO leverage.</em></span><span class="tag tag--both">SEO + AEO</span></li>
+      <li><span class="num">04</span><span class="what"><strong>Build a citation-worthy FAQ block</strong> covering panel-upgrade cost, EV install cost, breaker tripping, permit timelines, older-home wiring. 60–120 words each.</span><span class="tag tag--aeo">AEO</span></li>
+      <li><span class="num">05</span><span class="what"><strong>Surface BBB, BuildZoom 95, and HomeAdvisor 5.0★</strong> badges on the homepage. <em>All exist; none are currently displayed.</em></span><span class="tag tag--both">SEO + AEO</span></li>
+      <li><span class="num">06</span><span class="what"><strong>Claim &amp; rebuild GBP, wire HomeAdvisor reviewers onto Google.</strong> Move the 6 5★ HomeAdvisor reviewers + every new customer to Google specifically.</span><span class="tag tag--both">SEO + AEO</span></li>
+    </ul>
+  </div>
+
+  <div class="phase">
+    <div class="phase__head">
+      <span class="phase__title">Near-term growth</span>
+      <span class="phase__win">30–90 DAYS · COMPOUNDING</span>
+    </div>
+    <ul>
+      <li><span class="num">07</span><span class="what"><strong>Build 4–5 city pages.</strong> Mesa, Gilbert, Chandler, Tempe, Apache Junction — 600–800 words each, neighborhoods, ZIPs, city-specific FAQs.</span><span class="tag tag--both">SEO + AEO</span></li>
+      <li><span class="num">08</span><span class="what"><strong>Begin the AEO blog cadence (~13 posts/month).</strong> EV install cost, panel-upgrade cost, breaker troubleshooting, permit guides, Tesla Wall Connector specifics.</span><span class="tag tag--aeo">AEO</span></li>
+      <li><span class="num">09</span><span class="what"><strong>Add 5-step process + transparent "starting at" pricing</strong> on EV and panel-upgrade pages.</span><span class="tag tag--both">SEO + AEO</span></li>
+      <li><span class="num">10</span><span class="what"><strong>Add a named-expert About page</strong> for Christopher Bradshaw + Brandon. Bio, headshots, AZ ROC, BBB, BuildZoom score.</span><span class="tag tag--aeo">AEO</span></li>
+      <li><span class="num">11</span><span class="what"><strong>Pursue Qmerit + Tesla Certified Installer status.</strong> 60–120 day workstream that opens a Tesla / ChargePoint referral pipeline.</span><span class="tag tag--both">SEO + AEO</span></li>
+      <li><span class="num">12</span><span class="what"><strong>Embed Google + HomeAdvisor reviews</strong> on service pages with Review schema once review velocity ramps.</span><span class="tag tag--both">SEO + AEO</span></li>
+    </ul>
+  </div>
+
+  <div class="phase">
+    <div class="phase__head">
+      <span class="phase__title">Foundational (ongoing)</span>
+      <span class="phase__win">CONTINUOUS · COMPOUND VALUE</span>
+    </div>
+    <ul>
+      <li><span class="num">13</span><span class="what"><strong>Schema rollout.</strong> LocalBusiness (Electrician) sitewide; FAQPage per FAQ block; Service schema per service page; <code>sameAs</code> linking GBP, BBB, BuildZoom, HomeAdvisor.</span><span class="tag tag--aeo">AEO</span></li>
+      <li><span class="num">14</span><span class="what"><strong>IEC of Arizona / NECA membership.</strong> Visible footer badge once joined; directory citations.</span><span class="tag tag--seo">SEO</span></li>
+      <li><span class="num">15</span><span class="what"><strong>Photo program.</strong> 2–3 new GBP photos / week (panel work, EV installs, troubleshooting). Real owner photos.</span><span class="tag tag--both">SEO + AEO</span></li>
+      <li><span class="num">16</span><span class="what"><strong>Reposition homepage on the panel + EV + troubleshooting wedge.</strong> Currently reads as generic full-service; the wedge is more defensible.</span><span class="tag tag--seo">SEO</span></li>
+    </ul>
+  </div>
+
+  <div class="footer">
+    <span>07 · Priority Checklist</span>
+    <span>12</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 13 — Closing notes                                      -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>08 · Strategic Notes</span>
+    <span class="runner__brand">Stag Electric <span class="accent">·</span> stagelectricarizona.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">08 — Strategic Notes</span>
+  <h2 class="display">Where the upside is.</h2>
+
+  <p class="lead">
+    The biggest upside for Stag is <em>not</em> a pivot or a brand reinvention — it's putting the existing credentials onto a surface area that can be ranked and cited. Stag has the ROC numbers, the BBB accreditation, the BuildZoom 95, the 5.0 HomeAdvisor reviews, the named team, and the right service-mix wedge for the 2026 Phoenix market. Most of the visibility gap is unbuilt infrastructure, not strategic missteps.
+  </p>
+
+  <div class="closing">
+    <span class="eyebrow">A clean order of operations</span>
+    <h2>Fix the leaks. Speak to AI. Build the content. Layer the polish.</h2>
+    <ol>
+      <li><strong>Ship the multi-page site first.</strong> Single-page presence caps every other channel. Service pages, city pages, FAQ blocks, and schema all need somewhere to live before any of them can compound.</li>
+      <li><strong>Then surface the trust signals you already have.</strong> ROC# 343438 in the footer of every page, BBB accreditation badge, BuildZoom 95, HomeAdvisor 5.0 — these compound the moment they're visible.</li>
+      <li><strong>Then rewrite the FAQ for AI.</strong> The change most likely to start producing AI-search citations on a 60–120 day curve. Substantive answers, real numbers, FAQPage schema.</li>
+      <li><strong>Then own EV charger queries.</strong> The dedicated EV page + Tesla / Qmerit pursuit is where the next 90 days of leverage lives — competitors haven't fully locked up the AI-search lane yet.</li>
+      <li><strong>Then layer in financing, schema, gallery, and named-expert content</strong> as ongoing improvements.</li>
+    </ol>
+
+    <p class="signoff">
+      This is a build engagement, not a rescue. The credentials are already real; the surface area to display them is what comes next. The 90-day arc — site, schema, EV positioning, GBP rebuild, certifications — is what shifts both Google rankings and how often Stag surfaces when a Mesa homeowner asks ChatGPT or Perplexity, "who installs Tesla Wall Connectors near me?" or "panel upgrade Phoenix cost." Both answers are winnable.
+    </p>
+  </div>
+
+  <div class="footer">
+    <span>08 · Strategic Notes</span>
+    <span>13</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 14 — Scope of Services                                  -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>09 · Scope of Services</span>
+    <span class="runner__brand">Stag Electric <span class="accent">·</span> stagelectricarizona.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">09 — Scope of Services</span>
+  <h2 class="display">Closing the gaps.</h2>
+  <p class="scope-intro">Stag's quote (issued 2026-04-29) already commits to this scope. The line items below match what's been agreed; the audit context shows why each line item is there and what it closes.</p>
+
+  <div class="svc-grid">
+
+    <div class="svc">
+      <div class="svc__head">
+        <span class="svc__name">Website Creation &amp; On-Site AEO Optimization</span>
+        <span class="svc__price">$7,500</span>
+      </div>
+      <p class="svc__desc">Custom 5–7 page website built for both human conversion and AI retrieval. Home, services overview, EV / panel / troubleshooting service pages, service area, about (named experts), contact. Mobile-first, fast, hosted on Cloudflare Pages. Schema.org structured data on every page (LocalBusiness, Service, FAQPage). Answer-ready copy designed to be quoted by ChatGPT, Claude, Perplexity, and Google AI Overview. One round of revisions included.</p>
+        <p class="svc__addresses"><strong>Closes gaps:</strong> Single-page site · No service pages · No city pages · No FAQ · No schema · ROC# not surfaced · BBB not surfaced · BuildZoom 95 not surfaced</p>
+    </div>
+
+    <div class="svc">
+      <div class="svc__head">
+        <span class="svc__name">Google Business Profile Optimization</span>
+        <span class="svc__price">$1,250</span>
+      </div>
+      <p class="svc__desc">Full claim and rebuild of the existing GBP listing. Categories audited and corrected (primary: Electrician; secondary: Electric Vehicle Charging Station Contractor, Electrical Installation Service, Generator Installation Service). Services and service areas filled with the language buyers actually use. Q&amp;A seeded with the questions Phoenix-area homeowners actually ask. Review-request workflow that points HomeAdvisor reviewers + every new customer to Google. Duplicate-listing cleanup.</p>
+      <p class="svc__addresses"><strong>Closes gaps:</strong> GBP underbuilt · Reviews not on Google · Local-pack visibility · Review-velocity foundation</p>
+    </div>
+
+    <div class="svc">
+      <div class="svc__head">
+        <span class="svc__name">Social Media Foundation</span>
+        <span class="svc__price">$750</span>
+      </div>
+      <p class="svc__desc">Brand consistency across Facebook, Instagram, and TikTok — same business name, profile photo, banner, and bio language on every platform. Full profile setup on each platform: bio copy, business categories, contact info, services list, hours, and primary CTA. Three to five content pillars matched to Stag's service mix (panel upgrades, EV chargers, troubleshooting). Any unclaimed handles claimed and branded so a competitor can't grab them later.</p>
+      <p class="svc__addresses"><strong>Closes gaps:</strong> TikTok handle unclaimed · Cross-platform brand consistency · AI entity disambiguation</p>
+    </div>
+
+    <div class="svc">
+      <div class="svc__head">
+        <span class="svc__name">[Included in Website Creation above]</span>
+        <span class="svc__price">—</span>
+      </div>
+      <p class="svc__desc">City pages (Mesa, Gilbert, Chandler, Tempe, Apache Junction) are part of the multi-page Website Creation scope above. Listed here for clarity in the scope mapping — not a separate line item.</p>
+      <p class="svc__addresses"><strong>Bundled into Website Creation</strong></p>
+    </div>
+
+    <div class="svc">
+      <div class="svc__head">
+        <span class="svc__name">[Included in Website Creation above]</span>
+        <span class="svc__price">—</span>
+      </div>
+      <p class="svc__desc">Process sections, transparent pricing ranges, named-expert About page, and embedded reviews are part of the multi-page Website Creation scope above. Listed here for clarity.</p>
+      <p class="svc__addresses"><strong>Bundled into Website Creation</strong></p>
+    </div>
+
+  </div>
+
+  <div class="subtotal">
+    <span class="lbl">One-time scope subtotal (per Stag's quote)</span>
+    <span class="val">$9,500</span>
+    <span class="lbl lbl--accent">Founding-client discount (25%)</span>
+    <span class="val val--accent">−$2,375</span>
+    <span class="lbl lbl--total">One-time total</span>
+    <span class="val val--total">$7,125</span>
+  </div>
+
+  <div class="footer">
+    <span>09 · Scope of Services</span>
+    <span>14</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 15 — Recurring + Investment Summary + Next Step          -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>10 · Investment Summary</span>
+    <span class="runner__brand">Stag Electric <span class="accent">·</span> stagelectricarizona.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">10 — Recurring &amp; Investment Summary</span>
+  <h2 class="display">The work that compounds.</h2>
+  <p class="scope-intro">The website + GBP fix the foundation. The retainer is what keeps Stag showing up in AI search as the models evolve and competitors lock in their lanes.</p>
+
+  <div class="svc svc--full">
+    <div class="svc__head">
+      <span class="svc__name">AEO Authority + Operations Retainer</span>
+      <span class="svc__price"><span style="color:var(--fg-dim);font-size:10pt;text-decoration:line-through;margin-right:6pt;">$1,500/mo</span>$1,000<small>/month</small></span>
+    </div>
+    <p class="svc__desc">40–60 buyer-intent prompts tracked monthly across <strong>ChatGPT, Claude, Perplexity, Gemini, and Google AI Overview</strong> — focused on EV install, panel upgrade, and Mesa-electrician queries — so we know exactly when Stag starts (or stops) being cited. Three blog posts per week (~13/month) on cost guides, troubleshooting, permit how-tos, and Tesla Wall Connector specifics. Review-velocity system to move HomeAdvisor reviewers onto Google. Tactical adjustments when models shift ranking behavior. Weekly performance summary and quarterly strategy review.</p>
+    <p class="svc__addresses"><strong>Founding-client pricing</strong> — discounted from $1,500/mo standard. Cancel anytime with one email, no forms or retention pitches.</p>
+  </div>
+
+  <h3 style="margin-top:12pt;margin-bottom:0;font-size:13pt;">Investment summary</h3>
+  <table class="invest">
+    <thead>
+      <tr>
+        <th>Line item</th>
+        <th style="text-align:right;">Investment</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th>One-time scope (per Stag's quote)</th>
+        <td class="price">$9,500</td>
+      </tr>
+      <tr class="discount">
+        <td>Founding-client discount (25%)</td>
+        <td class="price">−$2,375</td>
+      </tr>
+      <tr>
+        <th><strong>One-time total</strong> <span class="note">— 50% on acceptance, 50% on launch</span></th>
+        <td class="price price--accent"><strong>$7,125</strong></td>
+      </tr>
+      <tr>
+        <th>AEO Retainer <span class="note">— begins 1st of month after launch · default included in Stag's quote</span></th>
+        <td class="price price--accent"><strong>$1,000<span style="font-size:9pt;color:var(--fg-muted);">/mo</span></strong></td>
+      </tr>
+      <tr>
+        <th>Social media management <span class="note">— togglable, default included</span></th>
+        <td class="price price--accent"><strong>$1,500<span style="font-size:9pt;color:var(--fg-muted);">/mo</span></strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="addons">
+    <h4>What's already in Stag's quote</h4>
+    <p>This audit is the pre-engagement baseline. The quote (AEO-2026-001, issued 2026-04-29) already commits to the line items above; the retainer's monthly cadence is what compounds the work over 90 days.</p>
+  </div>
+
+  <div class="terms">
+    <div class="term">
+      <div class="lbl">Quote validity</div>
+      <div class="val">30 days from issue</div>
+    </div>
+    <div class="term">
+      <div class="lbl">Start window</div>
+      <div class="val">7 business days from acceptance</div>
+    </div>
+    <div class="term">
+      <div class="lbl">Cancellation</div>
+      <div class="val">One email — no forms or retention</div>
+    </div>
+    <div class="term">
+      <div class="lbl">Ownership</div>
+      <div class="val">Stag retains all deliverables</div>
+    </div>
+  </div>
+
+  <div class="closing" style="margin-top:10pt;padding:14pt 22pt;">
+    <span class="eyebrow" style="margin-bottom:4pt;">Next step</span>
+    <h2 style="margin-bottom:4pt;font-size:18pt;">A 30-minute call to walk through the audit.</h2>
+    <p style="margin:0;font-size:9.5pt;line-height:1.45;">Bring questions. We'll walk the findings on screen, talk through what you'd want to keep or cut from the scope above, and tell you on the call if the math doesn't work for your business — rather than walk you through a pitch.</p>
+    <p class="signoff" style="margin-top:10pt;padding-top:8pt;font-size:10pt;">
+      Aeolistings &nbsp;·&nbsp; <em>aeolistings.ai</em> &nbsp;·&nbsp; AEO &amp; Local Visibility for Service Businesses
+    </p>
+  </div>
+
+  <div class="footer">
+    <span>10 · Investment Summary</span>
+    <span>15</span>
+  </div>
+</section>
+
+</body>
+</html>
