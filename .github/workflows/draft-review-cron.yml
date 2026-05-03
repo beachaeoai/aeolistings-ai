@@ -28,7 +28,14 @@ on:
 permissions:
   contents: write
   pull-requests: write
-
+# Opt into Node.js 24 for the actions themselves (actions/checkout,
+# actions/setup-node, etc). The actions still default to Node.js 20 as of
+# 2026-04, which GitHub is deprecating on 2026-06-02. This env var migrates
+# us forward without needing to wait for v5 releases of every action.
+# (This is separate from `node-version: '22'` below — that controls the
+#  runtime our SCRIPT runs on, not the actions themselves.)
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 jobs:
   review:
     runs-on: ubuntu-latest

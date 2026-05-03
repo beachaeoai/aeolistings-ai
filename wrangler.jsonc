@@ -1,0 +1,29 @@
+/**
+ * Cloudflare Workers Static Assets configuration for the aeolistings.ai site.
+ *
+ * The site is built by Astro (`npm run build`) into ./dist/ as fully static
+ * HTML, CSS, JS, and image files. This config tells Cloudflare's Workers
+ * Builds product to upload that directory as static assets — no server-side
+ * code, no Worker entry point.
+ *
+ * Why this file exists:
+ *   Cloudflare migrated this project from Pages to Workers Builds at some
+ *   point in 2026. The new product runs `npx wrangler versions upload`
+ *   after the build, which requires a wrangler.jsonc to know what to ship.
+ *   Without it: "Missing entry-point to Worker script or to assets directory."
+ *
+ * Separate concerns — DON'T confuse with these:
+ *   - workers/contact/wrangler.toml — that's the contact form Worker, a
+ *     completely separate Cloudflare project named "aeolistings-contact"
+ *     with its own deploy lifecycle (deployed manually via `wrangler deploy`
+ *     from inside workers/contact/, NOT auto-deployed on push).
+ *   - This file (root wrangler.jsonc) — the SITE deployment, auto-built
+ *     and deployed on every push to main by Cloudflare's git integration.
+ */
+{
+  "name": "aeolistings-ai",
+  "compatibility_date": "2026-05-03",
+  "assets": {
+    "directory": "./dist"
+  }
+}
