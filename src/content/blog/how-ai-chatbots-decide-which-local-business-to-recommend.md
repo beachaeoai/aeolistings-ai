@@ -4,7 +4,6 @@ description: "ChatGPT, Claude, Perplexity, and Gemini don't pick local businesse
 pubDate: 2026-04-18
 author: "AEO Listings"
 tags: ["fundamentals", "retrieval", "local"]
-draft: true
 ---
 
 **When an AI chatbot is asked "who's a good plumber in Phoenix?", it isn't running a Google search and reading the results. It is selecting from entities it already knows about, weighted by entity strength (how clearly it can identify the business), corroboration (how many trusted sources describe the business consistently), retrievability (whether the business's own pages cleanly answer the question), and recency (whether anything contradicts what the model believed at training time).**
