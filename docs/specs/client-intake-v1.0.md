@@ -186,7 +186,10 @@ Phoenix-metro auto-suggested checkbox list. Custom city add. Per selected city, 
 
 ### Step 9 — Schedule & logistics
 
-- Kickoff call: Google Appointment Scheduling iframe embed (URL stored in env config)
+- Kickoff call: Google Appointment Scheduling iframe embed
+  - **Booking URL:** `https://calendar.app.google/Y6VXe3HC2qnqUBV19`
+  - **Embed pattern:** wrap as iframe in Step 9; client books inline
+  - Configured for: 30 min duration, 15 min buffer before/after, Mon–Fri AZ business hours, Google Meet auto-attached
 - Project blackout dates: date-range picker, multi-add
 - Weekly performance summary day: Friday / Monday / opt-out
 - Quarterly strategy review preference: video call / written report / both
