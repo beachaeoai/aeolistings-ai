@@ -1,0 +1,32 @@
+# Local-dev secrets template for the Aeolistings client intake app
+#
+# COPY this file to `.dev.vars` (gitignored) and fill in real values.
+# Real values come from 1Password Business → Aeolistings Client Credentials vault.
+#
+# DO NOT commit `.dev.vars` to git — it's in .gitignore for a reason.
+#
+# For PRODUCTION: secrets are set via Cloudflare Pages dashboard
+# (Settings → Environment variables → encrypt) OR `wrangler pages secret put <NAME>`.
+# Do NOT add real production secrets here.
+
+# Notion integration token (starts with `secret_`)
+# 1Password item: "Notion Integration Token — Intake System"
+NOTION_INTEGRATION_TOKEN=secret_xxx_replace_with_real_value
+
+# 1Password Service Account token (starts with `ops_`)
+# 1Password item: "1Password Service Account Token — Intake System"
+ONEPASSWORD_SERVICE_ACCOUNT_TOKEN=ops_xxx_replace_with_real_value
+
+# Slack incoming webhook URLs (full URLs)
+# 1Password item: "Slack Webhooks — Intake System"
+SLACK_WEBHOOK_INTAKE_OPS=https://hooks.slack.com/services/xxx/yyy/zzz
+SLACK_WEBHOOK_BUILD=https://hooks.slack.com/services/xxx/yyy/zzz
+
+# Resend API key (starts with `re_`)
+# 1Password item: existing aeolistings.ai contact-form Resend key
+RESEND_API_KEY=re_xxx_replace_with_real_value
+
+# HMAC signing key for magic-link tokens
+# Generate fresh: `openssl rand -hex 32`
+# 1Password item: "Intake System HMAC Signing Key" (create when you generate)
+HMAC_SIGNING_KEY=replace_with_64_hex_chars_from_openssl_rand

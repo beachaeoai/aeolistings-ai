@@ -1,0 +1,43 @@
+---
+// Intake form root — a placeholder until Sprint 3 ships the real flow.
+// In production, clients arrive at intake.aeolistings.ai/c/<token> via magic link.
+// This page is what someone sees if they hit the bare domain.
+
+const isProduction = Astro.locals.runtime?.env?.ENVIRONMENT === 'production';
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aeolistings Client Intake</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: #FAF8F1;
+      color: #1A1A1A;
+      max-width: 36rem;
+      margin: 4rem auto;
+      padding: 0 1.5rem;
+      line-height: 1.5;
+    }
+    h1 {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-weight: 400;
+      font-size: 2.25rem;
+      letter-spacing: -0.02em;
+      margin: 0 0 1rem;
+    }
+    em { color: #8B2F2F; font-style: italic; }
+    .muted { color: #6B6B6B; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <h1>Aeolistings <em>client intake</em></h1>
+  <p>This form opens via a personalized link sent to your email after you sign your Aeolistings sales contract.</p>
+  <p>If you're an Aeolistings client and you haven't received your link, email <a href="mailto:intake@aeolistings.ai">intake@aeolistings.ai</a> and we'll resend it.</p>
+  <p class="muted">Environment: {isProduction ? 'production' : 'development'}</p>
+</body>
+</html>

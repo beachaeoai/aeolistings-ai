@@ -1,0 +1,54 @@
+# Cloudflare configuration for the Aeolistings client intake app
+# Per docs/specs/client-intake-v1.0.md
+
+name = "aeolistings-intake"
+compatibility_date = "2026-05-05"
+pages_build_output_dir = "./dist"
+
+# ============================================================
+# D1 — Intake records database
+# ============================================================
+[[d1_databases]]
+binding = "DB"
+database_name = "intake-db"
+database_id = "cf3e45b6-ad1d-4faf-a974-59c98e378819"
+
+# ============================================================
+# KV — Magic-link token store
+# ============================================================
+[[kv_namespaces]]
+binding = "INTAKE_TOKENS"
+id = "3cefdf13b4984181a07c0560b3ccd8e5"
+
+# ============================================================
+# R2 — Client file uploads (logos, photos, project images)
+# ============================================================
+[[r2_buckets]]
+binding = "UPLOADS"
+bucket_name = "aeolistings-intake-uploads"
+
+# ============================================================
+# Public, non-secret env vars
+# Real secrets go in .dev.vars (local) or `wrangler pages secret put`
+# (production). See .dev.vars.example for the secret list.
+# ============================================================
+[vars]
+ENVIRONMENT = "production"
+APP_URL = "https://intake.aeolistings.ai"
+
+# Notion
+NOTION_TEMPLATE_PAGE_ID = "8b0e273250f1492e91918e43e2e3ba66"
+NOTION_PARENT_PAGE_ID = "3585fbf10b5e8057b035f7abb6cb5a7d"
+
+# 1Password
+ONEPASSWORD_VAULT_UUID = "qqzfcrgw4bbqnkirebfwtylh5i"
+
+# Google Workspace Appointment Scheduling
+APPOINTMENT_SCHEDULING_URL = "https://calendar.app.google/Y6VXe3HC2qnqUBV19"
+
+# Sender for transactional email
+SENDER_EMAIL = "intake@aeolistings.ai"
+
+# Slack channel names (for log/debug context, not webhook URLs)
+SLACK_CHANNEL_INTAKE_OPS = "#client-onboarding"
+SLACK_CHANNEL_BUILD = "#aeolistings-build"

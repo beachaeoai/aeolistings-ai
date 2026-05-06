@@ -442,17 +442,23 @@ Auto-detect / prefill features at Step 2 are the riskiest piece — derisk in Sp
 - **Per-client tags:** `client:eco-roofing`, `client:cruz-development`, `client:stag-electric`
 
 ### Cloudflare
-- **Account ID:** TBD
-- **Pages project name:** TBD (suggested: `intake`)
-- **D1 database ID:** TBD (suggested name: `intake-db`)
-- **KV namespace ID:** TBD (suggested name: `INTAKE_TOKENS`)
-- **R2 bucket name:** TBD (suggested: `aeolistings-intake-uploads`)
-- **API token:** TBD (stored in 1Password)
-- **Custom domain:** `intake.aeolistings.ai` (DNS to provision)
+- **Account ID:** `f700964246b5d61966399989f1910a56`
+- **Pages project name:** `aeolistings-intake`
+- **Default Pages URL:** `aeolistings-intake.pages.dev` (used as CNAME target for the custom domain)
+- **D1 database name:** `intake-db`
+- **D1 database ID:** `cf3e45b6-ad1d-4faf-a974-59c98e378819`
+- **KV namespace name:** `INTAKE_TOKENS`
+- **KV namespace ID:** `3cefdf13b4984181a07c0560b3ccd8e5`
+- **R2 bucket name:** `aeolistings-intake-uploads`
+- **API token:** stored in 1Password Business → *Aeolistings Client Credentials* vault (Secure Note: "Cloudflare API Token — Intake System Dev")
+- **API token scope:** Account-level — Pages:Edit, Workers Scripts:Edit, D1:Edit, KV:Edit, R2:Edit; Zone-level — `aeolistings.ai` only
+- **API token expiry:** TBD (90 days recommended)
+- **Custom domain:** `intake.aeolistings.ai` ✅ Active, CNAME managed by Pages
 
 ### Resend (existing)
-- **API key:** existing, stored in 1Password
-- **Verified sender:** `noreply@aeolistings.ai` or `intake@aeolistings.ai`
+- **API key:** reusing the existing aeolistings.ai contact-form key (stored in 1Password)
+- **Sender address:** `intake@aeolistings.ai`
+- **Workspace alias for replies:** `intake@aeolistings.ai` — set up as Google Workspace alias on the primary inbox so client replies land somewhere monitored
 
 ## 14. Open items remaining at hand-off
 
