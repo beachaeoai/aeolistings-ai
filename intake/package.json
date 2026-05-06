@@ -5,16 +5,18 @@
   "type": "module",
   "description": "Aeolistings client intake form — turns a signed contract into a structured asset/access package",
   "scripts": {
-    "dev": "wrangler pages dev -- astro dev",
+    "dev": "astro dev",
     "build": "astro build",
-    "preview": "wrangler pages dev ./dist",
+    "preview": "wrangler pages dev ./dist --config ./wrangler.toml",
     "deploy": "npm run build && wrangler pages deploy dist --project-name=aeolistings-intake",
     "astro": "astro",
     "typecheck": "astro check",
-    "db:migrate:local": "wrangler d1 migrations apply intake-db --local",
-    "db:migrate:remote": "wrangler d1 migrations apply intake-db --remote",
-    "db:query:local": "wrangler d1 execute intake-db --local --command",
-    "db:query:remote": "wrangler d1 execute intake-db --remote --command"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:migrate:local": "wrangler d1 migrations apply intake-db --local --config ./wrangler.toml",
+    "db:migrate:remote": "wrangler d1 migrations apply intake-db --remote --config ./wrangler.toml",
+    "db:query:local": "wrangler d1 execute intake-db --local --config ./wrangler.toml --command",
+    "db:query:remote": "wrangler d1 execute intake-db --remote --config ./wrangler.toml --command"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",
@@ -29,6 +31,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240925.0",
+    "vitest": "^2.1.0",
     "wrangler": "^3.80.0"
   }
 }
