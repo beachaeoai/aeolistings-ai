@@ -434,9 +434,12 @@ Auto-detect / prefill features at Step 2 are the riskiest piece — derisk in Sp
 - **Configured:** 30-min duration, 15 min buffer before/after, Mon–Fri AZ business hours, Google Meet auto-attached
 
 ### 1Password Business
-- **Vault for client credentials:** *Aeolistings Client Credentials* (TBD)
-- **Service account token:** TBD (stored in 1Password itself once created)
-- **Vault UUID:** TBD
+- **Vault for client credentials:** *Aeolistings Client Credentials*
+- **Vault UUID:** `qqzfcrgw4bbqnkirebfwtylh5i`
+- **Service account name:** Intake System Service Account
+- **Service account token:** stored in 1Password itself (Secure Note in the Aeolistings Client Credentials vault)
+- **Token expiry:** 90 days (rotate quarterly)
+- **Per-client tags:** `client:eco-roofing`, `client:cruz-development`, `client:stag-electric`
 
 ### Cloudflare
 - **Account ID:** TBD
