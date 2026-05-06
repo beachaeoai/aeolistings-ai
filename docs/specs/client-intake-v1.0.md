@@ -412,14 +412,49 @@ Auto-detect / prefill features at Step 2 are the riskiest piece — derisk in Sp
 
 ---
 
-## 13. Open items at hand-off
+## 13. Provisioned infrastructure (filled as items come in)
 
-1. **Design system / UI kit** — does Aeolistings have one in the existing aeolistings.ai codebase, or does the dev start from Tailwind defaults?
-2. **Slack workspace + ops channel webhook URL** — provisioned before Sprint 5
-3. **Notion API key + template page ID** — provisioned before Sprint 5
-4. **1Password Business account + API key** — provisioned before Sprint 5
-5. **`intake.aeolistings.ai` DNS** — set up Cloudflare DNS record pointing to Pages project
-6. **Slack notification preferences** — which channel(s) get the submit/edit notifications?
+### Notion
+- **Master template page ID:** `8b0e273250f1492e91918e43e2e3ba66`
+  (URL: https://www.notion.so/Client-Name-Aeolistings-Engagement-8b0e273250f1492e91918e43e2e3ba66)
+- **Client Engagements parent page ID:** `3585fbf10b5e8057b035f7abb6cb5a7d`
+  (URL: https://www.notion.so/Client-Engagements-3585fbf10b5e8057b035f7abb6cb5a7d)
+- **Integration name:** Aeolistings Intake System (internal, in Aeolistings workspace)
+- **Integration token:** stored in 1Password Business → *Aeolistings Client Credentials* vault
+- **Integration must be connected to BOTH pages above** for the dev work to read the template and write new client pages
+
+### Slack
+- **Workspace:** Aeolistings
+- **Ops notification channel:** `#client-onboarding` (intake submit + edit notifications)
+- **Build coordination channel:** `#aeolistings-build`
+- **Webhook URLs:** stored in 1Password Business → *Aeolistings Client Credentials* vault
+
+### Google Workspace Appointment Scheduling
+- **Booking URL:** `https://calendar.app.google/Y6VXe3HC2qnqUBV19`
+- **Configured:** 30-min duration, 15 min buffer before/after, Mon–Fri AZ business hours, Google Meet auto-attached
+
+### 1Password Business
+- **Vault for client credentials:** *Aeolistings Client Credentials* (TBD)
+- **Service account token:** TBD (stored in 1Password itself once created)
+- **Vault UUID:** TBD
+
+### Cloudflare
+- **Account ID:** TBD
+- **Pages project name:** TBD (suggested: `intake`)
+- **D1 database ID:** TBD (suggested name: `intake-db`)
+- **KV namespace ID:** TBD (suggested name: `INTAKE_TOKENS`)
+- **R2 bucket name:** TBD (suggested: `aeolistings-intake-uploads`)
+- **API token:** TBD (stored in 1Password)
+- **Custom domain:** `intake.aeolistings.ai` (DNS to provision)
+
+### Resend (existing)
+- **API key:** existing, stored in 1Password
+- **Verified sender:** `noreply@aeolistings.ai` or `intake@aeolistings.ai`
+
+## 14. Open items remaining at hand-off
+
+1. **Design system / UI kit** — does Aeolistings have one in the existing aeolistings.ai codebase, or does the dev start from Tailwind defaults? (Recommend reuse `src/styles/global.css` for color + type tokens)
+2. **AZ ROC API access** for Step 2 prefill (or accept fallback to scraping the public ROC search page)
 
 ---
 
