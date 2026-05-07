@@ -89,7 +89,7 @@ jobs:
             ({
               env_vars: {
                 ENVIRONMENT:                { type: "plain_text", value: "production" },
-                APP_URL:                    { type: "plain_text", value: "https://intake.aeolistings.ai" },
+                APP_URL:                    { type: "plain_text", value: "https://aeolistings-intake.pages.dev" },
                 NOTION_TEMPLATE_PAGE_ID:    { type: "plain_text", value: "8b0e273250f1492e91918e43e2e3ba66" },
                 NOTION_PARENT_PAGE_ID:      { type: "plain_text", value: "3585fbf10b5e8057b035f7abb6cb5a7d" },
                 ONEPASSWORD_VAULT_UUID:     { type: "plain_text", value: "qqzfcrgw4bbqnkirebfwtylh5i" },
