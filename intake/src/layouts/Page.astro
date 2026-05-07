@@ -1,0 +1,93 @@
+---
+// Shared chrome for every intake page. Loads the brand tokens from
+// styles/global.css and stamps the head + footer so individual pages can
+// stay focused on their content.
+
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" href="/favicon.ico" />
+  </head>
+  <body class="page">
+    <main class="page__main">
+      <slot />
+    </main>
+    <footer class="page__footer">
+      <span>&copy; {new Date().getFullYear()} Aeolistings</span>
+      <span aria-hidden="true">·</span>
+      <a href="mailto:intake@aeolistings.ai">intake@aeolistings.ai</a>
+    </footer>
+  </body>
+</html>
+
+<style is:global>
+  body.page {
+    min-height: 100vh;
+    margin: 0;
+    display: grid;
+    grid-template-rows: 1fr auto;
+  }
+  .page__main {
+    width: 100%;
+    max-width: 36rem;
+    margin: 0 auto;
+    padding: 4rem 1.5rem 2rem;
+  }
+  .page__footer {
+    width: 100%;
+    max-width: 36rem;
+    margin: 0 auto;
+    padding: 1.5rem 1.5rem 2rem;
+    border-top: 1px solid var(--hairline);
+    color: var(--fg-muted);
+    font-size: 0.875rem;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .page__footer a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: var(--hairline-2);
+    text-underline-offset: 2px;
+  }
+  .page__footer a:hover {
+    text-decoration-color: var(--accent);
+  }
+
+  .page__main h1 {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(2rem, 4vw, 2.5rem);
+    margin: 0 0 1.25rem;
+  }
+  .page__main h1 .accent {
+    color: var(--accent);
+    font-style: italic;
+  }
+  .page__main p {
+    margin: 0 0 1rem;
+  }
+  .page__main a {
+    color: var(--fg);
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-underline-offset: 3px;
+  }
+</style>

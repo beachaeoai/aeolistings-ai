@@ -1,0 +1,20 @@
+---
+// Branded 404 — replaces Astro's default dark-theme framework page.
+// Reached when a client mistypes a URL or hits a stale link to a route
+// that no longer exists.
+
+import Page from '../layouts/Page.astro';
+---
+
+<Page title="Page not found · Aeolistings client intake">
+  <h1>We can't find <span class="accent">that page</span></h1>
+  <p>
+    If you're trying to open your intake form, please use the link from your
+    email — it's a single, personalized URL we sent after you signed your
+    contract.
+  </p>
+  <p>
+    Lost the email? Reach us at <a href="mailto:intake@aeolistings.ai">intake@aeolistings.ai</a>
+    and we'll send a fresh link.
+  </p>
+</Page>
