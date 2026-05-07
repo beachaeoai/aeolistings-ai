@@ -1,7 +1,10 @@
 // Intake-record DB helpers — Sprint 1.
 // Field shape mirrors migrations/0001_initial.sql.
 
-import { ulid } from 'ulid';
+// ulidx is the maintained fork of `ulid`. The original falls back to
+// `require("crypto")` when window is undefined, which throws under
+// Cloudflare Workers and 500s every route that imports this module.
+import { ulid } from 'ulidx';
 
 export type IntakeStatus = 'in_progress' | 'submitted' | 'editing';
 

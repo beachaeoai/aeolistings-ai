@@ -119,22 +119,29 @@ jobs:
             --commit-hash="$GITHUB_SHA"
 
       - name: Smoke-test /api/health
-        # Pages issues both a per-deploy URL and a per-branch alias. The
-        # branch alias is reliable across redeploys, so probe it.
+        # Sprint 1 only requires the bindings + HMAC. Other secrets
+        # (Notion / Slack / 1Password / Resend) come online in Sprint 5,
+        # so the endpoint legitimately reports "degraded" until then.
+        # Pass the run as long as the four Sprint-1 checks are green.
         run: |
           BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
-          # Cloudflare Pages slugs the branch: lowercase, /[^a-z0-9]/ → '-'
           SLUG=$(echo "$BRANCH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g')
           URL="https://${SLUG}.aeolistings-intake.pages.dev/api/health"
           echo "Probing $URL"
-          # Pages can take a few seconds to propagate after deploy. Retry up to ~30s.
           for i in 1 2 3 4 5 6; do
-            if curl -fsS "$URL" >/tmp/health.json; then
-              cat /tmp/health.json
-              exit 0
+            # The endpoint returns 503 when degraded; -f would reject that.
+            # Use --fail-with-body equivalent: capture body + status separately.
+            body=$(curl -sS "$URL")
+            if [ -n "$body" ]; then
+              echo "$body"
+              if printf '%s' "$body" \
+                  | jq -e '.checks.db and .checks.kv and .checks.r2 and .checks.hmac_key_present' \
+                  >/dev/null; then
+                echo "Sprint-1 checks green."
+                exit 0
+              fi
             fi
             sleep 5
           done
-          echo "Health check failed after retries:"
-          curl -sS -i "$URL" || true
+          echo "Health check did not satisfy Sprint-1 binding requirements."
           exit 1
