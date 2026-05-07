@@ -40,7 +40,11 @@ jobs:
         working-directory: intake
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      # Account ID is non-sensitive (it appears in URLs and in the
+      # committed spec §13). Hardcoded here so the workflow doesn't
+      # silently degrade when the optional `vars.CLOUDFLARE_ACCOUNT_ID`
+      # is missing or misplaced under Secrets instead of Variables.
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID || 'f700964246b5d61966399989f1910a56' }}
 
     steps:
       - name: Check out repo
