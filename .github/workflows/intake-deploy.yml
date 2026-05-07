@@ -1,0 +1,124 @@
+name: Deploy intake
+
+# What this does:
+#   On every push that touches intake/ (or this workflow file), build the
+#   intake app, ensure the Cloudflare Pages project exists, push the prod
+#   HMAC secret, run any pending D1 migrations against the remote database,
+#   and deploy. Pushes to main go to production; everything else is a
+#   preview deploy at <branch>.aeolistings-intake.pages.dev.
+#
+# Required repo configuration (one-time):
+#   Variables (Settings → Secrets and variables → Actions → Variables tab)
+#     CLOUDFLARE_ACCOUNT_ID   = f700964246b5d61966399989f1910a56
+#   Secrets   (Settings → Secrets and variables → Actions → Secrets tab)
+#     CLOUDFLARE_API_TOKEN    = scoped per docs/specs/client-intake-v1.0.md §13
+#     INTAKE_HMAC_SIGNING_KEY = `openssl rand -hex 32` (DIFFERENT from local
+#                               .dev.vars; mirror to 1Password vault)
+
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'intake/**'
+      - '.github/workflows/intake-deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+# Opt actions in to Node 24 per the same convention used in
+# draft-review-cron.yml. Node 20 deprecation lands 2026-06-02.
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: intake
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: intake/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Ensure Pages project exists
+        # First-run idempotency: if the project doesn't exist yet, create it
+        # with main as the production branch. If it already exists (the
+        # common case), `project create` exits non-zero and we move on.
+        run: |
+          npx wrangler pages project create aeolistings-intake \
+            --production-branch=main \
+            --compatibility-date=2026-05-06 \
+          || echo "Project exists or create failed harmlessly — continuing"
+
+      - name: Push HMAC signing key to Pages secrets (production + preview)
+        # Idempotent — overwrites if set. Same value in both envs for v1
+        # since we don't yet split prod / preview data.
+        run: |
+          printf '%s' "${{ secrets.INTAKE_HMAC_SIGNING_KEY }}" \
+            | npx wrangler pages secret put HMAC_SIGNING_KEY \
+                --project-name=aeolistings-intake
+          printf '%s' "${{ secrets.INTAKE_HMAC_SIGNING_KEY }}" \
+            | npx wrangler pages secret put HMAC_SIGNING_KEY \
+                --project-name=aeolistings-intake \
+                --env=preview
+
+      - name: Apply D1 migrations (remote)
+        # `migrations apply` only runs *pending* migrations, so re-running
+        # on every deploy is a no-op after the first.
+        run: npx wrangler d1 migrations apply intake-db --remote --config ./wrangler.toml
+
+      - name: Deploy to Pages
+        # Branch flag determines preview vs production:
+        #   --branch=main  → production (also gets <project>.pages.dev)
+        #   --branch=other → preview at <other>.<project>.pages.dev
+        id: deploy
+        run: |
+          BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
+          npx wrangler pages deploy dist \
+            --project-name=aeolistings-intake \
+            --branch="$BRANCH" \
+            --commit-dirty=true \
+            --commit-hash="$GITHUB_SHA"
+
+      - name: Smoke-test /api/health
+        # Pages issues both a per-deploy URL and a per-branch alias. The
+        # branch alias is reliable across redeploys, so probe it.
+        run: |
+          BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
+          # Cloudflare Pages slugs the branch: lowercase, /[^a-z0-9]/ → '-'
+          SLUG=$(echo "$BRANCH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g')
+          URL="https://${SLUG}.aeolistings-intake.pages.dev/api/health"
+          echo "Probing $URL"
+          # Pages can take a few seconds to propagate after deploy. Retry up to ~30s.
+          for i in 1 2 3 4 5 6; do
+            if curl -fsS "$URL" >/tmp/health.json; then
+              cat /tmp/health.json
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Health check failed after retries:"
+          curl -sS -i "$URL" || true
+          exit 1

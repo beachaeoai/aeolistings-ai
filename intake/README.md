@@ -92,13 +92,26 @@ npx wrangler d1 execute intake-db --remote --command "SELECT * FROM intake_recor
 
 ## Deploy
 
-Production deploys happen via git push to `main` (Cloudflare Pages auto-builds + deploys). Staging / preview deploys happen automatically for any non-main branch.
+Deploys are driven by [`.github/workflows/intake-deploy.yml`](../.github/workflows/intake-deploy.yml). Any push that touches `intake/**` triggers it: tests run, the app builds, the HMAC secret is pushed to Pages, pending D1 migrations apply against the remote DB, and `wrangler pages deploy` publishes. Push to `main` → production at `intake.aeolistings.ai`. Push to any other branch → preview at `<branch-slug>.aeolistings-intake.pages.dev`. The workflow ends with a curl probe of `/api/health` so a deploy that fails to bind D1/KV/R2 fails the run instead of silently shipping.
 
-For ad-hoc deploys (rare):
+### One-time setup
+
+Configure these in `Settings → Secrets and variables → Actions` for the repo:
+
+| Kind | Name | Value |
+|---|---|---|
+| Variable | `CLOUDFLARE_ACCOUNT_ID` | `f700964246b5d61966399989f1910a56` (per spec §13) |
+| Secret | `CLOUDFLARE_API_TOKEN` | Created in Cloudflare → My Profile → API Tokens. Scope per spec §13: Account-level Pages:Edit + Workers:Edit + D1:Edit + KV:Edit + R2:Edit; Zone-level `aeolistings.ai` only |
+| Secret | `INTAKE_HMAC_SIGNING_KEY` | `openssl rand -hex 32`. **Different value from local `.dev.vars`** — store this one in 1Password Business → *Aeolistings Client Credentials* vault as "Intake System HMAC Signing Key — Prod" |
+
+The first run also calls `wrangler pages project create`, so the Pages project doesn't have to pre-exist.
+
+### Ad-hoc local deploy (rare)
 
 ```bash
 npm run build
-npx wrangler pages deploy dist --project-name=aeolistings-intake
+CLOUDFLARE_API_TOKEN=… CLOUDFLARE_ACCOUNT_ID=… \
+  npx wrangler pages deploy dist --project-name=aeolistings-intake
 ```
 
 ## Project structure
