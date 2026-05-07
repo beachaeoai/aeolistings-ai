@@ -73,16 +73,28 @@ jobs:
           || echo "Project exists or create failed harmlessly — continuing"
 
       - name: Push HMAC signing key to Pages secrets (production + preview)
-        # Idempotent — overwrites if set. Same value in both envs for v1
-        # since we don't yet split prod / preview data.
+        # PATCH the Pages project deployment_configs directly instead of
+        # `wrangler pages secret put`, which preflights `/memberships` and
+        # needs User->User Details:Read on the token. Keeping the token
+        # account-scoped per spec §13 means we hit the REST API ourselves.
+        # Idempotent: same value in both envs for v1 (no prod/preview split).
         run: |
-          printf '%s' "${{ secrets.INTAKE_HMAC_SIGNING_KEY }}" \
-            | npx wrangler pages secret put HMAC_SIGNING_KEY \
-                --project-name=aeolistings-intake
-          printf '%s' "${{ secrets.INTAKE_HMAC_SIGNING_KEY }}" \
-            | npx wrangler pages secret put HMAC_SIGNING_KEY \
-                --project-name=aeolistings-intake \
-                --env=preview
+          payload=$(jq -n --arg s "${{ secrets.INTAKE_HMAC_SIGNING_KEY }}" '{
+            deployment_configs: {
+              production: { env_vars: { HMAC_SIGNING_KEY: { type: "secret_text", value: $s } } },
+              preview:    { env_vars: { HMAC_SIGNING_KEY: { type: "secret_text", value: $s } } }
+            }
+          }')
+          response=$(curl -sS -w '\n%{http_code}' -X PATCH \
+            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/aeolistings-intake" \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "$payload")
+          body=$(printf '%s' "$response" | sed '$d')
+          code=$(printf '%s' "$response" | tail -n 1)
+          echo "HTTP $code"
+          printf '%s\n' "$body" | jq '{success, errors}'
+          test "$code" = "200" && printf '%s' "$body" | jq -e '.success == true' >/dev/null
 
       - name: Apply D1 migrations (remote)
         # `migrations apply` only runs *pending* migrations, so re-running
