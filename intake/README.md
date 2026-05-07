@@ -127,18 +127,29 @@ intake/
 ├── tsconfig.json                   ← TypeScript config
 ├── src/
 │   ├── env.d.ts                    ← TypeScript types for Cloudflare bindings
+│   ├── layouts/
+│   │   └── Page.astro              ← shared chrome (head, main, footer) + brand tokens
 │   ├── pages/
-│   │   ├── index.astro             ← placeholder home page
-│   │   ├── c/[token]/              ← client intake form routes (one .astro per step) — TODO
+│   │   ├── index.astro             ← bare-domain landing
+│   │   ├── 404.astro               ← branded fallback
+│   │   ├── c/[token].astro         ← magic-link landing (Sprint 1 placeholder; Sprint 3 swaps in the form)
 │   │   └── api/
-│   │       └── health.ts           ← health check endpoint
+│   │       ├── health.ts           ← health check endpoint
+│   │       └── intake/
+│   │           ├── create.ts       ← POST: admin-keyed; mints intake + magic link
+│   │           └── [token].ts      ← GET resume / POST save (rotates token)
 │   ├── lib/
-│   │   ├── tokens.ts               ← HMAC magic-link helpers (Sprint 1)
+│   │   ├── tokens.ts               ← HMAC magic-link helpers (Sprint 1) ✅
+│   │   ├── intake.ts               ← D1 create / get / patch helpers (Sprint 1) ✅
 │   │   ├── notion.ts               ← Notion API client wrapper (Sprint 5)
 │   │   ├── slack.ts                ← Slack webhook poster (Sprint 5)
 │   │   └── 1password.ts            ← 1Password Connect client (Sprint 5)
 │   └── styles/
 │       └── global.css              ← brand tokens mirroring aeolistings.ai
+├── tests/
+│   ├── tokens.test.ts              ← 20 unit tests for the four token primitives
+│   ├── intake-flow.test.ts         ← 11 route-handler integration tests
+│   └── helpers/                    ← in-memory KV + D1 fakes
 └── migrations/
     └── 0001_initial.sql            ← D1 schema from spec section 7
 ```
@@ -147,7 +158,7 @@ intake/
 
 Per spec section 10:
 
-- **Sprint 1** — Magic-link auth + token system + KV setup (3–4 days)
+- ✅ **Sprint 1** — Magic-link auth + token system + KV setup (delivered: 31/31 tests, GitHub Actions deploy workflow, branded landing/404/`/c/<token>` placeholder)
 - **Sprint 2** — Step 2 prefill (website crawl + public records lookup) (4–5 days, derisks earliest)
 - **Sprint 3** — Steps 0–4 UI (welcome through trust signals) (5–6 days)
 - **Sprint 4** — Steps 5–10 UI (digital access through review) (5–6 days)
@@ -157,12 +168,53 @@ Per spec section 10:
 
 For Claude-in-Code dev sessions, each sprint is roughly **one focused session**.
 
-## Future-Claude: how to start a Sprint 1 session
+## Lessons from Sprint 1 (read before Sprint 2+)
+
+1. **Use `ulidx`, not `ulid`.** The original `ulid` package falls back to `require("crypto")` when `window` is undefined, which throws under Cloudflare Workers and 500s every route that imports the module. `ulidx` is the maintained fork that goes through `globalThis.crypto.getRandomValues`. Don't reintroduce `ulid`.
+2. **Astro's `platformProxy` needs an explicit `configPath`.** Without `configPath: './wrangler.toml'` in `astro.config.mjs`, the dev server walks up the directory tree, finds the marketing site's wrangler config (or none), and silently misses our D1/KV/R2 bindings — `/api/health` reports `db: false` etc. with no obvious error.
+3. **`wrangler` CLI also needs `--config ./wrangler.toml` from this subdir** for the same reason. The `db:migrate:*` and `db:query:*` scripts in `package.json` already include it; new wrangler invocations should follow suit.
+4. **`wrangler pages secret put` needs `User → User Details:Read` on the API token** because it preflights `/memberships`. The deploy workflow [bypasses this](../.github/workflows/intake-deploy.yml) by PATCHing `/accounts/{id}/pages/projects/{name}` directly via curl, keeping the token's scope account-only per spec §13.
+5. **The CF account ID is hardcoded in the deploy workflow** with `vars.CLOUDFLARE_ACCOUNT_ID` as an override. It's not actually a secret (it's in spec §13 + most CF URLs) and being hardcoded prevents silent degradation if the GitHub Actions variable is missing or misplaced under Secrets.
+6. **The remote D1 migration runs on every push**, not just main. `wrangler d1 migrations apply --remote` is idempotent; running it on previews ensures schema-changing PRs don't ship without a corresponding migration.
+7. **`/api/health` returning HTTP 503 is normal** until Sprint 5 lands. The endpoint reports `degraded` whenever any binding/secret check is false, including the Sprint-5 secrets that don't exist yet. The deploy workflow's smoke test only requires `db / kv / r2 / hmac_key_present` — see the `Smoke-test` step.
+
+## Future-Claude: starting prompts per sprint
+
+### Sprint 2 — Step 2 prefill
 
 ```
-"Read intake/README.md and docs/specs/client-intake-v1.0.md.
-Implement Sprint 1 (magic-link auth + token system).
-Cover the create / save / resume / verify / expire token flows
-per spec section 5. Tests for each. Local Wrangler dev + remote
-preview deploy when ready."
+Read intake/README.md, docs/specs/client-intake-v1.0.md, and
+intake/src/lib/intake.ts. Implement Sprint 2 (Step 2 prefill —
+website crawl + public records lookup) per spec section 4 "Step 2"
+and section 14 (open item: AZ ROC API access).
+
+Add a new module intake/src/lib/prefill.ts plus the API route
+POST /api/intake/[token]/prefill that takes a website URL and
+returns the inferred Step-2 fields. Crawl through Cloudflare's
+fetch (server-side; no client-side scraping). Cache lookups in KV
+keyed by domain with a 24-hour TTL.
+
+Tests cover: clean website with structured data, scraping fallback
+when no JSON-LD, AZ ROC lookup hit + miss, BBB lookup, error
+handling for unreachable sites. Local + preview deploy validated
+end-to-end before opening the PR.
+```
+
+### Sprint 3 — Steps 0–4 UI
+
+```
+Read intake/README.md, docs/specs/client-intake-v1.0.md (especially
+section 4 wireframes for steps 0–4), and the existing
+intake/src/pages/c/[token].astro placeholder. Replace the
+placeholder body with the actual ten-step form skeleton (this sprint
+ships steps 0–4: welcome, confirm scope, business identity, brand
+assets, trust signals).
+
+Form state lives in the `data` JSON column of intake_records; each
+step PATCHes /api/intake/[token] on advance, which rotates the token.
+Save & exit at any step. Use Page.astro for chrome.
+
+Tests: each step renders for a valid token, save patches the right
+JSON path, the rotated token survives a refresh. Local + preview
+deploy + UX walkthrough on the live URL before PR.
 ```
