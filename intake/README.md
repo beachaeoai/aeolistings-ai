@@ -137,10 +137,13 @@ intake/
 │   │       ├── health.ts           ← health check endpoint
 │   │       └── intake/
 │   │           ├── create.ts       ← POST: admin-keyed; mints intake + magic link
-│   │           └── [token].ts      ← GET resume / POST save (rotates token)
+│   │           ├── [token].ts      ← GET resume / POST save (rotates token)
+│   │           └── [token]/
+│   │               └── prefill.ts  ← POST: Step 2 auto-prefill (Sprint 2) ✅
 │   ├── lib/
 │   │   ├── tokens.ts               ← HMAC magic-link helpers (Sprint 1) ✅
 │   │   ├── intake.ts               ← D1 create / get / patch helpers (Sprint 1) ✅
+│   │   ├── prefill.ts              ← Step 2 prefill: crawl + AZ ROC + BBB + KV cache (Sprint 2) ✅
 │   │   ├── notion.ts               ← Notion API client wrapper (Sprint 5)
 │   │   ├── slack.ts                ← Slack webhook poster (Sprint 5)
 │   │   └── 1password.ts            ← 1Password Connect client (Sprint 5)
@@ -149,6 +152,7 @@ intake/
 ├── tests/
 │   ├── tokens.test.ts              ← 20 unit tests for the four token primitives
 │   ├── intake-flow.test.ts         ← 11 route-handler integration tests
+│   ├── prefill.test.ts             ← 19 tests covering JSON-LD / scrape / ROC / BBB / cache
 │   └── helpers/                    ← in-memory KV + D1 fakes
 └── migrations/
     └── 0001_initial.sql            ← D1 schema from spec section 7
@@ -159,7 +163,7 @@ intake/
 Per spec section 10:
 
 - ✅ **Sprint 1** — Magic-link auth + token system + KV setup (delivered: 31/31 tests, GitHub Actions deploy workflow, branded landing/404/`/c/<token>` placeholder)
-- **Sprint 2** — Step 2 prefill (website crawl + public records lookup) (4–5 days, derisks earliest)
+- ✅ **Sprint 2** — Step 2 prefill: website crawl (JSON-LD + scrape fallback), AZ ROC + BBB lookups, 24h KV cache, `POST /api/intake/[token]/prefill` (50/50 tests)
 - **Sprint 3** — Steps 0–4 UI (welcome through trust signals) (5–6 days)
 - **Sprint 4** — Steps 5–10 UI (digital access through review) (5–6 days)
 - **Sprint 5** — Submit handler + Notion / Slack / R2 / 1Password integrations (4–5 days)
@@ -167,6 +171,14 @@ Per spec section 10:
 - **Sprint 7** — QA, polish, prefill edge cases, mobile responsive (3–4 days)
 
 For Claude-in-Code dev sessions, each sprint is roughly **one focused session**.
+
+## Lessons from Sprint 2 (read before Sprint 3+)
+
+1. **The prefill cache reuses the `INTAKE_TOKENS` KV namespace** (with a `prefill:` key prefix) rather than adding a second binding. If you ever need to invalidate prefill caches without dropping live magic-link tokens, scan KV with the `prefix: 'prefill:'` option — don't `wrangler kv key list` and delete blindly.
+2. **Astro happily allows both `[token].ts` (file) and `[token]/prefill.ts` (folder) in the same directory.** The router distinguishes them by URL pattern. `astro build` emits them side-by-side under `dist/_worker.js/pages/api/intake/`. If you ever rename `[token].ts`, do not also delete the folder — they are independent routes.
+3. **`fetch` inside Cloudflare Workers respects `AbortController` but ignores `timeout`.** Our `fetchWithTimeout()` always sets up a controller; do the same in any new external lookup. Workers also have a 30s wall-clock budget, so per-request timeouts must stay well under that — we use 8s.
+4. **AZ ROC + BBB scrapes are best-effort and fail open.** The Salesforce-rendered ROC page in particular returns mostly empty HTML to a server-side fetch; expect `miss` for live sites until proper API access lands (spec §14 still open). The form must always allow manual entry — never gate Step 2 on a successful ROC hit.
+5. **`astro check` regenerates `src/env.d.ts`** by inserting a `<reference path="../.astro/types.d.ts" />` line. Don't commit that diff — it's a build artifact; revert with `git checkout src/env.d.ts` before committing.
 
 ## Lessons from Sprint 1 (read before Sprint 2+)
 
@@ -180,41 +192,27 @@ For Claude-in-Code dev sessions, each sprint is roughly **one focused session**.
 
 ## Future-Claude: starting prompts per sprint
 
-### Sprint 2 — Step 2 prefill
-
-```
-Read intake/README.md, docs/specs/client-intake-v1.0.md, and
-intake/src/lib/intake.ts. Implement Sprint 2 (Step 2 prefill —
-website crawl + public records lookup) per spec section 4 "Step 2"
-and section 14 (open item: AZ ROC API access).
-
-Add a new module intake/src/lib/prefill.ts plus the API route
-POST /api/intake/[token]/prefill that takes a website URL and
-returns the inferred Step-2 fields. Crawl through Cloudflare's
-fetch (server-side; no client-side scraping). Cache lookups in KV
-keyed by domain with a 24-hour TTL.
-
-Tests cover: clean website with structured data, scraping fallback
-when no JSON-LD, AZ ROC lookup hit + miss, BBB lookup, error
-handling for unreachable sites. Local + preview deploy validated
-end-to-end before opening the PR.
-```
-
 ### Sprint 3 — Steps 0–4 UI
 
 ```
 Read intake/README.md, docs/specs/client-intake-v1.0.md (especially
-section 4 wireframes for steps 0–4), and the existing
-intake/src/pages/c/[token].astro placeholder. Replace the
-placeholder body with the actual ten-step form skeleton (this sprint
-ships steps 0–4: welcome, confirm scope, business identity, brand
-assets, trust signals).
+section 4 wireframes for steps 0–4), intake/src/pages/c/[token].astro
+(the placeholder), and intake/src/lib/prefill.ts (Sprint 2 — already
+shipped). Replace the placeholder body with the ten-step form
+skeleton (this sprint ships steps 0–4: welcome, confirm scope,
+business identity, brand assets, trust signals).
 
 Form state lives in the `data` JSON column of intake_records; each
 step PATCHes /api/intake/[token] on advance, which rotates the token.
 Save & exit at any step. Use Page.astro for chrome.
 
+Step 2 should call POST /api/intake/[token]/prefill on first arrival
+to autofill from the website URL the client just confirmed; render a
+clear "Source: website / AZ ROC / BBB" provenance label per field so
+the client knows what's been guessed.
+
 Tests: each step renders for a valid token, save patches the right
-JSON path, the rotated token survives a refresh. Local + preview
-deploy + UX walkthrough on the live URL before PR.
+JSON path, the rotated token survives a refresh, the prefill button
+populates Step 2 fields. Local + preview deploy + UX walkthrough on
+the live URL before PR.
 ```
