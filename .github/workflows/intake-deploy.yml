@@ -76,19 +76,44 @@ jobs:
             --compatibility-date=2026-05-06 \
           || echo "Project exists or create failed harmlessly — continuing"
 
-      - name: Push HMAC signing key to Pages secrets (production + preview)
-        # PATCH the Pages project deployment_configs directly instead of
-        # `wrangler pages secret put`, which preflights `/memberships` and
-        # needs User->User Details:Read on the token. Keeping the token
-        # account-scoped per spec §13 means we hit the REST API ourselves.
-        # Idempotent: same value in both envs for v1 (no prod/preview split).
+      - name: Sync Pages env config (bindings + vars + secret) for production + preview
+        # Cloudflare Pages reads wrangler.toml bindings into the *preview*
+        # env automatically on direct-upload deploys, but NOT into the
+        # production env. We PATCH deployment_configs.{production,preview}
+        # directly to make both envs identical for Sprint 1 (no env split
+        # yet). Same idempotent shape: re-runs each deploy, fully overwrites.
+        # Avoids `wrangler pages secret put` which preflights /memberships
+        # and needs User->User Details:Read — keeping the token account-only.
         run: |
-          payload=$(jq -n --arg s "${{ secrets.INTAKE_HMAC_SIGNING_KEY }}" '{
-            deployment_configs: {
-              production: { env_vars: { HMAC_SIGNING_KEY: { type: "secret_text", value: $s } } },
-              preview:    { env_vars: { HMAC_SIGNING_KEY: { type: "secret_text", value: $s } } }
-            }
-          }')
+          payload=$(jq -n --arg s "${{ secrets.INTAKE_HMAC_SIGNING_KEY }}" '
+            ({
+              vars: {
+                ENVIRONMENT: "production",
+                APP_URL: "https://intake.aeolistings.ai",
+                NOTION_TEMPLATE_PAGE_ID: "8b0e273250f1492e91918e43e2e3ba66",
+                NOTION_PARENT_PAGE_ID: "3585fbf10b5e8057b035f7abb6cb5a7d",
+                ONEPASSWORD_VAULT_UUID: "qqzfcrgw4bbqnkirebfwtylh5i",
+                APPOINTMENT_SCHEDULING_URL: "https://calendar.app.google/Y6VXe3HC2qnqUBV19",
+                SENDER_EMAIL: "intake@aeolistings.ai",
+                SLACK_CHANNEL_INTAKE_OPS: "#client-onboarding",
+                SLACK_CHANNEL_BUILD: "#aeolistings-build"
+              },
+              env_vars: {
+                HMAC_SIGNING_KEY: { type: "secret_text", value: $s }
+              },
+              d1_databases: {
+                DB: { id: "cf3e45b6-ad1d-4faf-a974-59c98e378819" }
+              },
+              kv_namespaces: {
+                INTAKE_TOKENS: { namespace_id: "3cefdf13b4984181a07c0560b3ccd8e5" }
+              },
+              r2_buckets: {
+                UPLOADS: { name: "aeolistings-intake-uploads" }
+              },
+              compatibility_date: "2026-05-06"
+            }) as $env
+            | { deployment_configs: { production: $env, preview: $env } }
+          ')
           response=$(curl -sS -w '\n%{http_code}' -X PATCH \
             "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/aeolistings-intake" \
             -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
@@ -97,7 +122,7 @@ jobs:
           body=$(printf '%s' "$response" | sed '$d')
           code=$(printf '%s' "$response" | tail -n 1)
           echo "HTTP $code"
-          printf '%s\n' "$body" | jq '{success, errors}'
+          printf '%s\n' "$body" | jq '{success, errors, "deployment_configs.production.d1_databases": .result.deployment_configs.production.d1_databases, "deployment_configs.production.kv_namespaces": .result.deployment_configs.production.kv_namespaces}'
           test "$code" = "200" && printf '%s' "$body" | jq -e '.success == true' >/dev/null
 
       - name: Apply D1 migrations (remote)
@@ -123,10 +148,16 @@ jobs:
         # (Notion / Slack / 1Password / Resend) come online in Sprint 5,
         # so the endpoint legitimately reports "degraded" until then.
         # Pass the run as long as the four Sprint-1 checks are green.
+        # Production (main) doesn't get a `<branch>.<project>.pages.dev`
+        # alias — it lives at the project's bare domain instead.
         run: |
           BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
-          SLUG=$(echo "$BRANCH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g')
-          URL="https://${SLUG}.aeolistings-intake.pages.dev/api/health"
+          if [ "$BRANCH" = "main" ]; then
+            URL="https://aeolistings-intake.pages.dev/api/health"
+          else
+            SLUG=$(echo "$BRANCH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g')
+            URL="https://${SLUG}.aeolistings-intake.pages.dev/api/health"
+          fi
           echo "Probing $URL"
           for i in 1 2 3 4 5 6; do
             # The endpoint returns 503 when degraded; -f would reject that.
