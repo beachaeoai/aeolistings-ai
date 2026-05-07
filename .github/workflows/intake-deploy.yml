@@ -1,0 +1,147 @@
+name: Deploy intake
+
+# What this does:
+#   On every push that touches intake/ (or this workflow file), build the
+#   intake app, ensure the Cloudflare Pages project exists, push the prod
+#   HMAC secret, run any pending D1 migrations against the remote database,
+#   and deploy. Pushes to main go to production; everything else is a
+#   preview deploy at <branch>.aeolistings-intake.pages.dev.
+#
+# Required repo configuration (one-time):
+#   Variables (Settings → Secrets and variables → Actions → Variables tab)
+#     CLOUDFLARE_ACCOUNT_ID   = f700964246b5d61966399989f1910a56
+#   Secrets   (Settings → Secrets and variables → Actions → Secrets tab)
+#     CLOUDFLARE_API_TOKEN    = scoped per docs/specs/client-intake-v1.0.md §13
+#     INTAKE_HMAC_SIGNING_KEY = `openssl rand -hex 32` (DIFFERENT from local
+#                               .dev.vars; mirror to 1Password vault)
+
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'intake/**'
+      - '.github/workflows/intake-deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+# Opt actions in to Node 24 per the same convention used in
+# draft-review-cron.yml. Node 20 deprecation lands 2026-06-02.
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: intake
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      # Account ID is non-sensitive (it appears in URLs and in the
+      # committed spec §13). Hardcoded here so the workflow doesn't
+      # silently degrade when the optional `vars.CLOUDFLARE_ACCOUNT_ID`
+      # is missing or misplaced under Secrets instead of Variables.
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID || 'f700964246b5d61966399989f1910a56' }}
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: intake/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Ensure Pages project exists
+        # First-run idempotency: if the project doesn't exist yet, create it
+        # with main as the production branch. If it already exists (the
+        # common case), `project create` exits non-zero and we move on.
+        run: |
+          npx wrangler pages project create aeolistings-intake \
+            --production-branch=main \
+            --compatibility-date=2026-05-06 \
+          || echo "Project exists or create failed harmlessly — continuing"
+
+      - name: Push HMAC signing key to Pages secrets (production + preview)
+        # PATCH the Pages project deployment_configs directly instead of
+        # `wrangler pages secret put`, which preflights `/memberships` and
+        # needs User->User Details:Read on the token. Keeping the token
+        # account-scoped per spec §13 means we hit the REST API ourselves.
+        # Idempotent: same value in both envs for v1 (no prod/preview split).
+        run: |
+          payload=$(jq -n --arg s "${{ secrets.INTAKE_HMAC_SIGNING_KEY }}" '{
+            deployment_configs: {
+              production: { env_vars: { HMAC_SIGNING_KEY: { type: "secret_text", value: $s } } },
+              preview:    { env_vars: { HMAC_SIGNING_KEY: { type: "secret_text", value: $s } } }
+            }
+          }')
+          response=$(curl -sS -w '\n%{http_code}' -X PATCH \
+            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/aeolistings-intake" \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "$payload")
+          body=$(printf '%s' "$response" | sed '$d')
+          code=$(printf '%s' "$response" | tail -n 1)
+          echo "HTTP $code"
+          printf '%s\n' "$body" | jq '{success, errors}'
+          test "$code" = "200" && printf '%s' "$body" | jq -e '.success == true' >/dev/null
+
+      - name: Apply D1 migrations (remote)
+        # `migrations apply` only runs *pending* migrations, so re-running
+        # on every deploy is a no-op after the first.
+        run: npx wrangler d1 migrations apply intake-db --remote --config ./wrangler.toml
+
+      - name: Deploy to Pages
+        # Branch flag determines preview vs production:
+        #   --branch=main  → production (also gets <project>.pages.dev)
+        #   --branch=other → preview at <other>.<project>.pages.dev
+        id: deploy
+        run: |
+          BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
+          npx wrangler pages deploy dist \
+            --project-name=aeolistings-intake \
+            --branch="$BRANCH" \
+            --commit-dirty=true \
+            --commit-hash="$GITHUB_SHA"
+
+      - name: Smoke-test /api/health
+        # Sprint 1 only requires the bindings + HMAC. Other secrets
+        # (Notion / Slack / 1Password / Resend) come online in Sprint 5,
+        # so the endpoint legitimately reports "degraded" until then.
+        # Pass the run as long as the four Sprint-1 checks are green.
+        run: |
+          BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
+          SLUG=$(echo "$BRANCH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g')
+          URL="https://${SLUG}.aeolistings-intake.pages.dev/api/health"
+          echo "Probing $URL"
+          for i in 1 2 3 4 5 6; do
+            # The endpoint returns 503 when degraded; -f would reject that.
+            # Use --fail-with-body equivalent: capture body + status separately.
+            body=$(curl -sS "$URL")
+            if [ -n "$body" ]; then
+              echo "$body"
+              if printf '%s' "$body" \
+                  | jq -e '.checks.db and .checks.kv and .checks.r2 and .checks.hmac_key_present' \
+                  >/dev/null; then
+                echo "Sprint-1 checks green."
+                exit 0
+              fi
+            fi
+            sleep 5
+          done
+          echo "Health check did not satisfy Sprint-1 binding requirements."
+          exit 1

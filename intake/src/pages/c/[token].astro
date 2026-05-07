@@ -1,0 +1,87 @@
+---
+// Magic-link landing — placeholder until Sprint 3 ships the 10-step form.
+// Today this verifies the token server-side and renders a state-aware
+// holding page so a client never sees Astro's default 404 or a raw API
+// JSON error. Sprint 3 replaces the body content with the actual form.
+
+import Page from '../../layouts/Page.astro';
+import { verifyToken } from '../../lib/tokens';
+import { getIntakeById } from '../../lib/intake';
+
+const { token } = Astro.params;
+const env = Astro.locals.runtime?.env;
+
+type State =
+  | { kind: 'valid'; firstName: string; businessName: string }
+  | { kind: 'expired' }
+  | { kind: 'env-missing' };
+
+let state: State = { kind: 'expired' };
+if (!env) {
+  state = { kind: 'env-missing' };
+} else if (token) {
+  const intakeId = await verifyToken(token, env);
+  if (intakeId) {
+    const record = await getIntakeById(intakeId, env);
+    if (record) {
+      const firstName = record.client_name.split(' ')[0] ?? record.client_name;
+      state = { kind: 'valid', firstName, businessName: record.business_name };
+    }
+  }
+}
+---
+
+<Page title="Your intake · Aeolistings">
+  {state.kind === 'valid' && (
+    <>
+      <h1>Welcome, <span class="accent">{state.firstName}</span></h1>
+      <p>
+        We're putting the finishing touches on the intake form for
+        <strong> {state.businessName}</strong>. Your link is valid — we'll have
+        the form ready for you here within the next few days.
+      </p>
+      <p>
+        You don't need to do anything right now. We'll email you when it's
+        ready, and the same link will take you straight in.
+      </p>
+      <p class="muted">
+        Questions? Email <a href="mailto:intake@aeolistings.ai">intake@aeolistings.ai</a>.
+      </p>
+    </>
+  )}
+
+  {state.kind === 'expired' && (
+    <>
+      <h1>This link <span class="accent">is no longer valid</span></h1>
+      <p>
+        Magic links expire after 7 days, and each one only works once after
+        you save your progress.
+      </p>
+      <p>
+        Email <a href="mailto:intake@aeolistings.ai">intake@aeolistings.ai</a>
+        and we'll send you a fresh link — your previous answers are safe.
+      </p>
+    </>
+  )}
+
+  {state.kind === 'env-missing' && (
+    <>
+      <h1>Something's not right on our end</h1>
+      <p>
+        We hit a temporary problem loading your intake. Please try again in a
+        minute, or email <a href="mailto:intake@aeolistings.ai">intake@aeolistings.ai</a>
+        if it keeps happening.
+      </p>
+    </>
+  )}
+</Page>
+
+<style>
+  .muted {
+    color: var(--fg-muted);
+    font-size: 0.9rem;
+  }
+  strong {
+    font-weight: 600;
+  }
+</style>

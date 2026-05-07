@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Aeolistings GBP Audit — Cruz Development</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:         #FAF8F1;
+    --bg-2:       #F4F1E8;
+    --bg-3:       #EFECE2;
+    --fg:         #1A1A1A;
+    --fg-muted:   #6B6B6B;
+    --fg-dim:     #9A9A9A;
+    --hairline:   #E5E1D6;
+    --hairline-2: #D8D3C5;
+    --accent:     #8B2F2F;
+    --accent-ink: #FAF8F1;
+    --font-sans:  "Instrument Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    --font-serif: "Instrument Serif", Georgia, "Times New Roman", serif;
+  }
+  @page { size: Letter; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-size: 10pt;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    width: 8.5in;
+    height: 11in;
+    padding: 0.55in 0.7in 0.55in 0.7in;
+    position: relative;
+    page-break-after: always;
+    overflow: hidden;
+  }
+  .page:last-child { page-break-after: auto; }
+
+  /* Running header / footer */
+  .runner {
+    position: absolute;
+    top: 0.35in;
+    left: 0.7in;
+    right: 0.7in;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 7.5pt;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    font-weight: 500;
+    padding-bottom: 6pt;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .runner__brand { color: var(--fg); font-weight: 600; }
+  .runner__brand .accent { color: var(--accent); }
+  .footer {
+    position: absolute;
+    bottom: 0.35in;
+    left: 0.7in;
+    right: 0.7in;
+    display: flex;
+    justify-content: space-between;
+    font-size: 7.5pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+    padding-top: 6pt;
+    border-top: 1px solid var(--hairline);
+  }
+
+  /* Type */
+  h1, h2, h3 {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    letter-spacing: -0.018em;
+    line-height: 1.05;
+    margin: 0 0 0.35em;
+  }
+  h1 { font-size: 30pt; }
+  h2 { font-size: 22pt; margin-top: 0; }
+  h3 { font-size: 13pt; }
+  .display { font-family: var(--font-serif); }
+  .eyebrow {
+    font-size: 8pt;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    font-weight: 500;
+    display: block;
+    margin-bottom: 6pt;
+  }
+  .eyebrow--accent { color: var(--accent); }
+
+  /* Cover top */
+  .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 14pt;
+    border-bottom: 1px solid var(--fg);
+    margin-bottom: 18pt;
+  }
+  .head img { height: 22pt; width: auto; display: block; }
+  .head__meta {
+    text-align: right;
+    font-size: 7.5pt;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    font-weight: 500;
+    line-height: 1.5;
+  }
+  .head__meta strong { color: var(--fg); }
+  .head__meta .accent { color: var(--accent); }
+
+  /* Lede */
+  .kicker {
+    display: inline-block;
+    font-size: 7.5pt;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    border-top: 1px solid var(--accent);
+    padding-top: 5pt;
+    margin: 0 0 10pt;
+  }
+  .lede {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 14pt;
+    line-height: 1.32;
+    color: var(--fg-muted);
+    margin: 0 0 14pt;
+    max-width: 6in;
+  }
+  .method {
+    font-size: 8.5pt;
+    color: var(--fg-muted);
+    line-height: 1.45;
+    margin: 0 0 12pt;
+    padding: 8pt 12pt;
+    background: var(--bg-2);
+    border-left: 2px solid var(--accent);
+    max-width: 6.2in;
+  }
+  .method strong { color: var(--fg); font-weight: 600; }
+
+  /* Stats strip */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border-top: 1px solid var(--hairline);
+    border-bottom: 1px solid var(--hairline);
+    padding: 10pt 0;
+    margin-bottom: 14pt;
+  }
+  .stat { padding: 0 14pt; border-right: 1px solid var(--hairline); }
+  .stat:last-child { border-right: 0; }
+  .stat .label {
+    font-size: 7pt;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    font-weight: 500;
+    margin-bottom: 4pt;
+  }
+  .stat .value {
+    font-family: var(--font-serif);
+    font-size: 22pt;
+    line-height: 1;
+    color: var(--accent);
+  }
+  .stat .value small { color: var(--fg); font-size: 13pt; }
+  .stat .note { font-size: 7.5pt; color: var(--fg-muted); margin-top: 4pt; line-height: 1.35; }
+
+  /* Hero finding */
+  .hero {
+    background: var(--fg);
+    color: var(--bg);
+    padding: 18pt 22pt;
+    margin: 14pt 0 6pt;
+  }
+  .hero .eyebrow {
+    color: rgba(250,248,241,0.5);
+    margin-bottom: 4pt;
+  }
+  .hero h2 {
+    color: var(--bg);
+    font-size: 18pt;
+    margin: 0 0 6pt;
+    line-height: 1.15;
+  }
+  .hero h2 em { color: rgba(250,248,241,1); font-style: italic; }
+  .hero p {
+    margin: 0;
+    font-size: 9.5pt;
+    line-height: 1.5;
+    color: rgba(250,248,241,0.9);
+  }
+
+  /* Comparison table — current vs best practice */
+  table.gbp {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8.5pt;
+    margin-top: 6pt;
+  }
+  table.gbp th, table.gbp td {
+    text-align: left;
+    padding: 3pt 7pt;
+    vertical-align: top;
+    border-bottom: 1px solid var(--hairline);
+    font-size: 7.8pt;
+    line-height: 1.3;
+  }
+  table.gbp thead th {
+    font-family: var(--font-sans);
+    font-size: 7pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    font-weight: 600;
+    border-bottom: 1px solid var(--fg);
+    padding-bottom: 5pt;
+  }
+  table.gbp tbody th {
+    font-family: var(--font-serif);
+    font-size: 10pt;
+    font-weight: 400;
+    color: var(--fg);
+    width: 1.7in;
+  }
+  table.gbp .observed { width: 1.45in; }
+  table.gbp .target { width: 1.55in; color: var(--fg-muted); }
+  table.gbp .gap-cell { width: 0.85in; text-align: right; }
+  .badge {
+    display: inline-block;
+    font-size: 6.8pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 2pt 6pt;
+    border-radius: 2pt;
+    white-space: nowrap;
+  }
+  .badge--crit { background: var(--accent); color: var(--accent-ink); }
+  .badge--high { background: var(--fg); color: var(--bg); }
+  .badge--med { background: transparent; color: var(--fg-muted); border: 1px solid var(--hairline-2); }
+  .badge--ok { background: transparent; color: #2d5a3d; border: 1px solid #2d5a3d; }
+
+  /* Reviews chart */
+  .chart-frame {
+    border: 1px solid var(--hairline);
+    background: var(--bg);
+    padding: 14pt 16pt 12pt;
+    margin: 0 0 14pt;
+  }
+  .chart-frame h3 {
+    font-size: 13pt;
+    margin: 0 0 2pt;
+    line-height: 1.1;
+  }
+  .chart-frame .sub {
+    font-size: 8.5pt;
+    color: var(--fg-muted);
+    margin: 0 0 10pt;
+  }
+
+  /* Gap list */
+  .gaplist {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: g;
+  }
+  .gaplist li {
+    display: grid;
+    grid-template-columns: 20pt 1fr auto;
+    gap: 4pt 9pt;
+    padding: 4pt 0;
+    border-bottom: 1px dotted var(--hairline-2);
+    counter-increment: g;
+  }
+  .gaplist li::before {
+    content: counter(g, decimal-leading-zero);
+    font-family: var(--font-serif);
+    color: var(--accent);
+    font-size: 10pt;
+    line-height: 1.2;
+  }
+  .gaplist .what {
+    font-family: var(--font-serif);
+    font-size: 10.5pt;
+    color: var(--fg);
+    line-height: 1.2;
+  }
+  .gaplist .why {
+    font-size: 7.8pt;
+    color: var(--fg-muted);
+    margin-top: 1pt;
+    line-height: 1.35;
+    display: block;
+  }
+
+  /* Phase plan */
+  .phases {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12pt;
+    margin-top: 8pt;
+  }
+  .phase {
+    border: 1px solid var(--hairline);
+    background: var(--bg);
+    padding: 10pt 12pt 12pt;
+  }
+  .phase__win {
+    font-size: 7pt;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 3pt;
+  }
+  .phase__title {
+    font-family: var(--font-serif);
+    font-size: 13pt;
+    line-height: 1.1;
+    margin-bottom: 6pt;
+    padding-bottom: 4pt;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .phase ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 8.5pt;
+  }
+  .phase li {
+    padding: 3pt 0 3pt 10pt;
+    position: relative;
+    line-height: 1.4;
+    color: var(--fg);
+  }
+  .phase li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    top: 3pt;
+    color: var(--accent);
+  }
+
+  /* Crosswalk box */
+  .crosswalk {
+    margin-top: 14pt;
+    padding: 14pt 18pt;
+    background: var(--bg-2);
+    border: 1px solid var(--hairline);
+  }
+  .crosswalk h3 {
+    font-size: 13pt;
+    margin: 0 0 4pt;
+  }
+  .crosswalk p {
+    font-size: 9pt;
+    color: var(--fg);
+    margin: 0 0 4pt;
+    line-height: 1.5;
+  }
+  .crosswalk strong { color: var(--accent); font-weight: 600; }
+
+  /* Closing */
+  .closing {
+    background: var(--fg);
+    color: var(--bg);
+    padding: 18pt 22pt;
+    margin-top: 14pt;
+  }
+  .closing .eyebrow { color: rgba(250,248,241,0.5); margin-bottom: 4pt; }
+  .closing h2 {
+    color: var(--bg);
+    font-size: 18pt;
+    margin: 0 0 6pt;
+    line-height: 1.15;
+  }
+  .closing p {
+    color: rgba(250,248,241,0.92);
+    font-size: 9.5pt;
+    margin: 0;
+    line-height: 1.5;
+  }
+  .closing em { color: rgba(250,248,241,1); }
+
+  code {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 0.9em;
+    background: var(--bg-2);
+    padding: 0.1em 0.3em;
+    border-radius: 2px;
+  }
+
+  .pull {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 14pt;
+    line-height: 1.28;
+    color: var(--fg);
+    border-left: 2px solid var(--accent);
+    padding: 4pt 0 4pt 14pt;
+    margin: 12pt 0;
+    max-width: 6in;
+  }
+</style>
+</head>
+<body>
+
+<!-- =========================================================== -->
+<!-- PAGE 1                                                       -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="head">
+    <img src="aeolistings-wordmark-paper.png" alt="Aeolistings" />
+    <div class="head__meta">
+      Visibility Audit · GBP Supplement<br/>
+      <strong>No. 001-A</strong> <span class="accent">·</span> April 2026
+    </div>
+  </div>
+
+  <span class="kicker">Cruz Development · Chandler · Mesa · Glendale, AZ</span>
+  <h1 class="display">Google Business<br/>Profile, <em style="color:var(--accent);">audited.</em></h1>
+  <p class="lede">A focused supplement to the main visibility audit. For a luxury custom-home builder, the GBP is the surface where high-net-worth buyers form their first impression — and Cruz's profile is showing them an entity puzzle, not a builder.</p>
+
+  <p class="method"><strong>Methodology.</strong> The live GBP panel and the Google-data aggregator pattern (poyst.com) both denied access for this business, so direct review counts and photo counts were not empirically pulled. This audit reads what <em>is</em> verifiable: NAP consistency across Houzz / website / Yelp / BBB, name-collision risk with cruzcruzdevelopment.com, off-platform reputation footprint, and the 2026 best-practice baseline for luxury custom-home builders. Where a finding requires manual GBP inspection, it's flagged in the action plan.</p>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="label">NAP consistency</div>
+      <div class="value">Broken</div>
+      <div class="note">Houzz: San Tan Valley · Website: no address</div>
+    </div>
+    <div class="stat">
+      <div class="label">Phone area code</div>
+      <div class="value">619</div>
+      <div class="note">San Diego, not Arizona</div>
+    </div>
+    <div class="stat">
+      <div class="label">BBB accreditation</div>
+      <div class="value">None</div>
+      <div class="note">No AZ profile found</div>
+    </div>
+    <div class="stat">
+      <div class="label">Houzz Best Of</div>
+      <div class="value">None</div>
+      <div class="note">vs. Mariano's 15 awards</div>
+    </div>
+  </div>
+
+  <div class="hero">
+    <span class="eyebrow">The headline finding</span>
+    <h2>Cruz is showing buyers <em>an entity puzzle, not a builder.</em></h2>
+    <p>The website displays no address. The Houzz profile says San Tan Valley. The phone is San Diego (619). There's no BBB accreditation, no NAHB / HBACA membership, no Houzz "Best Of" badges, and a separate "Cruz Development" entity at <code>cruzcruzdevelopment.com</code> that search engines occasionally conflate with this one. For a buyer about to commission a $1M+ home, every one of these is friction. Each is also resolvable inside 30 days.</p>
+  </div>
+
+  <p class="pull" style="margin-top:14pt;font-size:13pt;">"There's a real builder here — credentialed founder, podcast appearance, named team. The GBP is the surface that turns those signals on or off. Right now it's mostly off."</p>
+
+  <div class="footer">
+    <span>GBP Supplement · 01</span>
+    <span>Cruz Development · cruzdevaz.com</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 2                                                       -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>GBP Supplement · State &amp; Best Practice</span>
+    <span class="runner__brand">Cruz Development <span class="accent">·</span> cruzdevaz.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">Trust stack — head-to-head</span>
+  <h2 class="display" style="margin-bottom:6pt;">Cruz vs. its three closest competitors.</h2>
+  <p style="font-size:9.5pt;color:var(--fg-muted);max-width:6.2in;margin:0 0 8pt;">Twelve trust signals luxury-build buyers and AI assistants both weigh. Each cell is a binary <em>"is it visible?"</em> — not a quality judgment.</p>
+
+  <div class="chart-frame" style="margin-bottom:12pt;">
+    REVIEWS_PLACEHOLDER
+    <p style="font-size:8pt;color:var(--fg-muted);margin:6pt 0 0;line-height:1.4;">Cruz column in <strong style="color:var(--accent);">oxblood</strong>; competitors in greys. Competitors collectively cover 9 of 12 signals; Cruz covers 1 (service-page FAQs).</p>
+  </div>
+
+  <h3 style="margin-top:0;">Current state vs. 2026 best practice</h3>
+  <table class="gbp">
+    <thead>
+      <tr>
+        <th>GBP field</th>
+        <th class="observed">What's there / inferred</th>
+        <th class="target">Best-practice target</th>
+        <th class="gap-cell">Impact</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th>Address on GBP</th>
+        <td>Houzz: San Tan Valley AZ; website: none</td>
+        <td>Match website + Houzz + GBP</td>
+        <td class="gap-cell"><span class="badge badge--crit">Critical</span></td>
+      </tr>
+      <tr>
+        <th>Phone area code</th>
+        <td>619 (San Diego)</td>
+        <td>AZ tracking number alongside owner cell</td>
+        <td class="gap-cell"><span class="badge badge--high">High</span></td>
+      </tr>
+      <tr>
+        <th>Primary category</th>
+        <td>Verify (likely "General Contractor")</td>
+        <td>Custom Home Builder</td>
+        <td class="gap-cell"><span class="badge badge--high">High</span></td>
+      </tr>
+      <tr>
+        <th>Secondary categories</th>
+        <td>Unknown</td>
+        <td>3–4 relevant (Home Builder, GC, Roofing Contractor)</td>
+        <td class="gap-cell"><span class="badge badge--high">High</span></td>
+      </tr>
+      <tr>
+        <th>Service-Area Business config</th>
+        <td>Unknown</td>
+        <td>SAB radius covers Chandler, Mesa, Glendale explicitly</td>
+        <td class="gap-cell"><span class="badge badge--high">High</span></td>
+      </tr>
+      <tr>
+        <th>Google reviews + velocity</th>
+        <td>Not measurable in this pass</td>
+        <td>&gt;25 Google reviews, 100% response &lt;48h</td>
+        <td class="gap-cell"><span class="badge badge--med">Verify</span></td>
+      </tr>
+      <tr>
+        <th>Photos</th>
+        <td>Not measurable in this pass</td>
+        <td>50+ project photos, weekly cadence</td>
+        <td class="gap-cell"><span class="badge badge--med">Verify</span></td>
+      </tr>
+      <tr>
+        <th>Google Posts cadence</th>
+        <td>None known</td>
+        <td>1+/week (also AI Overview signal)</td>
+        <td class="gap-cell"><span class="badge badge--high">High</span></td>
+      </tr>
+      <tr>
+        <th>Q&amp;A</th>
+        <td>Unknown / minimal</td>
+        <td>5–10 owner-seeded</td>
+        <td class="gap-cell"><span class="badge badge--high">High</span></td>
+      </tr>
+      <tr>
+        <th>Houzz Best Of badge</th>
+        <td>Not confirmed</td>
+        <td>Active pursuit (Mariano has 15)</td>
+        <td class="gap-cell"><span class="badge badge--high">High</span></td>
+      </tr>
+      <tr>
+        <th>BBB accreditation</th>
+        <td>None for AZ entity</td>
+        <td>Accredited (Forte is)</td>
+        <td class="gap-cell"><span class="badge badge--med">Medium</span></td>
+      </tr>
+      <tr>
+        <th>Name-collision risk</th>
+        <td>cruzcruzdevelopment.com (separate entity)</td>
+        <td>Knowledge-Graph cleanup w/ <code>sameAs</code></td>
+        <td class="gap-cell"><span class="badge badge--med">Medium</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="font-size:7.8pt;color:var(--fg-muted);margin:6pt 0 0;font-style:italic;font-family:var(--font-serif);">Items marked "Verify" require manual GBP inspection before audit ships — review count, photo count, posts cadence are not extractable in this research pass.</p>
+
+  <div class="footer">
+    <span>GBP Supplement · 02</span>
+    <span>Cruz Development · cruzdevaz.com</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 3 — Critical gaps                                       -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>GBP Supplement · Critical Gaps</span>
+    <span class="runner__brand">Cruz Development <span class="accent">·</span> cruzdevaz.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">Critical gaps — ranked by impact</span>
+  <h2 class="display" style="margin-bottom:4pt;">Ten fixes that change Local Pack visibility.</h2>
+  <p style="font-size:9pt;color:var(--fg-muted);max-width:6.2in;margin:0 0 6pt;">In priority order. The first three are recoverable inside week one and account for the largest share of the visibility lift.</p>
+
+  <ul class="gaplist">
+    <li>
+      <span></span>
+      <span><span class="what">NAP inconsistency across surfaces</span><span class="why">Houzz says San Tan Valley; the website displays no address; the GBP setup is unverified. Inconsistent NAP actively suppresses local-search ranking. Reconciling it across all surfaces is the single highest-impact GBP fix.</span></span>
+      <span class="badge badge--crit">Critical</span>
+    </li>
+    <li>
+      <span></span>
+      <span><span class="what">619 (San Diego) phone on Arizona-targeted business</span><span class="why">Out-of-state area codes are a quiet trust deduction for in-state buyers and a soft signal Google's local algorithm reads. An AZ tracking number alongside the existing owner cell solves it without changing operations.</span></span>
+      <span class="badge badge--crit">Critical</span>
+    </li>
+    <li>
+      <span></span>
+      <span><span class="what">Wrong primary category likely set</span><span class="why">"Custom Home Builder" is the most specific match and the strongest Local Pack signal. If Cruz is set to a broader category ("General Contractor"), the entire profile underperforms. Verify and reset on day one.</span></span>
+      <span class="badge badge--crit">Critical</span>
+    </li>
+    <li>
+      <span></span>
+      <span><span class="what">No Service-Area Business configuration verified</span><span class="why">For a builder serving Chandler / Mesa / Glendale from a San Tan Valley address, the GBP must be set as SAB with all three cities explicitly inside the radius. A storefront pin in San Tan Valley alone won't rank for Chandler queries.</span></span>
+      <span class="badge badge--high">High</span>
+    </li>
+    <li>
+      <span></span>
+      <span><span class="what">No Houzz "Best Of" badge pursuit</span><span class="why">For luxury custom home builders, Houzz is a second search engine. Mariano has 15 Houzz Awards. A reviews + projects push positions Cruz for Best of Houzz 2027.</span></span>
+      <span class="badge badge--high">High</span>
+    </li>
+    <li>
+      <span></span>
+      <span><span class="what">Name-collision risk with cruzcruzdevelopment.com</span><span class="why">Two distinct "Cruz Development" entities exist. Search engines occasionally conflate them. A schema <code>sameAs</code> array linking the canonical website, GBP, Houzz, and IG cleans up disambiguation.</span></span>
+      <span class="badge badge--high">High</span>
+    </li>
+    <li>
+      <span></span>
+      <span><span class="what">Brad Leavitt podcast appearance not surfaced on GBP</span><span class="why">The strongest existing third-party authority signal Cruz has — Matthew Gallego on a respected industry podcast — should appear in posts, attributes, and the business description. Currently invisible.</span></span>
+      <span class="badge badge--high">High</span>
+    </li>
+    <li>
+      <span></span>
+      <span><span class="what">No NAHB / HBACA / NARI / BBB accreditation</span><span class="why">Forte is HBACA + NAHB + BBB. Each is a directory citation, a trust badge, and an AEO factual signal. Entry-level reputation play Cruz isn't running.</span></span>
+      <span class="badge badge--med">Medium</span>
+    </li>
+    <li>
+      <span></span>
+      <span><span class="what">Posts cadence + photo cadence unknown</span><span class="why">Builder GBPs that post 4+ project photos per month dramatically outperform static profiles. Cadence needs to be verified manually and ramped to weekly.</span></span>
+      <span class="badge badge--med">Medium</span>
+    </li>
+    <li>
+      <span></span>
+      <span><span class="what">Reviews program — quantity, recency, response rate</span><span class="why">All three are independent ranking factors and all three need to be measured. Target &gt;25 Google reviews, 100% owner response, and a steady velocity of new reviews.</span></span>
+      <span class="badge badge--med">Medium</span>
+    </li>
+  </ul>
+
+  <div class="footer">
+    <span>GBP Supplement · 03</span>
+    <span>Cruz Development · cruzdevaz.com</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 4 — 90-day plan + crosswalk + closing                   -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>GBP Supplement · 90-Day Plan</span>
+    <span class="runner__brand">Cruz Development <span class="accent">·</span> cruzdevaz.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">90-day rollout</span>
+  <h2 class="display" style="margin-bottom:8pt;">A steady, weekly cadence —<br/>not a redesign.</h2>
+  <p style="font-size:9.5pt;color:var(--fg-muted);max-width:6.2in;margin:0 0 12pt;">Sequenced so the highest-leverage changes happen in week one, the cadence-building work fills weeks 2–4, and the velocity ramp compounds across days 30–90.</p>
+
+  <div class="phases">
+    <div class="phase">
+      <div class="phase__win">Week 1 · Quick wins</div>
+      <div class="phase__title">Foundation</div>
+      <ul>
+        <li>Verify &amp; reset primary category = Custom Home Builder</li>
+        <li>Add secondary categories (Home Builder, GC, Roofing)</li>
+        <li>Configure as SAB covering Chandler / Mesa / Glendale</li>
+        <li>Reconcile NAP across Houzz / GBP / website</li>
+        <li>Add AZ tracking number alongside the 619</li>
+        <li>Audit reviews, photos, posts cadence; reply to all reviews</li>
+      </ul>
+    </div>
+    <div class="phase">
+      <div class="phase__win">Weeks 2–4 · Activate</div>
+      <div class="phase__title">Build cadence</div>
+      <ul>
+        <li>Upload 30+ project photos (Houzz + new)</li>
+        <li>Begin weekly Google Posts (project tours)</li>
+        <li>Seed 5–10 owner-posted Q&amp;A entries</li>
+        <li>Wire review-request workflow to Google + Houzz</li>
+        <li>Embed Brad Leavitt podcast in posts &amp; description</li>
+      </ul>
+    </div>
+    <div class="phase">
+      <div class="phase__win">Days 30–90 · Compound</div>
+      <div class="phase__title">Ramp velocity</div>
+      <ul>
+        <li>Target &gt;25 Google + &gt;10 Houzz reviews in 90 days</li>
+        <li>Sustained 1–2 posts / week with project photos</li>
+        <li>Pursue HBACA / NAHB membership</li>
+        <li>Begin Best of Houzz 2027 push</li>
+        <li>Track Local Pack for "luxury custom home builder Chandler"</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="crosswalk">
+    <h3>Crosswalk to the proposed Scope of Services</h3>
+    <p>The audit's <strong>Google Business Profile Optimization</strong> line item ($1,250 one-time) covers the Week 1 work above — category reset, SAB configuration, NAP reconciliation, AZ tracking-number setup, attributes, business description, Q&amp;A seeding, name-collision cleanup.</p>
+    <p>The ongoing posts cadence, photo cadence, reviews ramp, and Best of Houzz pursuit are best handled inside the <strong>AEO Authority + Operations Retainer</strong> ($1,000/mo) — which already includes a review-velocity system and weekly performance summary.</p>
+    <p style="margin-top:6pt;">This supplement reinforces the scope already proposed. It doesn't add new line items — it explains why the GBP optimization line is the highest-leverage one in the bundle for a builder in Cruz's position.</p>
+  </div>
+
+  <div class="closing">
+    <span class="eyebrow">Bottom line</span>
+    <h2>The GBP is the surface where buyers verify what the website claims. <em>Right now they can't.</em></h2>
+    <p>Cruz's website says one thing about who they are. The GBP says something different. Houzz says a third. The phone says San Diego. Once those four surfaces tell the same coherent story — credentialed AZ luxury builder, named founder, real address, podcast-cited industry voice — Cruz becomes legible to both AI assistants and buyers. That's the whole 90-day arc.</p>
+  </div>
+
+  <div class="footer">
+    <span>GBP Supplement · 04</span>
+    <span>Aeolistings · aeolistings.ai</span>
+  </div>
+</section>
+
+</body>
+</html>

@@ -1,0 +1,1726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Aeolistings Visibility Audit — Cruz Development</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  /* ===========================================================
+     Tokens — editorial minimalism (matches aeolistings.ai brand)
+     =========================================================== */
+  :root {
+    --bg:         #FAF8F1;
+    --bg-2:       #F4F1E8;
+    --bg-3:       #EFECE2;
+    --fg:         #1A1A1A;
+    --fg-muted:   #6B6B6B;
+    --fg-dim:     #9A9A9A;
+    --hairline:   #E5E1D6;
+    --hairline-2: #D8D3C5;
+    --accent:     #8B2F2F; /* oxblood */
+    --accent-ink: #FAF8F1;
+
+    --font-sans:  "Instrument Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    --font-serif: "Instrument Serif", Georgia, "Times New Roman", serif;
+  }
+
+  /* ===========================================================
+     Page setup — print-first, US Letter
+     =========================================================== */
+  @page {
+    size: Letter;
+    margin: 0;
+  }
+  @page :first {
+    margin: 0;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-size: 10.5pt;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .page {
+    width: 8.5in;
+    height: 11in;
+    padding: 0.7in 0.8in 0.85in 0.8in;
+    position: relative;
+    page-break-after: always;
+    overflow: hidden;
+  }
+  .page:last-child { page-break-after: auto; }
+
+  /* Running header on inner pages */
+  .runner {
+    position: absolute;
+    top: 0.4in;
+    left: 0.8in;
+    right: 0.8in;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 8pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    font-weight: 500;
+    padding-bottom: 8pt;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .runner__brand { color: var(--fg); font-weight: 600; }
+  .runner__brand .accent { color: var(--accent); }
+
+  .footer {
+    position: absolute;
+    bottom: 0.4in;
+    left: 0.8in;
+    right: 0.8in;
+    display: flex;
+    justify-content: space-between;
+    font-size: 8pt;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+    padding-top: 8pt;
+    border-top: 1px solid var(--hairline);
+  }
+
+  /* ===========================================================
+     Type
+     =========================================================== */
+  .display {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.02;
+  }
+  h1, h2, h3 {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    letter-spacing: -0.015em;
+    line-height: 1.05;
+    color: var(--fg);
+    margin: 0 0 0.35em;
+  }
+  h1 { font-size: 30pt; }
+  h2 { font-size: 20pt; margin-top: 0; }
+  h3 { font-size: 13pt; margin-top: 0.8em; }
+
+  p { margin: 0 0 0.7em; }
+  p + p { margin-top: 0; }
+  strong { font-weight: 600; }
+  em { font-family: var(--font-serif); font-style: italic; }
+
+  .eyebrow {
+    font-family: var(--font-sans);
+    font-size: 8.5pt;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    font-weight: 500;
+    margin-bottom: 0.5em;
+    display: block;
+  }
+  .eyebrow--accent { color: var(--accent); }
+
+  hr.hairline {
+    border: 0;
+    border-top: 1px solid var(--hairline);
+    margin: 18pt 0;
+  }
+
+  /* Drop cap for editorial overview */
+  .dropcap::first-letter {
+    font-family: var(--font-serif);
+    font-size: 56pt;
+    line-height: 0.9;
+    float: left;
+    padding: 6pt 8pt 0 0;
+    color: var(--accent);
+    font-weight: 400;
+  }
+
+  /* ===========================================================
+     COVER
+     =========================================================== */
+  .cover {
+    height: 11in;
+    padding: 0.9in 0.9in 0.9in 0.9in;
+    background:
+      radial-gradient(1100px 600px at 110% -10%, rgba(139,47,47,0.08), transparent 60%),
+      var(--bg);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+  }
+  .cover__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .cover__brand img {
+    height: 28pt;
+    width: auto;
+    display: block;
+  }
+  .cover__meta {
+    text-align: right;
+    font-size: 8.5pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    font-weight: 500;
+  }
+  .cover__meta strong { color: var(--fg); }
+
+  .cover__main {
+    margin-top: 1.4in;
+  }
+  .cover__kicker {
+    font-family: var(--font-sans);
+    font-size: 9pt;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 22pt;
+    display: inline-block;
+    border-top: 1px solid var(--accent);
+    padding-top: 8pt;
+  }
+  .cover__title {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: 64pt;
+    line-height: 0.96;
+    letter-spacing: -0.025em;
+    margin: 0 0 18pt 0;
+    max-width: 6.5in;
+  }
+  .cover__title em { font-style: italic; color: var(--accent); }
+  .cover__sub {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 18pt;
+    line-height: 1.3;
+    color: var(--fg-muted);
+    max-width: 5.4in;
+  }
+
+  .cover__bottom {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 18pt;
+    border-top: 1px solid var(--fg);
+    padding-top: 18pt;
+  }
+  .cover__bottom .label {
+    font-size: 8pt;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    font-weight: 500;
+    margin-bottom: 4pt;
+  }
+  .cover__bottom .value {
+    font-family: var(--font-serif);
+    font-size: 14pt;
+    line-height: 1.2;
+    color: var(--fg);
+  }
+
+  /* ===========================================================
+     Generic content blocks
+     =========================================================== */
+  .lead {
+    font-family: var(--font-serif);
+    font-size: 15pt;
+    line-height: 1.3;
+    color: var(--fg);
+    margin: 0 0 16pt;
+    max-width: 6.4in;
+  }
+  .twocol {
+    column-count: 2;
+    column-gap: 28pt;
+    column-rule: 1px solid var(--hairline);
+  }
+  .twocol p { margin-bottom: 0.6em; }
+
+  .keyfacts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10pt 24pt;
+    background: var(--bg-2);
+    border: 1px solid var(--hairline);
+    padding: 18pt 22pt;
+  }
+  .keyfacts dt {
+    font-size: 8pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    font-weight: 500;
+    margin-bottom: 2pt;
+  }
+  .keyfacts dd {
+    font-family: var(--font-serif);
+    font-size: 13pt;
+    line-height: 1.3;
+    color: var(--fg);
+    margin: 0 0 6pt 0;
+  }
+  .keyfacts dd em { color: var(--accent); }
+
+  .pull {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 18pt;
+    line-height: 1.28;
+    color: var(--fg);
+    border-left: 2px solid var(--accent);
+    padding: 4pt 0 4pt 16pt;
+    margin: 16pt 0;
+  }
+
+  /* Competitor cards */
+  .compset {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10pt;
+    margin-top: 8pt;
+  }
+  .comp {
+    border: 1px solid var(--hairline);
+    background: var(--bg);
+    padding: 10pt 11pt 12pt;
+  }
+  .comp h4 {
+    font-family: var(--font-serif);
+    font-size: 13pt;
+    margin: 0 0 1pt;
+    line-height: 1.1;
+  }
+  .comp .url {
+    font-size: 7.8pt;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+    margin-bottom: 5pt;
+    display: block;
+    word-break: break-all;
+  }
+  .comp .why {
+    font-size: 8.5pt;
+    color: var(--fg);
+    margin: 0 0 5pt;
+    line-height: 1.4;
+  }
+  .comp .verdict {
+    font-size: 8pt;
+    color: var(--fg-muted);
+    line-height: 1.4;
+  }
+  .comp .verdict strong { color: var(--fg); }
+
+  /* Findings list */
+  .finding {
+    margin: 10pt 0 12pt;
+    page-break-inside: avoid;
+  }
+  .finding h3 {
+    margin: 0 0 3pt;
+    font-size: 14pt;
+  }
+  .finding .lede {
+    font-family: var(--font-sans);
+    font-size: 9.8pt;
+    color: var(--fg-muted);
+    margin: 0 0 5pt;
+    line-height: 1.4;
+  }
+  .finding .body { font-size: 9.5pt; line-height: 1.45; }
+  .finding .body p { margin-bottom: 5pt; }
+  .finding .body ul {
+    margin: 4pt 0 0;
+    padding-left: 14pt;
+  }
+  .finding .body li { margin-bottom: 2pt; }
+
+  /* Comparison table */
+  table.compare {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8.5pt;
+    margin-top: 10pt;
+  }
+  table.compare th, table.compare td {
+    text-align: left;
+    padding: 7pt 8pt;
+    vertical-align: top;
+    border-bottom: 1px solid var(--hairline);
+  }
+  table.compare thead th {
+    font-family: var(--font-sans);
+    font-size: 7.5pt;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    font-weight: 600;
+    border-bottom: 1px solid var(--fg);
+    padding-bottom: 6pt;
+  }
+  table.compare tbody th {
+    font-family: var(--font-serif);
+    font-size: 10pt;
+    font-weight: 400;
+    color: var(--fg);
+    width: 1.5in;
+  }
+  .score {
+    display: inline-block;
+    font-family: var(--font-serif);
+    font-size: 14pt;
+    color: var(--fg);
+    margin-right: 4pt;
+    line-height: 1;
+  }
+  .score--target { color: var(--accent); }
+  .scorebar {
+    display: inline-block;
+    height: 4pt;
+    background: var(--bg-3);
+    width: 60pt;
+    border-radius: 2pt;
+    overflow: hidden;
+    vertical-align: middle;
+    margin-left: 4pt;
+  }
+  .scorebar i {
+    display: block;
+    height: 100%;
+    background: var(--fg);
+    border-radius: 2pt;
+  }
+  .compare .target .scorebar i { background: var(--accent); }
+  .compare .target { background: rgba(139,47,47,0.04); }
+  .compare td .note {
+    display: block;
+    color: var(--fg-muted);
+    font-size: 7.8pt;
+    margin-top: 1pt;
+  }
+
+  /* Gaps grid */
+  .gaps {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10pt 14pt;
+  }
+  .gap {
+    border: 1px solid var(--hairline);
+    padding: 10pt 12pt;
+    background: var(--bg);
+    page-break-inside: avoid;
+  }
+  .gap__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8pt;
+    margin-bottom: 4pt;
+  }
+  .gap__title {
+    font-family: var(--font-serif);
+    font-size: 11.5pt;
+    color: var(--fg);
+    line-height: 1.2;
+  }
+  .badge {
+    display: inline-block;
+    font-size: 7pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 2pt 6pt;
+    border-radius: 2pt;
+    white-space: nowrap;
+  }
+  .badge--high { background: var(--accent); color: var(--accent-ink); }
+  .badge--medium { background: var(--fg); color: var(--bg); }
+  .badge--found { background: transparent; color: var(--fg-muted); border: 1px solid var(--hairline-2); }
+  .gap__why {
+    font-size: 9pt;
+    color: var(--fg-muted);
+    margin: 0;
+  }
+
+  /* Roadmap / checklist */
+  .phase {
+    margin: 8pt 0 10pt;
+    page-break-inside: avoid;
+  }
+  .phase__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--fg);
+    padding-bottom: 4pt;
+    margin-bottom: 4pt;
+  }
+  .phase__title {
+    font-family: var(--font-serif);
+    font-size: 15pt;
+    line-height: 1;
+  }
+  .phase__win {
+    font-size: 7.5pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .phase ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .phase li {
+    display: grid;
+    grid-template-columns: 16pt 1fr 56pt;
+    gap: 2pt 8pt;
+    padding: 3pt 0;
+    border-bottom: 1px dotted var(--hairline-2);
+    font-size: 8.5pt;
+    line-height: 1.35;
+  }
+  .phase li:last-child { border-bottom: 0; }
+  .phase .num {
+    font-family: var(--font-serif);
+    color: var(--accent);
+    font-size: 10pt;
+    line-height: 1.25;
+  }
+  .phase .what { color: var(--fg); }
+  .phase .what strong { font-weight: 600; }
+  .phase .what em {
+    color: var(--fg-muted);
+    font-style: italic;
+    font-family: var(--font-serif);
+    margin-left: 4pt;
+    font-size: 8.2pt;
+  }
+  .phase .tag {
+    display: inline-block;
+    font-size: 7pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 2pt 5pt;
+    border: 1px solid var(--hairline-2);
+    color: var(--fg-muted);
+    border-radius: 2pt;
+    text-align: center;
+    align-self: start;
+    white-space: nowrap;
+  }
+  .phase .tag--seo { color: var(--fg); border-color: var(--fg); }
+  .phase .tag--aeo { color: var(--accent); border-color: var(--accent); }
+  .phase .tag--both {
+    color: var(--bg);
+    background: var(--fg);
+    border-color: var(--fg);
+  }
+
+  /* Closing notes */
+  .closing {
+    background: var(--fg);
+    color: var(--bg);
+    padding: 22pt 28pt 24pt;
+    margin-top: 10pt;
+  }
+  .closing .eyebrow { color: rgba(250,248,241,0.6); }
+  .closing h2 {
+    color: var(--bg);
+    font-size: 22pt;
+    margin: 0 0 10pt;
+    line-height: 1.1;
+  }
+  .closing p { color: rgba(250,248,241,0.92); font-size: 9.5pt; line-height: 1.5; }
+  .closing em { color: rgba(250,248,241,1); }
+  .closing ol { padding-left: 18pt; margin: 0; }
+  .closing ol li { margin-bottom: 4pt; }
+  .closing .signoff {
+    margin-top: 14pt;
+    padding-top: 10pt;
+    border-top: 1px solid rgba(250,248,241,0.25);
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 11pt;
+    color: rgba(250,248,241,0.85);
+    line-height: 1.4;
+  }
+
+  /* Chart frames */
+  .chart {
+    background: var(--bg);
+    border: 1px solid var(--hairline);
+    padding: 12pt 14pt 10pt;
+    margin: 6pt 0 10pt;
+  }
+  .chart__title {
+    font-family: var(--font-serif);
+    font-size: 14pt;
+    margin: 0 0 1pt;
+    line-height: 1.1;
+  }
+  .chart__sub {
+    font-size: 8.5pt;
+    color: var(--fg-muted);
+    margin: 0 0 8pt;
+  }
+  .chart__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12pt;
+    font-size: 8pt;
+    color: var(--fg-muted);
+    margin-top: 6pt;
+  }
+  .chart__legend .swatch {
+    display: inline-block;
+    width: 10pt;
+    height: 10pt;
+    border-radius: 2pt;
+    margin-right: 4pt;
+    vertical-align: -1pt;
+  }
+
+  /* Scope of services */
+  .scope-intro {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 11pt;
+    line-height: 1.32;
+    color: var(--fg-muted);
+    margin: 0 0 10pt;
+    padding: 0 0 0 12pt;
+    border-left: 1px solid var(--accent);
+    max-width: 6in;
+  }
+
+  .svc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7pt;
+  }
+  .svc {
+    border: 1px solid var(--hairline);
+    background: var(--bg);
+    padding: 8pt 11pt 9pt;
+    page-break-inside: avoid;
+    display: flex;
+    flex-direction: column;
+  }
+  .svc__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8pt;
+    border-bottom: 1px solid var(--hairline);
+    padding-bottom: 4pt;
+    margin-bottom: 4pt;
+  }
+  .svc__name {
+    font-family: var(--font-serif);
+    font-size: 11.5pt;
+    line-height: 1.12;
+    color: var(--fg);
+    flex: 1;
+  }
+  .svc__price {
+    font-family: var(--font-serif);
+    font-size: 13pt;
+    color: var(--accent);
+    white-space: nowrap;
+    line-height: 1;
+  }
+  .svc__price small {
+    font-size: 8pt;
+    color: var(--fg-muted);
+    font-style: italic;
+    font-family: var(--font-serif);
+    margin-left: 2pt;
+  }
+  .svc__desc {
+    font-size: 8pt;
+    line-height: 1.4;
+    color: var(--fg);
+    margin: 0 0 4pt;
+    flex: 1;
+  }
+  .svc__addresses {
+    font-size: 7pt;
+    color: var(--fg-muted);
+    line-height: 1.35;
+    border-top: 1px dotted var(--hairline-2);
+    padding-top: 4pt;
+    margin: 0;
+  }
+  .svc__addresses strong {
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-size: 6.5pt;
+    display: inline;
+    margin-right: 3pt;
+  }
+
+  .svc--full { grid-column: 1 / -1; }
+
+  /* Subtotal block */
+  .subtotal {
+    margin-top: 8pt;
+    padding: 8pt 12pt 9pt;
+    background: var(--bg-2);
+    border: 1px solid var(--hairline);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2pt 14pt;
+    align-items: baseline;
+  }
+  .subtotal .lbl {
+    font-size: 8.5pt;
+    color: var(--fg-muted);
+  }
+  .subtotal .val {
+    font-family: var(--font-serif);
+    font-size: 12pt;
+    color: var(--fg);
+    text-align: right;
+    line-height: 1;
+  }
+  .subtotal .lbl--accent { color: var(--accent); font-weight: 600; }
+  .subtotal .val--accent { color: var(--accent); }
+  .subtotal .lbl--total {
+    font-size: 10.5pt;
+    color: var(--fg);
+    font-weight: 600;
+    border-top: 1px solid var(--fg);
+    padding-top: 5pt;
+    margin-top: 2pt;
+  }
+  .subtotal .val--total {
+    font-size: 16pt;
+    color: var(--fg);
+    border-top: 1px solid var(--fg);
+    padding-top: 5pt;
+    margin-top: 2pt;
+  }
+
+  /* Investment table */
+  .invest {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9pt;
+    margin-top: 6pt;
+  }
+  .invest th, .invest td {
+    text-align: left;
+    padding: 6pt 10pt;
+    vertical-align: top;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .invest thead th {
+    font-family: var(--font-sans);
+    font-size: 7.5pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    font-weight: 600;
+    border-bottom: 1px solid var(--fg);
+    padding-bottom: 6pt;
+  }
+  .invest tbody th {
+    font-family: var(--font-serif);
+    font-size: 11pt;
+    font-weight: 400;
+    color: var(--fg);
+    width: 2.4in;
+  }
+  .invest .price {
+    font-family: var(--font-serif);
+    font-size: 12pt;
+    color: var(--fg);
+    white-space: nowrap;
+    text-align: right;
+    width: 1in;
+  }
+  .invest .price strike {
+    color: var(--fg-dim);
+    font-size: 9pt;
+    text-decoration: line-through;
+    margin-right: 4pt;
+  }
+  .invest .price--accent { color: var(--accent); }
+  .invest .note { color: var(--fg-muted); font-size: 8.5pt; }
+  .invest tr.discount td {
+    color: var(--accent);
+    font-style: italic;
+    font-family: var(--font-serif);
+    font-size: 10.5pt;
+  }
+  .invest tr.total td {
+    font-family: var(--font-serif);
+    font-size: 14pt;
+    font-weight: 400;
+    color: var(--fg);
+    border-bottom: 0;
+    border-top: 1px solid var(--fg);
+    padding-top: 10pt;
+  }
+  .invest tr.total .price {
+    font-size: 18pt;
+    color: var(--fg);
+  }
+
+  /* Optional add-ons block */
+  .addons {
+    margin-top: 8pt;
+    padding: 8pt 12pt 9pt;
+    border: 1px dashed var(--hairline-2);
+    background: var(--bg);
+  }
+  .addons h4 {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: 11pt;
+    margin: 0 0 3pt;
+    color: var(--fg);
+  }
+  .addons p {
+    font-size: 8.2pt;
+    color: var(--fg-muted);
+    margin: 0 0 4pt;
+    line-height: 1.4;
+  }
+  .addons ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2pt 14pt;
+    font-size: 8.5pt;
+  }
+  .addons li {
+    display: flex;
+    justify-content: space-between;
+    padding: 2pt 0;
+    border-bottom: 1px dotted var(--hairline-2);
+  }
+  .addons li span:first-child { color: var(--fg); }
+  .addons li span:last-child {
+    font-family: var(--font-serif);
+    color: var(--accent);
+  }
+
+  /* Terms ribbon */
+  .terms {
+    margin-top: 8pt;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10pt;
+  }
+  .terms .term {
+    border-top: 1px solid var(--hairline-2);
+    padding-top: 4pt;
+  }
+  .terms .term .lbl {
+    font-size: 6.5pt;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 2pt;
+  }
+  .terms .term .val {
+    font-family: var(--font-serif);
+    font-size: 9pt;
+    line-height: 1.25;
+    color: var(--fg);
+  }
+
+  /* TOC */
+  .toc {
+    list-style: none;
+    margin: 8pt 0 0;
+    padding: 0;
+    font-size: 11pt;
+  }
+  .toc li {
+    display: flex;
+    align-items: baseline;
+    border-bottom: 1px dotted var(--hairline);
+    padding: 8pt 0;
+  }
+  .toc .num {
+    font-family: var(--font-serif);
+    color: var(--accent);
+    width: 38pt;
+    font-size: 14pt;
+  }
+  .toc .ttl {
+    flex: 1;
+    font-family: var(--font-serif);
+    font-size: 14pt;
+  }
+  .toc .pg {
+    font-family: var(--font-sans);
+    font-size: 9pt;
+    color: var(--fg-muted);
+    letter-spacing: 0.1em;
+  }
+</style>
+</head>
+<body>
+
+<!-- =========================================================== -->
+<!-- COVER                                                        -->
+<!-- =========================================================== -->
+<section class="page cover">
+  <div class="cover__top">
+    <div class="cover__brand">
+      <img src="aeolistings-wordmark-paper.png" alt="Aeolistings" />
+    </div>
+    <div class="cover__meta">
+      Visibility Audit<br/>
+      <strong>No. 001</strong> · April 2026
+    </div>
+  </div>
+
+  <div class="cover__main">
+    <span class="cover__kicker">AEO &amp; Local Search Audit</span>
+    <h1 class="cover__title">Cruz<br/>Development, <em>audited.</em></h1>
+    <p class="cover__sub">A read on how clearly an Arizona luxury custom home builder shows up in Google, ChatGPT, Perplexity, and the answer engines reshaping how high-intent buyers find their builder.</p>
+  </div>
+
+  <div class="cover__bottom">
+    <div>
+      <div class="label">Prepared for</div>
+      <div class="value">Cruz Development, LLC<br/>Chandler · Mesa · Glendale, Arizona</div>
+    </div>
+    <div>
+      <div class="label">Prepared by</div>
+      <div class="value">Aeolistings<br/><em>aeolistings.ai</em></div>
+    </div>
+    <div>
+      <div class="label">Audit window</div>
+      <div class="value">April 2026<br/>v1.0</div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 2 — TOC + Executive overview opening                    -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>Aeolistings · Visibility Audit</span>
+    <span class="runner__brand">Cruz Development <span class="accent">·</span> cruzdevaz.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">Inside this report</span>
+  <h2 class="display">Contents</h2>
+
+  <ol class="toc">
+    <li><span class="num">01</span><span class="ttl">Executive overview</span><span class="pg">PAGE 03</span></li>
+    <li><span class="num">02</span><span class="ttl">Business &amp; local search snapshot</span><span class="pg">PAGE 04</span></li>
+    <li><span class="num">03</span><span class="ttl">Competitor set &amp; comparison</span><span class="pg">PAGE 05</span></li>
+    <li><span class="num">04</span><span class="ttl">Detailed findings</span><span class="pg">PAGE 07</span></li>
+    <li><span class="num">05</span><span class="ttl">Strengths vs. gaps at a glance</span><span class="pg">PAGE 09</span></li>
+    <li><span class="num">06</span><span class="ttl">Key gaps holding back visibility</span><span class="pg">PAGE 10</span></li>
+    <li><span class="num">07</span><span class="ttl">90-day priority roadmap</span><span class="pg">PAGE 11</span></li>
+    <li><span class="num">08</span><span class="ttl">Strategic notes</span><span class="pg">PAGE 13</span></li>
+    <li><span class="num">09</span><span class="ttl">Scope of services &amp; pricing</span><span class="pg">PAGE 14</span></li>
+    <li><span class="num">10</span><span class="ttl">Investment summary &amp; next step</span><span class="pg">PAGE 15</span></li>
+  </ol>
+
+  <hr class="hairline" />
+
+  <span class="eyebrow">A note on method</span>
+  <p style="font-size:10pt;color:var(--fg-muted);max-width:5.6in;">
+    This audit is grounded in what's directly observable on each site at time of review. We do not invent rankings, traffic numbers, or backlink counts. Where something is inferred rather than certain, we flag it. Competitors were selected for direct overlap with Eco Roof's primary East Valley intent — they are who an actual customer would weigh against this brand.
+  </p>
+
+  <div class="footer">
+    <span>Aeolistings · aeolistings.ai</span>
+    <span>02</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 3 — Executive Overview                                   -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>01 · Executive Overview</span>
+    <span class="runner__brand">Cruz Development <span class="accent">·</span> cruzdevaz.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">01 — Executive Overview</span>
+  <h2 class="display">A serious builder<br/>shipping a placeholder site.</h2>
+
+  <p class="lead">
+    Cruz Development has a real operational differentiator and a credible founder. The live site doesn't currently reflect either — it ships with placeholder testimonials, mismatched city-page titles, and a trust stack that actively suppresses the brand for $1M+ buyers.
+  </p>
+
+  <div class="twocol">
+    <p class="dropcap">Cruz Development is a 2018-founded luxury custom-home + remodel builder led by Matthew Gallego, with named team members and a defensible <em>"all in house"</em> operational position — no subs, no middleman. The Brad Leavitt podcast appearance signals genuine authority in the Arizona luxury-build community.</p>
+
+    <p>That said, the live site is shipping with template defaults that no luxury buyer should see. Homepage testimonials read literally <em>"Enter quote here. — First LastTitle of Comany."</em> Portfolio cards say <em>"Project Title"</em> and <em>"Excerpt here."</em> The Mesa city page's <code>&lt;title&gt;</code> tag still reads <em>"Chandler, Arizona | Cruz Development."</em> The Glendale page's H3 also references Chandler. Each of these is an active credibility leak — and Google reads template artifacts as low-quality signals.</p>
+
+    <p>The trust stack is the bigger pattern. <strong>No ROC license number, no address, no BBB, no NAHB / HBACA, no manufacturer certifications</strong> on the roofing page, no real testimonials, only 2 published case studies. The phone number is <strong>619 (San Diego)</strong>, not Arizona — a quiet trust deduction for in-state buyers. Competitors at the same age cite hundreds of completed projects and display 2+ ROC numbers.</p>
+
+    <p><strong>Local SEO structure: weak.</strong> Three city pages exist but two have title-tag bugs from a duplicate scaffold; URL slug patterns are inconsistent (<code>/locations-chandler-arizona/</code> vs <code>/mesa/</code>); the sitemap is accessible but robots.txt doesn't reference it.</p>
+
+    <p><strong>AEO readiness: weak.</strong> The site has zero cost content (the highest-leverage AEO query in this category — Mariano &amp; Co. owns it). The southwest brand identity is claimed in conversation but <em>not present in any extracted homepage heading</em>. Forte Homes already lists "Southwest" among 12 styles they build. No LocalBusiness or FAQPage schema confirmed.</p>
+
+    <p>Five biggest opportunities, in priority order: (1) replace placeholder testimonials and portfolio cards immediately; (2) fix the city-page title-tag bugs and template artifacts; (3) publish ROC#, address, and bonded/insured language sitewide; (4) build the cost pillar pages competitors don't have; (5) actually claim the southwestern style territory in copy before Forte's existing mention crowds it out.</p>
+  </div>
+
+  <div class="pull">"The site is shipping with placeholder copy a $1M buyer will see in their first ten seconds. That's not an SEO problem — it's a brand-survival problem."</div>
+
+  <div class="footer">
+    <span>01 · Executive Overview</span>
+    <span>03</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 4 — Snapshot                                            -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>02 · Business &amp; Local Search Snapshot</span>
+    <span class="runner__brand">Cruz Development <span class="accent">·</span> cruzdevaz.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">02 — Snapshot</span>
+  <h2 class="display">The basics, as the site<br/>communicates them today.</h2>
+
+  <dl class="keyfacts">
+    <div>
+      <dt>Business type &amp; services</dt>
+      <dd>Luxury custom homes + spec homes + home improvement / remodel + roofing. Extended: high-end painting, outdoor living, landscaping, custom millwork &amp; cabinetry. <em>Operational position: "all in house, no subs."</em></dd>
+    </div>
+    <div>
+      <dt>Service area</dt>
+      <dd>Arizona (Chandler, Mesa, Glendale primary) + Utah. Houzz lists HQ at 3278 W Yellow Peak Dr, San Tan Valley, AZ — <em>not displayed on the website itself</em>.</dd>
+    </div>
+    <div>
+      <dt>Ideal customer (inferred)</dt>
+      <dd>Arizona high-net-worth buyers commissioning $1M–$3M+ custom homes or substantial remodels — plus architects and developers seeking a vertically-integrated build partner.</dd>
+    </div>
+    <div>
+      <dt>Tenure &amp; trust</dt>
+      <dd>Founded 2018 by Matthew Gallego · 6+ named team members · Brad Leavitt podcast appearance. <em>No ROC#, BBB, NAHB, or manufacturer certifications surfaced on site.</em></dd>
+    </div>
+  </dl>
+
+  <h3>Key search intents the brand should win</h3>
+  <ul style="font-size:10pt;line-height:1.6;column-count:2;column-gap:24pt;">
+    <li>"luxury custom home builder Chandler AZ"</li>
+    <li>"custom home builder Mesa AZ"</li>
+    <li>"custom home builder Glendale AZ"</li>
+    <li>"luxury home builder near me Arizona"</li>
+    <li>"southwestern custom home builder"</li>
+    <li>"how much does a custom home cost in Arizona"</li>
+    <li>"custom home cost per square foot Chandler"</li>
+    <li>"luxury home remodel Phoenix"</li>
+    <li>"custom vs spec home Arizona"</li>
+    <li>"best custom home builders Arizona"</li>
+  </ul>
+
+  <h3>Where the site aligns — and where it doesn't</h3>
+  <p style="font-size:10pt;">Aligns on broad service categorization and on the operational <em>"all in house"</em> claim. <strong>Notably vague</strong> on the southwestern style identity (the words "southwestern," "Pueblo," "Spanish Colonial," "Santa Fe," "desert architecture" do not appear in any extracted homepage heading). <strong>Notably broken</strong> on city-specific intent: the Mesa page's title still reads "Chandler"; the Glendale page's H3 references Chandler; both are templated artifacts from a duplicate scaffold. <strong>Notably absent</strong> on cost / process / comparison content — the highest-leverage AEO category for this audience.</p>
+
+  <div class="footer">
+    <span>02 · Snapshot</span>
+    <span>04</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 5 — Competitor set                                      -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>03 · Competitor Set</span>
+    <span class="runner__brand">Cruz Development <span class="accent">·</span> cruzdevaz.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">03 — Competitor Set</span>
+  <h2 class="display">Three real competitors<br/>in Arizona luxury build.</h2>
+  <p style="font-size:11pt;color:var(--fg-muted);max-width:5.6in;">
+    Selected because an actual Arizona high-net-worth buyer researching custom builders in Chandler, Mesa, or Glendale would realistically encounter and compare these three. Starwood Custom and 4 Gen Homes were reviewed but excluded — Starwood plays at $2M–$5M+ and 4 Gen targets a different geographic mix.
+  </p>
+
+  <div class="compset">
+    <div class="comp">
+      <h4>Mariano &amp; Co.</h4>
+      <span class="url">marianoco.com</span>
+      <p class="why"><strong>Why selected:</strong> Strongest direct overlap — Mesa-based, custom + remodel mix, same East Valley footprint, similar founding window (2009). Best apples-to-apples reference.</p>
+      <p class="verdict"><strong>Better at:</strong> 15 Houzz Awards, 4.9★ Houzz rating, two ROC numbers displayed, 8+ named team, "Your Contractor for Life®" mark, in-house design center, 11 cities served, "Cost of luxury home in Mesa" blog post.<br/><strong>About the same:</strong> named-team-with-bios, family-led structure.<br/><strong>Less effective:</strong> no homepage FAQ, no dedicated style pages.</p>
+    </div>
+    <div class="comp">
+      <h4>Forte Homes</h4>
+      <span class="url">fortehomes.com</span>
+      <p class="why"><strong>Why selected:</strong> The "incumbent" in Chandler luxury — same primary city as Cruz's Chandler page, 1993-founded, 30+ years. The brand Cruz must displace.</p>
+      <p class="verdict"><strong>Better at:</strong> ROC #110581, NAHB / BBB / HBACA memberships, Phoenix Business Journal top-10, Best of Scottsdale 2018, press logos on homepage, 12 explicit style ranges (<em>including "Southwest"</em>), "hundreds of bespoke homes."<br/><strong>About the same:</strong> service breadth.<br/><strong>Less effective:</strong> no FAQ, no real testimonials.</p>
+    </div>
+    <div class="comp">
+      <h4>Rodeo Construction</h4>
+      <span class="url">rodeoconstruction.com</span>
+      <p class="why"><strong>Why selected:</strong> Closest service-mix match — full-service luxury (custom + remodel + roofing) plus dedicated city pages and a sustainability angle Cruz currently lacks.</p>
+      <p class="verdict"><strong>Better at:</strong> 10 homepage FAQs (the strongest in the set), ROC ×2 (AZ + NM), dedicated Scottsdale / Chandler / Glendale pages, sustainable-homes hub page, 18+ years, transparent-pricing claim.<br/><strong>About the same:</strong> custom + remodel positioning.<br/><strong>Less effective:</strong> 855 toll-free phone (not local), broad service spread.</p>
+    </div>
+  </div>
+
+  <hr class="hairline" />
+
+  <h3 style="margin-top:0;">How the four stack up — at a glance</h3>
+  <p style="font-size:10pt;color:var(--fg-muted);">Scored 1–5 on seven dimensions that drive both traditional search rankings and AI-search citations. Detailed scoring on the next page.</p>
+
+  <!-- ============ RADAR CHART ============ -->
+  <div class="chart" style="margin-top:6pt;padding:14pt 14pt 8pt;">
+    <p class="chart__title" style="font-size:13pt;margin:0 0 2pt;">Visibility profile — radar comparison</p>
+    <p class="chart__sub" style="margin:0 0 6pt;">Higher = stronger on that dimension. Cruz Development in oxblood; competitors in greys.</p>
+
+    RADAR_PLACEHOLDER
+
+    <div class="chart__legend">
+      <span><span class="swatch" style="background:var(--accent);"></span>Cruz Development</span>
+      <span><span class="swatch" style="background:#1A1A1A;"></span>Mariano &amp; Co.</span>
+      <span><span class="swatch" style="background:#6B6B6B;"></span>Forte Homes</span>
+      <span><span class="swatch" style="background:#9A9A9A;"></span>Rodeo Construction</span>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>03 · Competitor Set</span>
+    <span>05</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 6 — Comparison table                                    -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>03 · Competitor Set</span>
+    <span class="runner__brand">Cruz Development <span class="accent">·</span> cruzdevaz.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">03 — Competitor Set, continued</span>
+  <h2 class="display">The detailed scorecard.</h2>
+  <p style="font-size:10pt;color:var(--fg-muted);max-width:5.6in;">
+    Each cell shows a 1–5 score and a short rationale. The Cruz column is highlighted; oxblood bars indicate the target site's score.
+  </p>
+
+  <table class="compare">
+    <thead>
+      <tr>
+        <th>Dimension</th>
+        <th class="target">Cruz Development</th>
+        <th>Mariano &amp; Co.</th>
+        <th>Forte Homes</th>
+        <th>Rodeo Construction</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th>Local positioning clarity</th>
+        <td class="target"><span class="score score--target">2</span><span class="scorebar"><i style="width:40%"></i></span><span class="note">619 phone, no address</span></td>
+        <td><span class="score">4</span><span class="scorebar"><i style="width:80%"></i></span><span class="note">Mesa / Phoenix in title + NAP</span></td>
+        <td><span class="score">4</span><span class="scorebar"><i style="width:80%"></i></span><span class="note">Chandler-anchored, 30 yrs</span></td>
+        <td><span class="score">3</span><span class="scorebar"><i style="width:60%"></i></span><span class="note">Scottsdale clear, 855 phone</span></td>
+      </tr>
+      <tr>
+        <th>Service clarity / depth</th>
+        <td class="target"><span class="score score--target">3</span><span class="scorebar"><i style="width:60%"></i></span><span class="note">4 service pages, generic FAQs</span></td>
+        <td><span class="score">4</span><span class="scorebar"><i style="width:80%"></i></span><span class="note">Clear splits + design center</span></td>
+        <td><span class="score">4</span><span class="scorebar"><i style="width:80%"></i></span><span class="note">12 styles, broad amenities</span></td>
+        <td><span class="score">4</span><span class="scorebar"><i style="width:80%"></i></span><span class="note">Wide service spread</span></td>
+      </tr>
+      <tr>
+        <th>Service area clarity</th>
+        <td class="target"><span class="score score--target">1</span><span class="scorebar"><i style="width:20%"></i></span><span class="note">3 city pages, template bugs</span></td>
+        <td><span class="score">4</span><span class="scorebar"><i style="width:80%"></i></span><span class="note">11 cities, dedicated pages</span></td>
+        <td><span class="score">3</span><span class="scorebar"><i style="width:60%"></i></span><span class="note">Cities listed, no unique pages</span></td>
+        <td><span class="score">4</span><span class="scorebar"><i style="width:80%"></i></span><span class="note">5+ city pages incl. Chandler</span></td>
+      </tr>
+      <tr>
+        <th>FAQ &amp; direct-answer strength</th>
+        <td class="target"><span class="score score--target">2</span><span class="scorebar"><i style="width:40%"></i></span><span class="note">Generic, not AZ-specific</span></td>
+        <td><span class="score">3</span><span class="scorebar"><i style="width:60%"></i></span><span class="note">Resource library, light FAQ</span></td>
+        <td><span class="score">2</span><span class="scorebar"><i style="width:40%"></i></span><span class="note">No homepage FAQ</span></td>
+        <td><span class="score">4</span><span class="scorebar"><i style="width:80%"></i></span><span class="note">10 homepage FAQs</span></td>
+      </tr>
+      <tr>
+        <th>Trust &amp; proof signals</th>
+        <td class="target"><span class="score score--target">1</span><span class="scorebar"><i style="width:20%"></i></span><span class="note">Placeholder testimonials live</span></td>
+        <td><span class="score">5</span><span class="scorebar"><i style="width:100%"></i></span><span class="note">15 Houzz Awards, ROC ×2</span></td>
+        <td><span class="score">5</span><span class="scorebar"><i style="width:100%"></i></span><span class="note">NAHB+BBB+HBACA+press</span></td>
+        <td><span class="score">4</span><span class="scorebar"><i style="width:80%"></i></span><span class="note">ROC ×2, transparent pricing</span></td>
+      </tr>
+      <tr>
+        <th>AEO readiness</th>
+        <td class="target"><span class="score score--target">1</span><span class="scorebar"><i style="width:20%"></i></span><span class="note">No cost content, no schema</span></td>
+        <td><span class="score">4</span><span class="scorebar"><i style="width:80%"></i></span><span class="note">Cost article, named team</span></td>
+        <td><span class="score">3</span><span class="scorebar"><i style="width:60%"></i></span><span class="note">Style coverage, light FAQs</span></td>
+        <td><span class="score">4</span><span class="scorebar"><i style="width:80%"></i></span><span class="note">Long-form guides, sustainability</span></td>
+      </tr>
+      <tr>
+        <th>Overall findability</th>
+        <td class="target"><span class="score score--target">2</span><span class="scorebar"><i style="width:40%"></i></span><span class="note">Not on any "best of" list</span></td>
+        <td><span class="score">4</span><span class="scorebar"><i style="width:80%"></i></span><span class="note">Well cited across directories</span></td>
+        <td><span class="score">4</span><span class="scorebar"><i style="width:80%"></i></span><span class="note">PBJ top-10, Best of Scottsdale</span></td>
+        <td><span class="score">4</span><span class="scorebar"><i style="width:80%"></i></span><span class="note">Broad citation footprint</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="pull" style="margin-top:18pt;">"Cruz is bottom-of-pack on every dimension that matters — except where placeholder content actively makes things worse."</p>
+
+  <div class="footer">
+    <span>03 · Competitor Set</span>
+    <span>06</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 7 — Detailed findings part 1                            -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>04 · Detailed Findings</span>
+    <span class="runner__brand">Cruz Development <span class="accent">·</span> cruzdevaz.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">04 — Detailed Findings</span>
+  <h2 class="display">What we saw,<br/>section by section.</h2>
+
+  <div class="finding">
+    <h3>4.1 &nbsp;Local SEO structure</h3>
+    <p class="lede">Three city pages exist — but two have title-tag bugs from a duplicate scaffold, and the URL patterns are inconsistent. Each is an active local-search ranking factor.</p>
+    <div class="body">
+      <p>The homepage H1 reads <em>"Elevated Custom Homes &amp; Luxury Remodeling"</em> with a sub-hero <em>"We service Arizona and Utah."</em> Useful framing, but no city anchor in the title or H1 — competitors lead with city + service.</p>
+      <p>The bigger structural issue is the <strong>city pages</strong>. The Mesa page's <code>&lt;title&gt;</code> tag still reads <em>"Chandler, Arizona | Cruz Development."</em> The Mesa H3 reads "Top Features and Attractions in Chandler." The Glendale page's H3 also says "Chandler." The Glendale page lists the city as founded in both 1892 and 1910 in different spots. H1s are case-inconsistent (<em>"cUSTOM hOMES IN Glendale"</em>, <em>"CUSTOM HOMES IN Mesa, ARIZONA"</em>). Each is a templated artifact from a duplicate scaffold that was never cleaned up.</p>
+      <p>URL slugs are inconsistent: <code>/locations-chandler-arizona/</code> vs <code>/mesa/</code> vs <code>/glendale/</code>. A single canonical pattern (preferably the short one) plus 301 redirects would tighten internal authority. The <code>robots.txt</code> is permissive but doesn't reference the sitemap — minor crawler hygiene.</p>
+    </div>
+  </div>
+
+  <div class="finding">
+    <h3>4.2 &nbsp;On-page optimization</h3>
+    <div class="body">
+      <p>Title tags do not combine <em>service + city</em>. Headings are mostly clean. URL slugs are inconsistent (see 4.1). Internal linking is sparse — body copy rarely links contextually between city pages and service pages, leaving topical authority undistributed. Schema markup (LocalBusiness, FAQPage, Organization) was not surfaced in fetched output. The roofing service page contains a misspelling ("<em>Ashpalt</em>") in an H3 — small, but reads as carelessness on a page asking $1M+ buyers to trust the team's attention to detail.</p>
+    </div>
+  </div>
+
+  <div class="finding">
+    <h3>4.3 &nbsp;Service page quality</h3>
+    <div class="body">
+      <p>Four service pages exist — Custom Home, Spec Home, Home Improvement, Roofing — each ~850–1,100 words with 4–6 FAQ entries. That's a reasonable structural baseline. The content is mostly generic luxury-builder copy ("dream homes," "exceptional craftsmanship") without Arizona specificity, named-project examples, or cost ranges. None of the pages embed real testimonials or schema-marked FAQs.</p>
+      <p><strong>Six concrete improvements:</strong></p>
+      <ul>
+        <li>Rewrite each service-page FAQ with AZ-specific facts (timeline ranges, cost ranges, lot considerations, HOA quirks, monsoon-season scheduling) — 60–120 word answers for AI citation.</li>
+        <li>Embed real client testimonials and 1–2 case studies per service page.</li>
+        <li>Add a 5-step process section per page (estimate → design → permit → build → punch list → warranty).</li>
+        <li>Add manufacturer certifications to the roofing page (GAF Master Elite, Owens Corning Preferred, CertainTeed SELECT) — table stakes Cruz currently lacks.</li>
+        <li>Fix the "Ashpalt" misspelling and any other proof-reading artifacts.</li>
+        <li>Add a "what's included / what's not" specification block — luxury buyers expect transparency about allowances and exclusions.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>04 · Detailed Findings</span>
+    <span>07</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 8 — Detailed findings part 2                            -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>04 · Detailed Findings</span>
+    <span class="runner__brand">Cruz Development <span class="accent">·</span> cruzdevaz.com</span>
+  </div>
+
+  <span class="eyebrow">Detailed Findings, continued</span>
+
+  <div class="finding">
+    <h3>4.4 &nbsp;Service area &amp; local relevance</h3>
+    <div class="body">
+      <p>Three city pages exist (Chandler, Mesa, Glendale) but each is templated city trivia (population, founded, parks, dining) rather than build-specific content. None reference neighborhoods, ZIP codes, completed projects, or HOA quirks that an actual high-net-worth buyer in Anthem, Las Sendas, Estrella Mountain Ranch, or Whisper Rock would care about. The Mesa and Glendale pages still carry copy referencing Chandler — duplicate-scaffold artifacts.</p>
+      <p>Off the website: the Houzz profile lists Cruz at <strong>3278 W Yellow Peak Dr, San Tan Valley, AZ 85144</strong>. That address is not displayed on the website. NAP inconsistency between Houzz and the (absent) website address is a real ranking suppressor for local search.</p>
+    </div>
+  </div>
+
+  <div class="finding">
+    <h3>4.5 &nbsp;Trust &amp; conversion signals</h3>
+    <div class="body">
+      <p><strong>What's working:</strong> Named team of 6+ with bios, founder Matthew Gallego identified, blog footprint of 9 AZ-relevant posts, Houzz profile present, Brad Leavitt podcast appearance.</p>
+      <p><strong>Gaps relative to competitors:</strong></p>
+      <ul>
+        <li><strong>Placeholder testimonials still live.</strong> Verbatim: <em>"Enter quote here. — First LastTitle of Comany."</em> Credibility-ending in the first ten seconds for a $1M+ buyer.</li>
+        <li><strong>Placeholder portfolio cards.</strong> Homepage cards read "Project Title" / "Excerpt here." No published projects above the fold.</li>
+        <li><strong>No ROC #, no address, no bonded/insured language.</strong> Mariano shows two ROC numbers; Forte adds NAHB / BBB / HBACA; Rodeo shows AZ + NM ROC.</li>
+        <li><strong>619 (San Diego) phone</strong> on an Arizona-targeted business — quiet trust deduction.</li>
+        <li><strong>No BBB accreditation, no NAHB / HBACA / NARI</strong>, no press logos, no awards.</li>
+        <li><strong>The Brad Leavitt podcast appearance is underleveraged</strong> — strongest existing authority signal, not surfaced on About or homepage with schema.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="finding">
+    <h3>4.6 &nbsp;AEO &amp; answer-engine readiness</h3>
+    <div class="body">
+      <p>The largest opportunity gap. Luxury build has well-defined buyer questions — cost per square foot, timelines, custom vs spec, style classifications — and Cruz currently produces no extractable answers. Mariano's <em>"Cost of luxury home in Mesa Arizona"</em> blog post is the kind of content LLMs cite; Cruz publishes nothing equivalent. The southwest brand identity isn't present in any extracted homepage heading — Forte already explicitly lists "Southwest" among 12 styles they build.</p>
+      <p><strong>Six AEO improvements:</strong></p>
+      <ul>
+        <li>Cost pillar pages: "Custom home cost in Chandler / Mesa / Glendale / AZ" — 1,500+ words each, with FAQ schema.</li>
+        <li>"Modern Southwestern Custom Homes in Arizona" hub — claim the style territory before Forte crowds it out.</li>
+        <li>Process / timeline page + custom-vs-spec comparison page.</li>
+        <li>Schema rollout: LocalBusiness, FAQPage, Organization with <code>sameAs</code> linking GBP, Houzz, IG, podcast.</li>
+        <li>Author bylines on every blog post; podcast embed on About.</li>
+        <li>Expand case-study library 2 → 8–12 projects with location, scope, timeline, budget range.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>04 · Detailed Findings</span>
+    <span>08</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 9 — Strengths vs Gaps visual                            -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>05 · Strengths vs. Gaps</span>
+    <span class="runner__brand">Cruz Development <span class="accent">·</span> cruzdevaz.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">05 — Strengths vs. Gaps</span>
+  <h2 class="display">What's working,<br/>what's holding visibility back.</h2>
+  <p style="font-size:11pt;color:var(--fg-muted);max-width:5.6in;">A diverging view: assets in oxblood pull right; gaps in dark ink pull left. Bar length reflects relative weight on overall findability.</p>
+
+  <div class="chart" style="padding:16pt 14pt 12pt;">
+    DIVERGING_PLACEHOLDER
+
+    <div class="chart__legend">
+      <span><span class="swatch" style="background:var(--accent);"></span>Strengths (already working)</span>
+      <span><span class="swatch" style="background:#1A1A1A;"></span>Gaps (holding back visibility)</span>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14pt;margin-top:6pt;">
+    <div>
+      <h3 style="font-size:13pt;margin-top:0;color:var(--accent);">What's already working</h3>
+      <p style="font-size:10pt;">Cruz comes into this audit with real assets: a defensible operational position ("all in house, no subs"), a credible founder with a podcast appearance signaling industry authority, a named team of 6+, four service pages with FAQ baselines, a thoughtful blog footprint of 9 AZ-relevant posts, and an active Houzz profile. The brand is real — the site just isn't showing it yet.</p>
+    </div>
+    <div>
+      <h3 style="font-size:13pt;margin-top:0;">Where the gap is real</h3>
+      <p style="font-size:10pt;">Most of Cruz's gap is self-inflicted: live placeholder testimonials, two city pages with the wrong city in the title tag, no ROC#, no address, no BBB, no HBACA, no manufacturer certifications, no real portfolio above the fold, no cost content (the highest AEO miss), and a southwest brand identity that exists only in conversation — not on the page. Each is fixable on a 90-day arc.</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>05 · Strengths vs. Gaps</span>
+    <span>09</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 10 — Gaps detail                                        -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>06 · Key Gaps</span>
+    <span class="runner__brand">Cruz Development <span class="accent">·</span> cruzdevaz.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">06 — Key Gaps</span>
+  <h2 class="display">Twelve things holding<br/>back visibility today.</h2>
+  <p style="font-size:10pt;color:var(--fg-muted);max-width:5.6in;">Each gap is tagged by impact level — High, Medium, or Foundational — to help prioritize the work.</p>
+
+  <div class="gaps">
+    <div class="gap">
+      <div class="gap__row"><span class="gap__title">Placeholder testimonials still live</span><span class="badge badge--high">High</span></div>
+      <p class="gap__why">Verbatim "Enter quote here. — First LastTitle of Comany." For a $1M+ buyer this is a credibility-ending signal in seconds.</p>
+    </div>
+    <div class="gap">
+      <div class="gap__row"><span class="gap__title">Mesa page <code>&lt;title&gt;</code> says "Chandler"</span><span class="badge badge--high">High</span></div>
+      <p class="gap__why">Templated artifact never cleaned up. Active local-SEO ranking suppression for Mesa custom-home searches.</p>
+    </div>
+    <div class="gap">
+      <div class="gap__row"><span class="gap__title">No ROC#, no address, no BBB on site</span><span class="badge badge--high">High</span></div>
+      <p class="gap__why">Every direct competitor displays at least the ROC and address. This is the most visible trust deficit.</p>
+    </div>
+    <div class="gap">
+      <div class="gap__row"><span class="gap__title">Glendale H3 also references Chandler</span><span class="badge badge--high">High</span></div>
+      <p class="gap__why">Same duplicate-scaffold artifact. Plus inconsistent founding date (1892 vs. 1910) within the page.</p>
+    </div>
+    <div class="gap">
+      <div class="gap__row"><span class="gap__title">Placeholder portfolio cards on homepage</span><span class="badge badge--high">High</span></div>
+      <p class="gap__why">"Project Title" / "Excerpt here" copy in the homepage portfolio block. Above-the-fold credibility leak.</p>
+    </div>
+    <div class="gap">
+      <div class="gap__row"><span class="gap__title">619 (San Diego) phone — no AZ number</span><span class="badge badge--medium">Medium</span></div>
+      <p class="gap__why">Quiet trust deduction for in-state buyers. AZ tracking number alongside the existing line solves it.</p>
+    </div>
+    <div class="gap">
+      <div class="gap__row"><span class="gap__title">No cost / process / comparison content</span><span class="badge badge--high">High</span></div>
+      <p class="gap__why">The single largest AEO miss. Mariano publishes a Mesa cost article LLMs cite; Cruz publishes nothing.</p>
+    </div>
+    <div class="gap">
+      <div class="gap__row"><span class="gap__title">Southwest identity not in site copy</span><span class="badge badge--high">High</span></div>
+      <p class="gap__why">Claimed brand differentiator is invisible. Forte already lists "Southwest" among 12 styles they build.</p>
+    </div>
+    <div class="gap">
+      <div class="gap__row"><span class="gap__title">Only 2 published case studies</span><span class="badge badge--medium">Medium</span></div>
+      <p class="gap__why">For a builder claiming 6+ years, this is a fraction of expected portfolio depth. Mariano lists 6+; Forte claims hundreds.</p>
+    </div>
+    <div class="gap">
+      <div class="gap__row"><span class="gap__title">No NAHB / HBACA / NARI membership</span><span class="badge badge--medium">Medium</span></div>
+      <p class="gap__why">Industry-association directories are crawled and confer trust. Entry-level citation play Cruz isn't running.</p>
+    </div>
+    <div class="gap">
+      <div class="gap__row"><span class="gap__title">No manufacturer certifications on roofing page</span><span class="badge badge--medium">Medium</span></div>
+      <p class="gap__why">GAF Master Elite / Owens Corning / CertainTeed are table-stakes for AZ roofing trust.</p>
+    </div>
+    <div class="gap">
+      <div class="gap__row"><span class="gap__title">No LocalBusiness / FAQPage / Org schema</span><span class="badge badge--found">Foundational</span></div>
+      <p class="gap__why">Missed structured-data signal. <code>sameAs</code> array linking GBP, Houzz, IG, podcast solves disambiguation too.</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>06 · Key Gaps</span>
+    <span>10</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 11 — Roadmap timeline                                   -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>07 · 90-Day Priority Roadmap</span>
+    <span class="runner__brand">Cruz Development <span class="accent">·</span> cruzdevaz.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">07 — 90-Day Roadmap</span>
+  <h2 class="display">A 90-day arc that<br/>compounds.</h2>
+  <p style="font-size:11pt;color:var(--fg-muted);max-width:5.8in;">Sequenced so each phase makes the next one work harder. Fix infrastructure first; rewrite for AI second; build content third; layer in polish fourth.</p>
+
+  <div class="chart" style="padding:14pt 14pt 14pt;">
+    <p class="chart__title" style="font-size:13pt;margin-bottom:2pt;">Phased rollout — days 0 to 90+</p>
+    <p class="chart__sub" style="margin-bottom:8pt;">Bar length = expected work window. Oxblood = highest priority. Foundational items continue beyond day 90.</p>
+
+    TIMELINE_PLACEHOLDER
+
+    <div class="chart__legend">
+      <span><span class="swatch" style="background:var(--accent);"></span>Highest priority (0–30d)</span>
+      <span><span class="swatch" style="background:#1A1A1A;"></span>Near-term growth (30–90d)</span>
+      <span><span class="swatch" style="background:#9A9A9A;"></span>Foundational (ongoing)</span>
+      <span><span class="swatch" style="background:#D8D3C5;"></span>Optional polish</span>
+    </div>
+  </div>
+
+  <p style="font-size:10pt;color:var(--fg-muted);margin-top:10pt;">
+    The infrastructure fixes in week 1 unlock everything downstream — once the Mesa page renders and the sitemap returns 200, every later content investment becomes findable. The AEO rewrites in weeks 2–4 begin producing AI-search citations on a 60–120 day curve.
+  </p>
+
+  <div class="footer">
+    <span>07 · 90-Day Roadmap</span>
+    <span>11</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 12 — Priority checklist                                 -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>07 · Priority Checklist</span>
+    <span class="runner__brand">Cruz Development <span class="accent">·</span> cruzdevaz.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">07 — Priority Checklist</span>
+  <h2 class="display">The work, item by item.</h2>
+
+  <div class="phase">
+    <div class="phase__head">
+      <span class="phase__title">Highest priority</span>
+      <span class="phase__win">0–30 DAYS · QUICK WINS</span>
+    </div>
+    <ul>
+      <li><span class="num">01</span><span class="what"><strong>Replace placeholder testimonials.</strong> Source 6–10 real client quotes (with names, titles, and project type) and ship today. <em>The single most credibility-damaging item on the site.</em></span><span class="tag tag--both">SEO + AEO</span></li>
+      <li><span class="num">02</span><span class="what"><strong>Fix Mesa &amp; Glendale city-page title-tag bugs.</strong> Replace "Chandler" references in <code>&lt;title&gt;</code>, H1, and H3 with correct city. Reconcile Glendale founding date.</span><span class="tag tag--both">SEO + AEO</span></li>
+      <li><span class="num">03</span><span class="what"><strong>Publish ROC#, address, bonded/insured language</strong> sitewide footer + contact + service pages. Add Houzz profile link.</span><span class="tag tag--both">SEO + AEO</span></li>
+      <li><span class="num">04</span><span class="what"><strong>Replace placeholder portfolio cards.</strong> Use real 87th Street and Dunlap projects with photos, location, scope.</span><span class="tag tag--both">SEO + AEO</span></li>
+      <li><span class="num">05</span><span class="what"><strong>Add an AZ tracking number alongside the 619.</strong> Trust deduction removed without replacing the owner cell.</span><span class="tag tag--seo">Conv.</span></li>
+      <li><span class="num">06</span><span class="what"><strong>NAP audit + GBP optimization.</strong> Reconcile San Tan Valley address across Houzz / GBP / website. Confirm primary GBP category = Custom Home Builder; configure as Service-Area Business including Chandler, Mesa, Glendale.</span><span class="tag tag--both">SEO + AEO</span></li>
+    </ul>
+  </div>
+
+  <div class="phase">
+    <div class="phase__head">
+      <span class="phase__title">Near-term growth</span>
+      <span class="phase__win">30–90 DAYS · COMPOUNDING</span>
+    </div>
+    <ul>
+      <li><span class="num">07</span><span class="what"><strong>Build cost pillar pages.</strong> "Custom home cost in Chandler / Mesa / Glendale, AZ 2026" plus a state-level page. 1,500+ words each. <em>The single highest AEO leverage move.</em></span><span class="tag tag--aeo">AEO</span></li>
+      <li><span class="num">08</span><span class="what"><strong>Build the Modern Southwestern Custom Homes page.</strong> Claim the regional style territory before Forte's existing mention crowds it out.</span><span class="tag tag--aeo">AEO</span></li>
+      <li><span class="num">09</span><span class="what"><strong>Real case-study buildout — 8–12 projects.</strong> Location, scope, timeline, budget range, photos, embedded client quotes.</span><span class="tag tag--both">SEO + AEO</span></li>
+      <li><span class="num">10</span><span class="what"><strong>Rebuild the city pages from scratch.</strong> Less city trivia; more "what it's like to build custom in [city]" — neighborhoods, HOA quirks, lot characteristics, school districts, real client examples.</span><span class="tag tag--both">SEO + AEO</span></li>
+      <li><span class="num">11</span><span class="what"><strong>Author bylines + Brad Leavitt podcast embed.</strong> Surface Matthew Gallego authorship on every blog post; embed the podcast on About with schema.</span><span class="tag tag--aeo">AEO</span></li>
+      <li><span class="num">12</span><span class="what"><strong>Reviews program.</strong> Target &gt;25 Google reviews and &gt;10 Houzz reviews in 90 days. Owner response template, 100% reply rate &lt;48h.</span><span class="tag tag--both">SEO + AEO</span></li>
+    </ul>
+  </div>
+
+  <div class="phase">
+    <div class="phase__head">
+      <span class="phase__title">Foundational (ongoing)</span>
+      <span class="phase__win">CONTINUOUS · COMPOUND VALUE</span>
+    </div>
+    <ul>
+      <li><span class="num">13</span><span class="what"><strong>Schema rollout.</strong> LocalBusiness + Organization sitewide; FAQPage per page with FAQ; <code>sameAs</code> array linking GBP, Houzz, IG, podcast.</span><span class="tag tag--aeo">AEO</span></li>
+      <li><span class="num">14</span><span class="what"><strong>HBACA / NAHB membership pursuit.</strong> Forte is HBACA. Directory citations + trust badge.</span><span class="tag tag--seo">SEO</span></li>
+      <li><span class="num">15</span><span class="what"><strong>Manufacturer certifications for the roofing arm.</strong> GAF Master Elite, Owens Corning Preferred — pursue and display.</span><span class="tag tag--both">SEO + AEO</span></li>
+      <li><span class="num">16</span><span class="what"><strong>URL slug consistency.</strong> Standardize <code>/locations-chandler-arizona/</code> vs <code>/mesa/</code> vs <code>/glendale/</code> with 301 redirects.</span><span class="tag tag--seo">SEO</span></li>
+    </ul>
+  </div>
+
+  <div class="footer">
+    <span>07 · Priority Checklist</span>
+    <span>12</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 13 — Closing notes                                      -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>08 · Strategic Notes</span>
+    <span class="runner__brand">Cruz Development <span class="accent">·</span> cruzdevaz.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">08 — Strategic Notes</span>
+  <h2 class="display">Where the upside is.</h2>
+
+  <p class="lead">
+    The biggest upside for Cruz is <em>not</em> more services or a different brand — it's making the existing brand actually visible. The operational position is real, the founder is credible, the team is named, and the work is competently delivered. The site simply isn't telling that story yet — and what it is saying is undermining trust before any prospect can see the rest.
+  </p>
+
+  <div class="closing">
+    <span class="eyebrow">A clean order of operations</span>
+    <h2>Stop the bleeding. Build the trust stack. Own the queries. Compound.</h2>
+    <ol>
+      <li><strong>Stop the bleeding first.</strong> Replace placeholder testimonials, fix the city-page title-tag bugs, publish ROC + address + bonded/insured. None of this requires content work — all of it removes credibility leaks visible in the first ten seconds.</li>
+      <li><strong>Then build the trust stack.</strong> Real case studies, HBACA membership, manufacturer certifications, NAP reconciliation, GBP optimization, reviews program. This is the work that turns Cruz from "credible enough" into "the obvious choice."</li>
+      <li><strong>Then own the queries competitors don't.</strong> Cost pillar pages for Chandler / Mesa / Glendale / AZ. The "Modern Southwestern Custom Homes" hub. Process and comparison content. This is what makes Cruz the answer ChatGPT and Perplexity surface for high-intent buyer questions.</li>
+      <li><strong>Then compound.</strong> Schema rollout, internal linking, weekly Google Posts, ongoing review velocity, monthly cost-content. The work that doesn't feel like much in any given week, but in 12 months separates Cruz from peers who only ever did the "stop the bleeding" stage.</li>
+    </ol>
+
+    <p class="signoff">
+      None of this requires the brand to become something it isn't. Cruz is a serious builder with a credible founder and a defensible operational position. The site just has to start saying that — clearly, locally, and structurally enough that both human buyers and AI assistants can recognize it. That's a 90-day arc. The brand on the other side of it is the one Cruz already is, just finally legible.
+    </p>
+  </div>
+
+  <div class="footer">
+    <span>08 · Strategic Notes</span>
+    <span>13</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 14 — Scope of Services                                  -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>09 · Scope of Services</span>
+    <span class="runner__brand">Cruz Development <span class="accent">·</span> cruzdevaz.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">09 — Scope of Services</span>
+  <h2 class="display">Closing the gaps.</h2>
+  <p class="scope-intro">A scope built around the audit's findings — not a stock package. Each one-time line item below maps directly to gaps identified earlier in this report. Pricing follows our standard founding-client structure for early Phoenix-area clients.</p>
+
+  <div class="svc-grid">
+
+    <div class="svc svc--full">
+      <div class="svc__head">
+        <span class="svc__name">Website Creation &amp; On-Site AEO Optimization</span>
+        <span class="svc__price">$7,500</span>
+      </div>
+      <p class="svc__desc">A custom 7–9 page site replacing the current placeholder-laden WordPress build. Homepage, About (with podcast embed and named-expert bios), services hub + 4 service pages, 3 rebuilt city pages (Chandler, Mesa, Glendale) with corrected templates, real testimonials and case-study integration, portfolio gallery, schedule-a-consultation flow. Mobile-first, fast, hosted on Cloudflare Pages. <em>LocalBusiness</em>, <em>Organization</em>, <em>Service</em>, and <em>FAQPage</em> schema on every relevant page. Answer-ready copy designed to be quoted by ChatGPT, Claude, Perplexity, and Google AI Overview. One round of revisions included.</p>
+      <p class="svc__addresses"><strong>Closes gaps:</strong> Placeholder testimonials · Placeholder portfolio cards · City-page template bugs · Inconsistent URL slugs · No schema · Brand-led titles · Internal linking · Generic service copy</p>
+    </div>
+
+    <div class="svc">
+      <div class="svc__head">
+        <span class="svc__name">AEO Authority Content Pack</span>
+        <span class="svc__price">$2,750</span>
+      </div>
+      <p class="svc__desc">5 pillar pages built to be cited by AI assistants: cost-per-square-foot guides for Chandler, Mesa, and Glendale; a "Modern Southwestern Custom Homes in Arizona" hub page (claims the style territory before Forte's existing mention); a "Custom home vs spec home in Arizona" comparison page; and a 12-month process timeline page. Each ~1,500 words with FAQ schema.</p>
+      <p class="svc__addresses"><strong>Closes gaps:</strong> No cost / process / comparison content · Southwest identity invisible · AEO readiness</p>
+    </div>
+
+    <div class="svc">
+      <div class="svc__head">
+        <span class="svc__name">Trust Signal Buildout</span>
+        <span class="svc__price">$1,750</span>
+      </div>
+      <p class="svc__desc">Source and integrate 6–10 real client testimonials (with names, project type, locations). Expand the published portfolio from 2 to 8–12 case studies (location, scope, timeline, budget range, photos). Surface ROC#, address, bonded/insured. Embed the Brad Leavitt podcast appearance with schema. Add author bylines on every blog post. Coordinate HBACA / NAHB membership pursuit and display.</p>
+      <p class="svc__addresses"><strong>Closes gaps:</strong> Placeholder testimonials · 2-project portfolio · No ROC / address / BBB · No NAHB / HBACA · Underleveraged podcast appearance</p>
+    </div>
+
+    <div class="svc">
+      <div class="svc__head">
+        <span class="svc__name">Google Business Profile Optimization</span>
+        <span class="svc__price">$1,250</span>
+      </div>
+      <p class="svc__desc">Full GBP claim &amp; rebuild. Confirm primary category = Custom Home Builder. Configure as Service-Area Business with Chandler, Mesa, Glendale explicitly. Reconcile NAP across Houzz / GBP / website. Categories audited, services described in buyer language, attributes completed. Photo strategy with shoot guidance. Q&amp;A seeded. Review-request workflow that points to Google specifically. Duplicate-listing &amp; name-collision resolution (cruzcruzdevelopment.com).</p>
+      <p class="svc__addresses"><strong>Closes gaps:</strong> NAP inconsistency · Local-pack visibility · 619 phone trust gap · Reviews going to wrong platform · Name-collision risk</p>
+    </div>
+
+  </div>
+
+  <div class="subtotal">
+    <span class="lbl">One-time scope subtotal</span>
+    <span class="val">$13,250</span>
+    <span class="lbl lbl--accent">Founding-client discount (25%)</span>
+    <span class="val val--accent">−$3,313</span>
+    <span class="lbl lbl--total">One-time total</span>
+    <span class="val val--total">$9,937</span>
+  </div>
+
+  <div class="footer">
+    <span>09 · Scope of Services</span>
+    <span>14</span>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- PAGE 15 — Recurring + Investment Summary + Next Step          -->
+<!-- =========================================================== -->
+<section class="page">
+  <div class="runner">
+    <span>10 · Investment Summary</span>
+    <span class="runner__brand">Cruz Development <span class="accent">·</span> cruzdevaz.com</span>
+  </div>
+
+  <span class="eyebrow eyebrow--accent">10 — Recurring &amp; Investment Summary</span>
+  <h2 class="display">The work that compounds.</h2>
+  <p class="scope-intro">One-time work fixes the leaks and builds the structure. The retainer is what keeps Cruz showing up in AI search as the models evolve and competitors react.</p>
+
+  <div class="svc svc--full">
+    <div class="svc__head">
+      <span class="svc__name">AEO Authority + Operations Retainer</span>
+      <span class="svc__price"><span style="color:var(--fg-dim);font-size:10pt;text-decoration:line-through;margin-right:6pt;">$1,500/mo</span>$1,000<small>/month</small></span>
+    </div>
+    <p class="svc__desc">40–60 buyer-intent prompts tracked monthly across <strong>ChatGPT, Claude, Perplexity, Gemini, and Google AI Overview</strong> — so we know exactly when Cruz starts (or stops) being cited for "best luxury custom home builder Chandler" and similar high-intent queries. Three custom-build / southwest-design / cost-content blog posts per week (~13/month, AEO-optimized for direct retrieval). Review-velocity program (Google + Houzz). Tactical adjustments when models shift. Weekly performance summary and a written quarterly strategy review.</p>
+    <p class="svc__addresses"><strong>Founding-client pricing</strong> — discounted from $1,500/mo standard. Cancel anytime with one email, no forms or retention pitches.</p>
+  </div>
+
+  <h3 style="margin-top:12pt;margin-bottom:0;font-size:13pt;">Investment summary</h3>
+  <table class="invest">
+    <thead>
+      <tr>
+        <th>Line item</th>
+        <th style="text-align:right;">Investment</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th>One-time scope (four services above)</th>
+        <td class="price">$13,250</td>
+      </tr>
+      <tr class="discount">
+        <td>Founding-client discount (25%)</td>
+        <td class="price">−$3,313</td>
+      </tr>
+      <tr>
+        <th><strong>One-time total</strong> <span class="note">— 50% on acceptance, 50% on launch</span></th>
+        <td class="price price--accent"><strong>$9,937</strong></td>
+      </tr>
+      <tr>
+        <th>AEO Retainer <span class="note">— begins 1st of month after launch</span></th>
+        <td class="price price--accent"><strong>$1,000<span style="font-size:9pt;color:var(--fg-muted);">/mo</span></strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="addons">
+    <h4>Optional add-on — Social media foundation &amp; management</h4>
+    <p>For luxury builders, social is high-leverage on Instagram (project tours, before/after) and selectively useful on TikTok (process content). If Cruz wants a steady social presence tied to job-site photos and short-form video, available as an add-on with the same founding-client pricing.</p>
+    <ul>
+      <li><span>Social media foundation (one-time)</span><span>$750</span></li>
+      <li><span>Social media management (recurring)</span><span>$1,500/mo</span></li>
+    </ul>
+  </div>
+
+  <div class="terms">
+    <div class="term">
+      <div class="lbl">Quote validity</div>
+      <div class="val">30 days from issue</div>
+    </div>
+    <div class="term">
+      <div class="lbl">Start window</div>
+      <div class="val">7 business days from acceptance</div>
+    </div>
+    <div class="term">
+      <div class="lbl">Cancellation</div>
+      <div class="val">One email — no forms or retention</div>
+    </div>
+    <div class="term">
+      <div class="lbl">Ownership</div>
+      <div class="val">Cruz retains all deliverables</div>
+    </div>
+  </div>
+
+  <div class="closing" style="margin-top:10pt;padding:14pt 22pt;">
+    <span class="eyebrow" style="margin-bottom:4pt;">Next step</span>
+    <h2 style="margin-bottom:4pt;font-size:18pt;">A 30-minute call to walk through the audit.</h2>
+    <p style="margin:0;font-size:9.5pt;line-height:1.45;">Bring questions. We'll walk the findings on screen, talk through what you'd want to keep or cut from the scope above, and tell you on the call if the math doesn't work for your business — rather than walk you through a pitch.</p>
+    <p class="signoff" style="margin-top:10pt;padding-top:8pt;font-size:10pt;">
+      Aeolistings &nbsp;·&nbsp; <em>aeolistings.ai</em> &nbsp;·&nbsp; AEO &amp; Local Visibility for Service Businesses
+    </p>
+  </div>
+
+  <div class="footer">
+    <span>10 · Investment Summary</span>
+    <span>15</span>
+  </div>
+</section>
+
+</body>
+</html>
