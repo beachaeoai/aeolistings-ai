@@ -1,0 +1,49 @@
+---
+// Upload slot — Sprint 3.
+//
+// Visual + behavior shim around a native <input type="file">. The intake-form
+// controller wires up the change event by selecting on data-upload-input.
+
+interface FileRef {
+  id: string;
+  filename: string;
+  size_bytes: number;
+  mime_type: string;
+}
+
+interface Props {
+  name: string;        // logical slot name, e.g. "logos.color" or "photos"
+  category: string;    // R2 category, e.g. "logo_color"
+  file?: FileRef;
+  multiple?: boolean;
+  accept?: string;
+}
+
+const { name, category, file, multiple = false, accept } = Astro.props;
+const labelId = `upload-${name.replace(/\./g, '-')}`;
+---
+
+<div class="upload-slot" data-upload-slot data-slot-name={name}>
+  <label for={labelId} class="btn btn--ghost" style="cursor: pointer;">
+    {file ? 'Replace file' : multiple ? 'Add photos' : 'Choose file'}
+  </label>
+  <input
+    id={labelId}
+    type="file"
+    style="display:none;"
+    data-upload-input
+    data-slot-name={name}
+    data-category={category}
+    data-multiple={multiple ? 'true' : 'false'}
+    multiple={multiple}
+    accept={accept ?? (category.startsWith('logo') ? 'image/*,.svg,.eps,.ai' : 'image/*')}
+  />
+  <span class="upload-slot__name" data-state={file ? 'filled' : ''}>
+    {file ? file.filename : (multiple ? 'No photos uploaded yet.' : 'No file chosen.')}
+  </span>
+  {file && (
+    <span class="muted" style="font-size: 0.85rem;">
+      {(file.size_bytes / 1024).toFixed(0)} KB
+    </span>
+  )}
+</div>

@@ -132,14 +132,21 @@ jobs:
         # Branch flag determines preview vs production:
         #   --branch=main  → production (also gets <project>.pages.dev)
         #   --branch=other → preview at <other>.<project>.pages.dev
+        # Capture stdout so the smoke step can read the alias URL Cloudflare
+        # actually returned — branch slugs longer than 28 characters get
+        # truncated by CF and a hand-computed slug doesn't match.
         id: deploy
         run: |
           BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
-          npx wrangler pages deploy dist \
+          OUTPUT=$(npx wrangler pages deploy dist \
             --project-name=aeolistings-intake \
             --branch="$BRANCH" \
             --commit-dirty=true \
-            --commit-hash="$GITHUB_SHA"
+            --commit-hash="$GITHUB_SHA" 2>&1 | tee /dev/stderr)
+          ALIAS_URL=$(printf '%s\n' "$OUTPUT" | grep -Eo 'Deployment alias URL: https?://[^[:space:]]+' | tail -n1 | awk '{print $NF}')
+          DEPLOY_URL=$(printf '%s\n' "$OUTPUT" | grep -Eo 'Take a peek over at https?://[^[:space:]]+' | tail -n1 | awk '{print $NF}')
+          echo "alias_url=${ALIAS_URL}" >> "$GITHUB_OUTPUT"
+          echo "deploy_url=${DEPLOY_URL}" >> "$GITHUB_OUTPUT"
 
       - name: Smoke-test /api/health
         # Sprint 1 only requires the bindings + HMAC. Other secrets
@@ -147,14 +154,25 @@ jobs:
         # so the endpoint legitimately reports "degraded" until then.
         # Pass the run as long as the four Sprint-1 checks are green.
         # Production (main) doesn't get a `<branch>.<project>.pages.dev`
-        # alias — it lives at the project's bare domain instead.
+        # alias — it lives at the project's bare domain instead. For
+        # previews we use the alias URL captured in the deploy step
+        # (CF truncates branch slugs at 28 chars, so re-computing
+        # locally falls out of sync on long branch names) and fall back
+        # to the per-deployment URL if no alias was returned.
         run: |
           BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
           if [ "$BRANCH" = "main" ]; then
             URL="https://aeolistings-intake.pages.dev/api/health"
           else
-            SLUG=$(echo "$BRANCH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g')
-            URL="https://${SLUG}.aeolistings-intake.pages.dev/api/health"
+            BASE="${{ steps.deploy.outputs.alias_url }}"
+            if [ -z "$BASE" ]; then
+              BASE="${{ steps.deploy.outputs.deploy_url }}"
+            fi
+            if [ -z "$BASE" ]; then
+              echo "Deploy step did not surface an alias_url or deploy_url. Cannot probe."
+              exit 1
+            fi
+            URL="${BASE%/}/api/health"
           fi
           echo "Probing $URL"
           for i in 1 2 3 4 5 6; do
