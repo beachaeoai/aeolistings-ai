@@ -1,87 +1,1346 @@
 ---
-// Magic-link landing — placeholder until Sprint 3 ships the 10-step form.
-// Today this verifies the token server-side and renders a state-aware
-// holding page so a client never sees Astro's default 404 or a raw API
-// JSON error. Sprint 3 replaces the body content with the actual form.
+// Magic-link intake form — Sprint 3.
+//
+// Renders the 10-step form skeleton with steps 0–4 fully built. Steps 5–10
+// are stubbed with a "saved — we'll continue" placeholder so the JSON state
+// stays namespaced consistently from day one and Sprint 4 can drop in.
+//
+// Server-side: verify token, load record, derive initial state, render HTML
+// for every step (display:none on inactive ones via .intake-step[data-active]).
+// Client-side script (below) reads the inline JSON state, manages step
+// navigation, PATCHes /api/intake/[token] (which rotates the token), updates
+// the URL via history.replaceState, and POSTs to /prefill + /upload.
 
 import Page from '../../layouts/Page.astro';
+import UploadSlot from '../../components/intake/UploadSlot.astro';
+import '../../styles/form.css';
 import { verifyToken } from '../../lib/tokens';
 import { getIntakeById } from '../../lib/intake';
+import {
+  deriveInitialState,
+  provenanceLabel,
+  TOTAL_STEPS,
+  type FormInitialState,
+} from '../../lib/step-state';
 
 const { token } = Astro.params;
 const env = Astro.locals.runtime?.env;
 
-type State =
-  | { kind: 'valid'; firstName: string; businessName: string }
+type LoadResult =
+  | { kind: 'valid'; state: FormInitialState }
   | { kind: 'expired' }
   | { kind: 'env-missing' };
 
-let state: State = { kind: 'expired' };
+let result: LoadResult = { kind: 'expired' };
 if (!env) {
-  state = { kind: 'env-missing' };
+  result = { kind: 'env-missing' };
 } else if (token) {
   const intakeId = await verifyToken(token, env);
   if (intakeId) {
     const record = await getIntakeById(intakeId, env);
     if (record) {
-      const firstName = record.client_name.split(' ')[0] ?? record.client_name;
-      state = { kind: 'valid', firstName, businessName: record.business_name };
+      result = {
+        kind: 'valid',
+        state: deriveInitialState(record, env.APP_URL ?? ''),
+      };
     }
   }
 }
+
+const state = result.kind === 'valid' ? result.state : null;
+
+const SCOPE_LABELS: Record<string, string> = {
+  website: 'Website Creation & On-Site AEO Optimization',
+  gbp: 'Google Business Profile Optimization',
+  retainer: 'AEO Authority + Operations Retainer',
+  social_foundation: 'Social Media Foundation',
+  social_management: 'Social Media Management',
+};
+function prettyScope(key: string): string {
+  return SCOPE_LABELS[key] ?? key.replace(/_/g, ' ');
+}
+
+const INDUSTRY_ASSOCIATIONS = [
+  'NAHB', 'HBACA', 'NARI', 'ARCA', 'IEC', 'NECA', 'NRCA', 'BBB',
+];
+const MANUFACTURER_CERTS = [
+  'GAF', 'Owens Corning', 'CertainTeed', 'Tesla', 'Qmerit', 'Generac',
+  'James Hardie', 'Trex',
+];
 ---
 
-<Page title="Your intake · Aeolistings">
-  {state.kind === 'valid' && (
-    <>
-      <h1>Welcome, <span class="accent">{state.firstName}</span></h1>
-      <p>
-        We're putting the finishing touches on the intake form for
-        <strong> {state.businessName}</strong>. Your link is valid — we'll have
-        the form ready for you here within the next few days.
-      </p>
-      <p>
-        You don't need to do anything right now. We'll email you when it's
-        ready, and the same link will take you straight in.
-      </p>
-      <p class="muted">
-        Questions? Email <a href="mailto:intake@aeolistings.ai">intake@aeolistings.ai</a>.
-      </p>
-    </>
-  )}
+{result.kind === 'expired' && (
+  <Page title="Your intake · Aeolistings">
+    <h1>This link <span class="accent">is no longer valid</span></h1>
+    <p>
+      Magic links expire after 7 days, and each one only works once after
+      you save your progress.
+    </p>
+    <p>
+      Email <a href="mailto:intake@aeolistings.ai">intake@aeolistings.ai</a>
+      and we'll send you a fresh link — your previous answers are safe.
+    </p>
+  </Page>
+)}
 
-  {state.kind === 'expired' && (
-    <>
-      <h1>This link <span class="accent">is no longer valid</span></h1>
-      <p>
-        Magic links expire after 7 days, and each one only works once after
-        you save your progress.
-      </p>
-      <p>
-        Email <a href="mailto:intake@aeolistings.ai">intake@aeolistings.ai</a>
-        and we'll send you a fresh link — your previous answers are safe.
-      </p>
-    </>
-  )}
+{result.kind === 'env-missing' && (
+  <Page title="Your intake · Aeolistings">
+    <h1>Something's not right on our end</h1>
+    <p>
+      We hit a temporary problem loading your intake. Please try again in a
+      minute, or email <a href="mailto:intake@aeolistings.ai">intake@aeolistings.ai</a>
+      if it keeps happening.
+    </p>
+  </Page>
+)}
 
-  {state.kind === 'env-missing' && (
-    <>
-      <h1>Something's not right on our end</h1>
-      <p>
-        We hit a temporary problem loading your intake. Please try again in a
-        minute, or email <a href="mailto:intake@aeolistings.ai">intake@aeolistings.ai</a>
-        if it keeps happening.
-      </p>
-    </>
-  )}
-</Page>
+{state && (
+  <Page title={`Intake · ${state.business_name}`}>
+    <div
+      class="intake-shell"
+      data-intake-shell
+      data-token={token}
+      data-intake-id={state.intake_id}
+    >
+      <div class="intake-progress" aria-live="polite">
+        <span data-progress-label>Step {state.current_step} of {TOTAL_STEPS}</span>
+        <div
+          class="intake-progress__bar"
+          data-progress-bar
+          style={`--progress: ${(state.current_step / TOTAL_STEPS) * 100}%`}
+        ></div>
+        <span>{state.business_name}</span>
+      </div>
+
+      <div class="intake-toolbar">
+        <span class="intake-toolbar__save-status" data-save-status>Saved.</span>
+        <span aria-hidden="true">·</span>
+        <button type="button" class="btn btn--text" data-save-exit>Save &amp; exit</button>
+      </div>
+
+      <div class="banner banner--error" data-banner-error hidden></div>
+      <div class="banner banner--success" data-banner-success hidden></div>
+
+      {/* Step 0 — Welcome */}
+      <section
+        class="intake-step"
+        data-step="0"
+        data-active={state.current_step === 0 ? 'true' : 'false'}
+      >
+        <h2>Welcome, <span class="accent" style="font-style: italic;">{state.client_first_name}</span>.</h2>
+        <p class="intake-step__lede">
+          We're building <strong>{state.business_name}</strong>'s engagement.
+          This intake collects everything we need to start.
+        </p>
+        <ul class="welcome-list">
+          <li>Takes about 35–60 minutes total</li>
+          <li>Save anywhere — pick up later from the same email link</li>
+          <li>Skip a step if you don't have something handy</li>
+          <li>We'll never ask for a raw password</li>
+        </ul>
+        <div class="scope-summary">
+          <h3>Your scope (from your signed contract)</h3>
+          <ul>
+            {Object.entries(state.scope_flags)
+              .filter(([, v]) => v)
+              .map(([k]) => <li>{prettyScope(k)}</li>)}
+          </ul>
+        </div>
+        <div class="button-row">
+          <div class="button-row__spacer"></div>
+          <button type="button" class="btn btn--primary" data-action="start">Start the intake →</button>
+        </div>
+      </section>
+
+      {/* Step 1 — Confirm scope */}
+      <section
+        class="intake-step"
+        data-step="1"
+        data-active={state.current_step === 1 ? 'true' : 'false'}
+      >
+        <h2>Confirm <span class="accent" style="font-style: italic;">scope</span></h2>
+        <p class="intake-step__lede">
+          Make sure this matches what you signed up for. Anything wrong, tell us
+          in the box below.
+        </p>
+
+        <div class="checkbox-list" data-step1-scope>
+          {Object.entries(state.scope_flags).map(([k, v]) => (
+            <label>
+              <input
+                type="checkbox"
+                value={k}
+                checked={state.step1.confirmed_scope?.[k] ?? v}
+              />
+              <span>{prettyScope(k)}</span>
+            </label>
+          ))}
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="step1-notes">Anything missing or wrong?</label>
+          <textarea
+            id="step1-notes"
+            data-step1-notes
+            placeholder="Optional — let us know if a service was added or removed during your contract conversation."
+          >{state.step1.scope_notes ?? ''}</textarea>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="step1-website-url">Your existing website (URL)</label>
+          <input
+            id="step1-website-url"
+            type="url"
+            placeholder="https://your-business.com"
+            data-step1-website-url
+            value={state.step2.identity.website_url ?? ''}
+          />
+          <span class="field__hint">
+            If you already have a website we'll use it to prefill the next step.
+            Leave blank if you don't have one yet.
+          </span>
+        </div>
+
+        <div class="button-row">
+          <button type="button" class="btn btn--ghost" data-action="back">← Back</button>
+          <div class="button-row__spacer"></div>
+          <button
+            type="button"
+            class="btn btn--primary"
+            data-action="continue"
+            data-from-step="1"
+          >Continue →</button>
+        </div>
+      </section>
+
+      {/* Step 2 — Business identity */}
+      <section
+        class="intake-step"
+        data-step="2"
+        data-active={state.current_step === 2 ? 'true' : 'false'}
+      >
+        <h2>Business <span class="accent" style="font-style: italic;">identity</span></h2>
+        <p class="intake-step__lede">
+          Confirm the basics. We've prefilled what we could find from your
+          website and public records — please correct anything that's off.
+        </p>
+
+        <div class="field">
+          <label class="field__label" for="step2-website-url">Website URL</label>
+          <div style="display:flex; gap:0.5rem; align-items:center;">
+            <input
+              id="step2-website-url"
+              type="url"
+              data-step2-field="website_url"
+              value={state.step2.identity.website_url ?? ''}
+              placeholder="https://your-business.com"
+              style="flex:1;"
+            />
+            <button type="button" class="btn btn--ghost" data-action="prefill">Look up details</button>
+          </div>
+          <span class="field__hint" data-prefill-status>
+            {state.step2.prefill_meta?.last_run_at
+              ? `Last run: ${new Date(state.step2.prefill_meta.last_run_at * 1000).toLocaleString()}`
+              : 'Click to autofill from your website + public records.'}
+          </span>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label class="field__label" for="step2-legal-name">
+              Legal business name
+              <span
+                class="field__provenance"
+                data-source={state.step2.provenance.legal_business_name ?? ''}
+                data-prov-for="legal_business_name"
+              >{provenanceLabel(state.step2.provenance.legal_business_name)}</span>
+            </label>
+            <input
+              id="step2-legal-name"
+              type="text"
+              data-step2-field="legal_business_name"
+              value={state.step2.identity.legal_business_name ?? ''}
+            />
+          </div>
+          <div class="field">
+            <label class="field__label" for="step2-dba">
+              DBA (if different)
+              <span
+                class="field__provenance"
+                data-source={state.step2.provenance.dba ?? ''}
+                data-prov-for="dba"
+              >{provenanceLabel(state.step2.provenance.dba)}</span>
+            </label>
+            <input
+              id="step2-dba"
+              type="text"
+              data-step2-field="dba"
+              value={state.step2.identity.dba ?? ''}
+            />
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label class="field__label" for="step2-founded">
+              Founded year
+              <span
+                class="field__provenance"
+                data-source={state.step2.provenance.founded_year ?? ''}
+                data-prov-for="founded_year"
+              >{provenanceLabel(state.step2.provenance.founded_year)}</span>
+            </label>
+            <input
+              id="step2-founded"
+              type="number"
+              min="1800"
+              max="2030"
+              data-step2-field="founded_year"
+              value={state.step2.identity.founded_year ?? ''}
+            />
+          </div>
+          <div class="field">
+            <label class="field__label" for="step2-owner">
+              Owner / founder name
+              <span
+                class="field__provenance"
+                data-source={state.step2.provenance.owner_name ?? ''}
+                data-prov-for="owner_name"
+              >{provenanceLabel(state.step2.provenance.owner_name)}</span>
+            </label>
+            <input
+              id="step2-owner"
+              type="text"
+              data-step2-field="owner_name"
+              value={state.step2.identity.owner_name ?? ''}
+            />
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label class="field__label" for="step2-phone1">
+              Phone (primary)
+              <span
+                class="field__provenance"
+                data-source={state.step2.provenance.phone_primary ?? ''}
+                data-prov-for="phone_primary"
+              >{provenanceLabel(state.step2.provenance.phone_primary)}</span>
+            </label>
+            <input
+              id="step2-phone1"
+              type="tel"
+              data-step2-field="phone_primary"
+              value={state.step2.identity.phone_primary ?? ''}
+            />
+          </div>
+          <div class="field">
+            <label class="field__label" for="step2-phone2">
+              Phone (secondary, optional)
+              <span
+                class="field__provenance"
+                data-source={state.step2.provenance.phone_secondary ?? ''}
+                data-prov-for="phone_secondary"
+              >{provenanceLabel(state.step2.provenance.phone_secondary)}</span>
+            </label>
+            <input
+              id="step2-phone2"
+              type="tel"
+              data-step2-field="phone_secondary"
+              value={state.step2.identity.phone_secondary ?? ''}
+            />
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="step2-email">
+            Email (primary)
+            <span
+              class="field__provenance"
+              data-source={state.step2.provenance.email ?? ''}
+              data-prov-for="email"
+            >{provenanceLabel(state.step2.provenance.email)}</span>
+          </label>
+          <input
+            id="step2-email"
+            type="email"
+            data-step2-field="email"
+            value={state.step2.identity.email ?? ''}
+          />
+        </div>
+
+        <div class="field">
+          <label class="field__label">
+            Address
+            <span
+              class="field__provenance"
+              data-source={state.step2.provenance.address ?? ''}
+              data-prov-for="address"
+            >{provenanceLabel(state.step2.provenance.address)}</span>
+          </label>
+          <input
+            type="text"
+            placeholder="Street"
+            data-step2-address-field="street"
+            value={state.step2.identity.address?.street ?? ''}
+            style="margin-bottom: 0.5rem;"
+          />
+          <div class="field-row--3">
+            <input
+              type="text"
+              placeholder="City"
+              data-step2-address-field="city"
+              value={state.step2.identity.address?.city ?? ''}
+            />
+            <input
+              type="text"
+              placeholder="State"
+              data-step2-address-field="state"
+              value={state.step2.identity.address?.state ?? ''}
+            />
+            <input
+              type="text"
+              placeholder="ZIP"
+              data-step2-address-field="postal_code"
+              value={state.step2.identity.address?.postal_code ?? ''}
+            />
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="step2-hours">Hours</label>
+          <input
+            id="step2-hours"
+            type="text"
+            placeholder="Mon–Fri 8a–5p"
+            data-step2-field="hours"
+            value={state.step2.identity.hours ?? ''}
+          />
+        </div>
+
+        <h3 style="margin-top: 2rem;">Licenses &amp; accreditations</h3>
+        <div class="field-row">
+          <div class="field">
+            <label class="field__label" for="step2-roc">
+              ROC #
+              <span
+                class="field__provenance"
+                data-source={state.step2.provenance.roc_number ?? ''}
+                data-prov-for="roc_number"
+              >{provenanceLabel(state.step2.provenance.roc_number)}</span>
+            </label>
+            <input
+              id="step2-roc"
+              type="text"
+              data-step2-field="roc_number"
+              value={state.step2.identity.roc_number ?? ''}
+              placeholder="ROC 123456"
+            />
+          </div>
+          <div class="field">
+            <label class="field__label" for="step2-bbb-date">
+              BBB accredited date
+              <span
+                class="field__provenance"
+                data-source={state.step2.provenance.bbb_accredited_date ?? ''}
+                data-prov-for="bbb_accredited_date"
+              >{provenanceLabel(state.step2.provenance.bbb_accredited_date)}</span>
+            </label>
+            <input
+              id="step2-bbb-date"
+              type="text"
+              data-step2-field="bbb_accredited_date"
+              value={state.step2.identity.bbb_accredited_date ?? ''}
+              placeholder="January 1, 2020"
+            />
+          </div>
+        </div>
+
+        <div class="field-row">
+          <label style="display:flex; align-items:center; gap:0.5rem;">
+            <input
+              type="checkbox"
+              data-step2-field="bonded"
+              checked={state.step2.identity.bonded === true}
+            />
+            <span>Bonded</span>
+          </label>
+          <label style="display:flex; align-items:center; gap:0.5rem;">
+            <input
+              type="checkbox"
+              data-step2-field="insured"
+              checked={state.step2.identity.insured === true}
+            />
+            <span>Insured</span>
+          </label>
+        </div>
+
+        <div class="field" style="margin-top: 1.5rem;">
+          <label class="field__label">Industry associations</label>
+          <div class="checkbox-list" data-step2-associations>
+            {INDUSTRY_ASSOCIATIONS.map((assoc) => (
+              <label>
+                <input
+                  type="checkbox"
+                  value={assoc}
+                  checked={state.step2.identity.industry_associations?.includes(assoc) ?? false}
+                />
+                <span>{assoc}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field__label">Manufacturer certifications</label>
+          <div class="checkbox-list" data-step2-certs>
+            {MANUFACTURER_CERTS.map((cert) => (
+              <label>
+                <input
+                  type="checkbox"
+                  value={cert}
+                  checked={state.step2.identity.manufacturer_certifications?.includes(cert) ?? false}
+                />
+                <span>{cert}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div class="button-row">
+          <button type="button" class="btn btn--ghost" data-action="back">← Back</button>
+          <div class="button-row__spacer"></div>
+          <button
+            type="button"
+            class="btn btn--primary"
+            data-action="continue"
+            data-from-step="2"
+          >Continue →</button>
+        </div>
+      </section>
+
+      {/* Step 3 — Brand assets */}
+      <section
+        class="intake-step"
+        data-step="3"
+        data-active={state.current_step === 3 ? 'true' : 'false'}
+      >
+        <h2>Brand <span class="accent" style="font-style: italic;">assets</span></h2>
+        <p class="intake-step__lede">
+          Logos, colors, fonts, photography. Skip what you don't have — we can
+          design what's missing.
+        </p>
+
+        <h3>Logos</h3>
+        <div class="field">
+          <label class="field__label">Color logo (SVG/AI/EPS preferred)</label>
+          <UploadSlot name="logos.color" category="logo_color" file={state.step3.logos?.color} />
+        </div>
+        <div class="field">
+          <label class="field__label">White logo (for dark backgrounds)</label>
+          <UploadSlot name="logos.white" category="logo_white" file={state.step3.logos?.white} />
+        </div>
+        <div class="field">
+          <label class="field__label">Favicon (square, 512×512+)</label>
+          <UploadSlot name="logos.favicon" category="logo_favicon" file={state.step3.logos?.favicon} />
+        </div>
+
+        <h3 style="margin-top: 2rem;">Brand colors</h3>
+        <div class="field-row--3">
+          <div class="field">
+            <label class="field__label" for="step3-color-primary">Primary</label>
+            <input
+              id="step3-color-primary"
+              type="color"
+              data-step3-color="primary"
+              value={state.step3.colors?.primary ?? '#1A1A1A'}
+            />
+          </div>
+          <div class="field">
+            <label class="field__label" for="step3-color-accent">Accent</label>
+            <input
+              id="step3-color-accent"
+              type="color"
+              data-step3-color="accent"
+              value={state.step3.colors?.accent ?? '#8B2F2F'}
+            />
+          </div>
+          <div class="field">
+            <label class="field__label" for="step3-color-bg">Background</label>
+            <input
+              id="step3-color-bg"
+              type="color"
+              data-step3-color="background"
+              value={state.step3.colors?.background ?? '#FAF8F1'}
+            />
+          </div>
+        </div>
+        <label style="display:flex; align-items:center; gap:0.5rem; margin: -0.5rem 0 1rem;">
+          <input
+            type="checkbox"
+            data-step3-colors-designer
+            checked={state.step3.colors?.designer_choice === true}
+          />
+          <span>I don't have brand colors — design something for me</span>
+        </label>
+
+        <h3 style="margin-top: 2rem;">Fonts</h3>
+        <div class="field-row">
+          <div class="field">
+            <label class="field__label" for="step3-font-primary">Primary font name</label>
+            <input
+              id="step3-font-primary"
+              type="text"
+              placeholder="Inter, Arial, etc."
+              data-step3-font="primary_name"
+              value={state.step3.fonts?.primary_name ?? ''}
+            />
+          </div>
+          <div class="field">
+            <label class="field__label" for="step3-font-secondary">Secondary font name</label>
+            <input
+              id="step3-font-secondary"
+              type="text"
+              placeholder="Optional serif/display"
+              data-step3-font="secondary_name"
+              value={state.step3.fonts?.secondary_name ?? ''}
+            />
+          </div>
+        </div>
+        <label style="display:flex; align-items:center; gap:0.5rem; margin: -0.5rem 0 1rem;">
+          <input
+            type="checkbox"
+            data-step3-fonts-designer
+            checked={state.step3.fonts?.designer_choice === true}
+          />
+          <span>Use designer's choice</span>
+        </label>
+
+        <h3 style="margin-top: 2rem;">Photography</h3>
+        <p class="muted" style="font-size: 0.9rem;">
+          Owner/team, truck/uniform, jobsite/before-after, office. Browse to
+          add photos. Up to 25MB per file.
+        </p>
+        <div class="field">
+          <UploadSlot name="photos" category="photo" multiple={true} />
+        </div>
+        <div class="repeating-list" data-step3-photo-list>
+          {state.step3.photography?.items?.map((p) => (
+            <div class="upload-slot" data-photo-item={p.id}>
+              <span class="upload-slot__name" data-state="filled">{p.filename}</span>
+              <span class="muted" style="font-size: 0.85rem;">{(p.size_bytes / 1024).toFixed(0)} KB</span>
+            </div>
+          ))}
+        </div>
+        <label style="display:flex; align-items:center; gap:0.5rem;">
+          <input
+            type="checkbox"
+            data-step3-photoshoot
+            checked={state.step3.photography?.photoshoot_requested === true}
+          />
+          <span>Arrange a photo shoot for me</span>
+        </label>
+
+        <div class="button-row">
+          <button type="button" class="btn btn--ghost" data-action="back">← Back</button>
+          <div class="button-row__spacer"></div>
+          <button
+            type="button"
+            class="btn btn--primary"
+            data-action="continue"
+            data-from-step="3"
+          >Continue →</button>
+        </div>
+      </section>
+
+      {/* Step 4 — Trust signals */}
+      <section
+        class="intake-step"
+        data-step="4"
+        data-active={state.current_step === 4 ? 'true' : 'false'}
+      >
+        <h2>Trust <span class="accent" style="font-style: italic;">signals</span></h2>
+        <p class="intake-step__lede">
+          The proof that earns the next click — testimonials, recent projects,
+          press, awards. Aim for 8–12 projects if you have them.
+        </p>
+
+        <h3>Testimonials</h3>
+        <div class="repeating-list" data-step4-testimonials></div>
+        <button type="button" class="btn btn--ghost" data-action="add-testimonial">+ Add testimonial</button>
+
+        <h3 style="margin-top: 2rem;">Recent projects</h3>
+        <div class="repeating-list" data-step4-projects></div>
+        <button type="button" class="btn btn--ghost" data-action="add-project">+ Add project</button>
+
+        <h3 style="margin-top: 2rem;">Press, podcasts, awards</h3>
+        <div class="repeating-list" data-step4-press></div>
+        <button type="button" class="btn btn--ghost" data-action="add-press">+ Add entry</button>
+
+        <div class="button-row">
+          <button type="button" class="btn btn--ghost" data-action="back">← Back</button>
+          <div class="button-row__spacer"></div>
+          <button
+            type="button"
+            class="btn btn--primary"
+            data-action="continue"
+            data-from-step="4"
+          >Continue →</button>
+        </div>
+      </section>
+
+      {/* Steps 5–10 — Sprint 4 placeholder */}
+      {[5, 6, 7, 8, 9, 10].map((n) => (
+        <section
+          class="intake-step"
+          data-step={n}
+          data-active={state.current_step === n ? 'true' : 'false'}
+        >
+          <h2>Saved — <span class="accent" style="font-style: italic;">we'll continue from here</span></h2>
+          <p class="intake-step__lede">
+            Steps 5 through 10 (digital access, service area, voice & guardrails,
+            team & approvals, schedule, and review) open up next. We'll email
+            you the moment they're ready — your same link will pick up where
+            you left off.
+          </p>
+          <p>
+            Questions in the meantime? Reach us at
+            {' '}<a href="mailto:intake@aeolistings.ai">intake@aeolistings.ai</a>.
+          </p>
+          <div class="button-row">
+            <button type="button" class="btn btn--ghost" data-action="back">← Back</button>
+            <div class="button-row__spacer"></div>
+          </div>
+        </section>
+      ))}
+
+      <script is:inline type="application/json" data-intake-state set:html={JSON.stringify(state)}></script>
+    </div>
+  </Page>
+)}
+
+<script>
+  // Client-side controller — Sprint 3.
+  // Reads inline JSON state, drives step navigation, PATCHes the API, rotates
+  // the URL token, fires prefill, handles uploads, and manages repeating lists.
+
+  type ProvenanceSource =
+    | 'website' | 'website-scrape' | 'az-roc' | 'bbb' | 'client' | 'unknown';
+
+  interface FileRef {
+    id: string;
+    filename: string;
+    size_bytes: number;
+    mime_type: string;
+  }
+
+  interface State {
+    intake_id: string;
+    client_first_name: string;
+    business_name: string;
+    scope_flags: Record<string, boolean>;
+    current_step: number;
+    total_steps: number;
+    sprint_3_final_step: number;
+    status: string;
+    step1: { confirmed_scope?: Record<string, boolean>; scope_notes?: string };
+    step2: {
+      identity: Record<string, any>;
+      provenance: Record<string, ProvenanceSource | undefined>;
+      prefill_meta?: { last_run_at?: number; domain?: string; sources?: any; cached?: boolean; errors?: string[] };
+    };
+    step3: any;
+    step4: any;
+    app_url: string;
+  }
+
+  const shellEl = document.querySelector<HTMLElement>('[data-intake-shell]');
+  if (shellEl) initIntakeForm(shellEl);
+
+  function initIntakeForm(shell: HTMLElement): void {
+    const stateScript = shell.querySelector<HTMLScriptElement>('script[data-intake-state]');
+    const state: State = JSON.parse(stateScript?.textContent ?? '{}');
+    let token: string = shell.dataset.token ?? '';
+
+    const stepEls = Array.from(shell.querySelectorAll<HTMLElement>('.intake-step'));
+    const progressLabel = shell.querySelector<HTMLElement>('[data-progress-label]');
+    const progressBar = shell.querySelector<HTMLElement>('[data-progress-bar]');
+    const saveStatus = shell.querySelector<HTMLElement>('[data-save-status]');
+    const errorBanner = shell.querySelector<HTMLElement>('[data-banner-error]');
+    const successBanner = shell.querySelector<HTMLElement>('[data-banner-success]');
+
+    function showStep(n: number): void {
+      state.current_step = n;
+      stepEls.forEach((el) => {
+        el.dataset.active = (Number(el.dataset.step) === n) ? 'true' : 'false';
+      });
+      if (progressLabel) progressLabel.textContent = `Step ${n} of ${state.total_steps}`;
+      if (progressBar) progressBar.style.setProperty('--progress', `${(n / state.total_steps) * 100}%`);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function setSaveStatus(text: string): void {
+      if (saveStatus) saveStatus.textContent = text;
+    }
+
+    function showError(msg: string): void {
+      if (!errorBanner) return;
+      errorBanner.textContent = msg;
+      errorBanner.hidden = false;
+      window.setTimeout(() => { errorBanner.hidden = true; }, 6000);
+    }
+
+    function showSuccess(msg: string): void {
+      if (!successBanner) return;
+      successBanner.textContent = msg;
+      successBanner.hidden = false;
+      window.setTimeout(() => { successBanner.hidden = true; }, 4000);
+    }
+
+    async function patch(partial: Record<string, unknown>, toStep: number | null): Promise<boolean> {
+      setSaveStatus('Saving…');
+      try {
+        const res = await fetch(`/api/intake/${token}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            data: partial,
+            current_step: toStep ?? state.current_step,
+          }),
+        });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          showError(`Save failed: ${(body as any).error ?? res.status}`);
+          setSaveStatus('Save failed.');
+          return false;
+        }
+        const body = (await res.json()) as { token: string };
+        token = body.token;
+        history.replaceState(null, '', `/c/${token}`);
+        if (toStep !== null) showStep(toStep);
+        setSaveStatus('Saved.');
+        return true;
+      } catch (err) {
+        showError(`Network error: ${(err as Error).message}`);
+        setSaveStatus('Save failed.');
+        return false;
+      }
+    }
+
+    function collectStep1(): Record<string, unknown> {
+      const confirmed: Record<string, boolean> = {};
+      shell.querySelectorAll<HTMLInputElement>('[data-step1-scope] input[type="checkbox"]')
+        .forEach((cb) => { confirmed[cb.value] = cb.checked; });
+      const notes = shell.querySelector<HTMLTextAreaElement>('[data-step1-notes]')?.value ?? '';
+      const websiteUrl = shell.querySelector<HTMLInputElement>('[data-step1-website-url]')?.value.trim() ?? '';
+      const out: Record<string, unknown> = {
+        step1: { confirmed_scope: confirmed, scope_notes: notes },
+      };
+      if (websiteUrl) {
+        state.step2.identity.website_url = websiteUrl;
+        out.step2 = { identity: { ...state.step2.identity, website_url: websiteUrl } };
+        // Mirror to the visible step-2 input so the user sees what we saved.
+        const step2UrlEl = shell.querySelector<HTMLInputElement>('[data-step2-field="website_url"]');
+        if (step2UrlEl) step2UrlEl.value = websiteUrl;
+      }
+      return out;
+    }
+
+    function collectStep2(): Record<string, unknown> {
+      const ident: Record<string, any> = { ...state.step2.identity };
+      shell.querySelectorAll<HTMLInputElement>('[data-step2-field]').forEach((el) => {
+        const key = el.dataset.step2Field as string;
+        if (el.type === 'checkbox') {
+          ident[key] = el.checked;
+        } else if (el.type === 'number') {
+          ident[key] = el.value === '' ? undefined : Number(el.value);
+        } else {
+          ident[key] = el.value.trim() || undefined;
+        }
+      });
+      const address: Record<string, string> = {};
+      shell.querySelectorAll<HTMLInputElement>('[data-step2-address-field]').forEach((el) => {
+        const key = el.dataset.step2AddressField as string;
+        const v = el.value.trim();
+        if (v) address[key] = v;
+      });
+      ident.address = Object.keys(address).length ? address : undefined;
+      const associations: string[] = [];
+      shell.querySelectorAll<HTMLInputElement>('[data-step2-associations] input:checked')
+        .forEach((cb) => { associations.push(cb.value); });
+      ident.industry_associations = associations.length ? associations : undefined;
+      const certs: string[] = [];
+      shell.querySelectorAll<HTMLInputElement>('[data-step2-certs] input:checked')
+        .forEach((cb) => { certs.push(cb.value); });
+      ident.manufacturer_certifications = certs.length ? certs : undefined;
+
+      state.step2.identity = ident;
+      return { step2: { identity: ident, provenance: state.step2.provenance } };
+    }
+
+    function collectStep3(): Record<string, unknown> {
+      const colors = {
+        primary: shell.querySelector<HTMLInputElement>('[data-step3-color="primary"]')?.value,
+        accent: shell.querySelector<HTMLInputElement>('[data-step3-color="accent"]')?.value,
+        background: shell.querySelector<HTMLInputElement>('[data-step3-color="background"]')?.value,
+        designer_choice: shell.querySelector<HTMLInputElement>('[data-step3-colors-designer]')?.checked ?? false,
+      };
+      const fonts = {
+        primary_name: shell.querySelector<HTMLInputElement>('[data-step3-font="primary_name"]')?.value.trim() || undefined,
+        secondary_name: shell.querySelector<HTMLInputElement>('[data-step3-font="secondary_name"]')?.value.trim() || undefined,
+        designer_choice: shell.querySelector<HTMLInputElement>('[data-step3-fonts-designer]')?.checked ?? false,
+      };
+      const photoshoot = shell.querySelector<HTMLInputElement>('[data-step3-photoshoot]')?.checked ?? false;
+      state.step3 = {
+        ...(state.step3 ?? {}),
+        colors,
+        fonts: { ...(state.step3?.fonts ?? {}), ...fonts },
+        photography: { ...(state.step3?.photography ?? {}), photoshoot_requested: photoshoot },
+      };
+      return { step3: state.step3 };
+    }
+
+    function collectStep4(): Record<string, unknown> {
+      return { step4: state.step4 ?? {} };
+    }
+
+    async function runPrefill(): Promise<void> {
+      const urlEl = shell.querySelector<HTMLInputElement>('[data-step2-field="website_url"]')
+        ?? shell.querySelector<HTMLInputElement>('[data-step1-website-url]');
+      const url = urlEl?.value.trim();
+      if (!url) {
+        showError('Enter a website URL first.');
+        return;
+      }
+      const status = shell.querySelector<HTMLElement>('[data-prefill-status]');
+      if (status) status.textContent = `Looking up ${url}…`;
+      try {
+        const res = await fetch(`/api/intake/${token}/prefill`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url }),
+        });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          showError(`Prefill failed: ${(body as any).error ?? res.status}`);
+          if (status) status.textContent = 'Lookup failed.';
+          return;
+        }
+        const body = (await res.json()) as { prefill: any };
+        applyPrefillToForm(body.prefill);
+        if (status) {
+          status.textContent = body.prefill.cached
+            ? 'Prefilled (from cache).'
+            : `Prefilled from ${body.prefill.domain || url}.`;
+        }
+        await patch(collectStep2WithMeta(body.prefill), null);
+      } catch (err) {
+        showError(`Prefill error: ${(err as Error).message}`);
+        if (status) status.textContent = 'Lookup failed.';
+      }
+    }
+
+    function applyPrefillToForm(prefill: any): void {
+      const fillIfEmpty = (selector: string, value: unknown, source: ProvenanceSource): void => {
+        const el = shell.querySelector<HTMLInputElement>(selector);
+        if (!el || value === undefined || value === null || value === '') return;
+        if (el.value && el.value.trim() !== '') return;
+        el.value = String(value);
+        const provFor = el.dataset.step2Field || el.dataset.step2AddressField;
+        if (provFor) markProvenance(provFor, source);
+      };
+      const websiteSource: ProvenanceSource =
+        prefill.sources?.website === 'json-ld' ? 'website'
+        : prefill.sources?.website === 'scrape' ? 'website-scrape'
+        : 'unknown';
+
+      fillIfEmpty('[data-step2-field="legal_business_name"]', prefill.legal_business_name ?? prefill.business_name, websiteSource);
+      fillIfEmpty('[data-step2-field="dba"]', prefill.dba, websiteSource);
+      fillIfEmpty('[data-step2-field="founded_year"]', prefill.founded_year, websiteSource);
+      fillIfEmpty('[data-step2-field="owner_name"]', prefill.owner_name, websiteSource);
+      fillIfEmpty('[data-step2-field="phone_primary"]', prefill.phone_primary, websiteSource);
+      fillIfEmpty('[data-step2-field="phone_secondary"]', prefill.phone_secondary, websiteSource);
+      fillIfEmpty('[data-step2-field="email"]', prefill.email, websiteSource);
+      if (prefill.address) {
+        fillIfEmpty('[data-step2-address-field="street"]', prefill.address.street, websiteSource);
+        fillIfEmpty('[data-step2-address-field="city"]', prefill.address.city, websiteSource);
+        fillIfEmpty('[data-step2-address-field="state"]', prefill.address.state, websiteSource);
+        fillIfEmpty('[data-step2-address-field="postal_code"]', prefill.address.postal_code, websiteSource);
+      }
+      if (prefill.licenses) {
+        fillIfEmpty('[data-step2-field="roc_number"]', prefill.licenses.roc_number, 'az-roc');
+        fillIfEmpty('[data-step2-field="bbb_accredited_date"]', prefill.licenses.bbb_accredited_date, 'bbb');
+        if (prefill.licenses.bonded !== undefined) {
+          const bonded = shell.querySelector<HTMLInputElement>('[data-step2-field="bonded"]');
+          if (bonded && !bonded.checked) { bonded.checked = !!prefill.licenses.bonded; markProvenance('bonded', 'az-roc'); }
+        }
+        if (prefill.licenses.insured !== undefined) {
+          const insured = shell.querySelector<HTMLInputElement>('[data-step2-field="insured"]');
+          if (insured && !insured.checked) { insured.checked = !!prefill.licenses.insured; markProvenance('insured', 'az-roc'); }
+        }
+      }
+    }
+
+    function markProvenance(key: string, source: ProvenanceSource): void {
+      const span = shell.querySelector<HTMLElement>(`[data-prov-for="${key}"]`);
+      if (!span) return;
+      span.dataset.source = source;
+      span.textContent = sourceLabel(source);
+      state.step2.provenance[key] = source;
+    }
+
+    function sourceLabel(source: ProvenanceSource): string {
+      switch (source) {
+        case 'website': return 'Source: website';
+        case 'website-scrape': return 'Source: website (scraped)';
+        case 'az-roc': return 'Source: AZ ROC';
+        case 'bbb': return 'Source: BBB';
+        case 'client': return 'Edited';
+        default: return '';
+      }
+    }
+
+    function collectStep2WithMeta(prefill: any): Record<string, unknown> {
+      const base = collectStep2();
+      const step2 = (base.step2 as Record<string, unknown>) ?? {};
+      step2.provenance = state.step2.provenance;
+      step2.prefill_meta = {
+        last_run_at: prefill.fetched_at,
+        domain: prefill.domain,
+        sources: prefill.sources,
+        cached: prefill.cached,
+        errors: prefill.errors,
+      };
+      state.step2.prefill_meta = step2.prefill_meta as any;
+      return { step2 };
+    }
+
+    async function uploadFile(category: string, file: File): Promise<FileRef | null> {
+      const fd = new FormData();
+      fd.append('category', category);
+      fd.append('file', file);
+      try {
+        const res = await fetch(`/api/intake/${token}/upload`, { method: 'POST', body: fd });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          showError(`Upload failed: ${(body as any).error ?? res.status}`);
+          return null;
+        }
+        const body = (await res.json()) as { file: FileRef };
+        return body.file;
+      } catch (err) {
+        showError(`Upload error: ${(err as Error).message}`);
+        return null;
+      }
+    }
+
+    function wireUploadSlots(): void {
+      shell.querySelectorAll<HTMLInputElement>('input[type="file"][data-upload-input]').forEach((input) => {
+        input.addEventListener('change', async () => {
+          const slot = input.closest('[data-upload-slot]') as HTMLElement | null;
+          const nameEl = slot?.querySelector<HTMLElement>('.upload-slot__name');
+          const category = input.dataset.category as string;
+          const multiple = input.dataset.multiple === 'true';
+          const slotName = input.dataset.slotName as string;
+          const files = input.files ? Array.from(input.files) : [];
+          if (!files.length) return;
+          for (const file of files) {
+            if (nameEl) {
+              nameEl.dataset.state = '';
+              nameEl.textContent = `Uploading ${file.name}…`;
+            }
+            const saved = await uploadFile(category, file);
+            if (!saved) {
+              if (nameEl) { nameEl.dataset.state = 'error'; nameEl.textContent = `Failed: ${file.name}`; }
+              continue;
+            }
+            if (nameEl && !multiple) {
+              nameEl.dataset.state = 'filled';
+              nameEl.textContent = saved.filename;
+            }
+            applyUploadToState(slotName, category, saved, multiple);
+          }
+          await patch({ step3: state.step3 }, null);
+          if (multiple) {
+            renderPhotoList();
+            input.value = '';
+          }
+        });
+      });
+    }
+
+    function applyUploadToState(slotName: string, category: string, file: FileRef, _multiple: boolean): void {
+      state.step3 = state.step3 ?? {};
+      if (slotName === 'logos.color') (state.step3.logos = state.step3.logos ?? {}).color = file;
+      else if (slotName === 'logos.white') (state.step3.logos = state.step3.logos ?? {}).white = file;
+      else if (slotName === 'logos.favicon') (state.step3.logos = state.step3.logos ?? {}).favicon = file;
+      else if (slotName === 'photos') {
+        state.step3.photography = state.step3.photography ?? {};
+        state.step3.photography.items = state.step3.photography.items ?? [];
+        state.step3.photography.items.push({ ...file, category });
+      }
+    }
+
+    function renderPhotoList(): void {
+      const list = shell.querySelector<HTMLElement>('[data-step3-photo-list]');
+      if (!list) return;
+      const items: any[] = state.step3?.photography?.items ?? [];
+      list.innerHTML = items.map((p) => `
+        <div class="upload-slot" data-photo-item="${p.id}">
+          <span class="upload-slot__name" data-state="filled">${escapeHtml(p.filename)}</span>
+          <span class="muted" style="font-size: 0.85rem;">${(p.size_bytes / 1024).toFixed(0)} KB</span>
+        </div>
+      `).join('');
+    }
+
+    function escapeHtml(s: string): string {
+      return s.replace(/[&<>"']/g, (c) => (
+        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string
+      ));
+    }
+
+    function makeCard(label: string, removeFn: () => void): HTMLElement {
+      const card = document.createElement('div');
+      card.className = 'repeating-card';
+      const header = document.createElement('div');
+      header.className = 'repeating-card__header';
+      const title = document.createElement('span');
+      title.textContent = label;
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'repeating-card__remove';
+      remove.textContent = 'Remove';
+      remove.addEventListener('click', removeFn);
+      header.appendChild(title);
+      header.appendChild(remove);
+      card.appendChild(header);
+      return card;
+    }
+
+    function renderTestimonials(): void {
+      const list = shell.querySelector<HTMLElement>('[data-step4-testimonials]');
+      if (!list) return;
+      list.innerHTML = '';
+      state.step4 = state.step4 ?? {};
+      state.step4.testimonials = state.step4.testimonials ?? [];
+      state.step4.testimonials.forEach((t: any, i: number) => {
+        const card = makeCard(`Testimonial ${i + 1}`, () => {
+          state.step4.testimonials.splice(i, 1);
+          renderTestimonials();
+        });
+        const fields = document.createElement('div');
+        fields.innerHTML = `
+          <div class="field-row">
+            <div class="field"><label class="field__label">Name</label><input data-t-field="name" data-i="${i}" type="text" value="${escapeHtml(t.name ?? '')}" /></div>
+            <div class="field"><label class="field__label">City</label><input data-t-field="city" data-i="${i}" type="text" value="${escapeHtml(t.city ?? '')}" /></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label class="field__label">Project type</label><input data-t-field="project_type" data-i="${i}" type="text" value="${escapeHtml(t.project_type ?? '')}" /></div>
+            <div class="field"><label class="field__label">Year</label><input data-t-field="year" data-i="${i}" type="number" value="${escapeHtml(String(t.year ?? ''))}" /></div>
+          </div>
+          <div class="field"><label class="field__label">Quote</label><textarea data-t-field="quote" data-i="${i}">${escapeHtml(t.quote ?? '')}</textarea></div>
+          <label style="display:flex; gap:0.5rem; align-items:center;">
+            <input type="checkbox" data-t-field="permission_to_publish" data-i="${i}" ${t.permission_to_publish ? 'checked' : ''} />
+            <span>I have permission to publish this testimonial</span>
+          </label>
+        `;
+        card.appendChild(fields);
+        list.appendChild(card);
+      });
+      list.querySelectorAll<HTMLElement>('[data-t-field]').forEach((el) => {
+        el.addEventListener('input', () => {
+          const i = Number(el.dataset.i);
+          const f = el.dataset.tField as string;
+          if (el instanceof HTMLInputElement && el.type === 'checkbox') {
+            state.step4.testimonials[i][f] = el.checked;
+          } else if (el instanceof HTMLInputElement && el.type === 'number') {
+            state.step4.testimonials[i][f] = el.value === '' ? undefined : Number(el.value);
+          } else {
+            state.step4.testimonials[i][f] = (el as HTMLInputElement | HTMLTextAreaElement).value;
+          }
+        });
+      });
+    }
+
+    function renderProjects(): void {
+      const list = shell.querySelector<HTMLElement>('[data-step4-projects]');
+      if (!list) return;
+      list.innerHTML = '';
+      state.step4 = state.step4 ?? {};
+      state.step4.projects = state.step4.projects ?? [];
+      state.step4.projects.forEach((p: any, i: number) => {
+        const card = makeCard(`Project ${i + 1}`, () => {
+          state.step4.projects.splice(i, 1);
+          renderProjects();
+        });
+        const fields = document.createElement('div');
+        fields.innerHTML = `
+          <div class="field-row">
+            <div class="field"><label class="field__label">Project type</label><input data-p-field="project_type" data-i="${i}" type="text" value="${escapeHtml(p.project_type ?? '')}" /></div>
+            <div class="field"><label class="field__label">City</label><input data-p-field="city" data-i="${i}" type="text" value="${escapeHtml(p.city ?? '')}" /></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label class="field__label">Scope</label><input data-p-field="scope" data-i="${i}" type="text" placeholder="e.g. 3,200 sqft remodel" value="${escapeHtml(p.scope ?? '')}" /></div>
+            <div class="field"><label class="field__label">Year</label><input data-p-field="year" data-i="${i}" type="number" value="${escapeHtml(String(p.year ?? ''))}" /></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label class="field__label">Timeline</label><input data-p-field="timeline" data-i="${i}" type="text" placeholder="e.g. 6 months" value="${escapeHtml(p.timeline ?? '')}" /></div>
+            <div class="field"><label class="field__label">Budget range</label><input data-p-field="budget_range" data-i="${i}" type="text" placeholder="$50k–$100k" value="${escapeHtml(p.budget_range ?? '')}" /></div>
+          </div>
+          <label style="display:flex; gap:0.5rem; align-items:center;">
+            <input type="checkbox" data-p-field="publishable_budget" data-i="${i}" ${p.publishable_budget ? 'checked' : ''} />
+            <span>I'm OK publishing the budget range</span>
+          </label>
+          <div class="field" style="margin-top:0.75rem;"><label class="field__label">Notes</label><textarea data-p-field="notes" data-i="${i}">${escapeHtml(p.notes ?? '')}</textarea></div>
+        `;
+        card.appendChild(fields);
+        list.appendChild(card);
+      });
+      list.querySelectorAll<HTMLElement>('[data-p-field]').forEach((el) => {
+        el.addEventListener('input', () => {
+          const i = Number(el.dataset.i);
+          const f = el.dataset.pField as string;
+          if (el instanceof HTMLInputElement && el.type === 'checkbox') {
+            state.step4.projects[i][f] = el.checked;
+          } else if (el instanceof HTMLInputElement && el.type === 'number') {
+            state.step4.projects[i][f] = el.value === '' ? undefined : Number(el.value);
+          } else {
+            state.step4.projects[i][f] = (el as HTMLInputElement | HTMLTextAreaElement).value;
+          }
+        });
+      });
+    }
+
+    function renderPress(): void {
+      const list = shell.querySelector<HTMLElement>('[data-step4-press]');
+      if (!list) return;
+      list.innerHTML = '';
+      state.step4 = state.step4 ?? {};
+      state.step4.press = state.step4.press ?? [];
+      state.step4.press.forEach((p: any, i: number) => {
+        const card = makeCard(`Entry ${i + 1}`, () => {
+          state.step4.press.splice(i, 1);
+          renderPress();
+        });
+        const fields = document.createElement('div');
+        fields.innerHTML = `
+          <div class="field"><label class="field__label">Title</label><input data-pr-field="title" data-i="${i}" type="text" value="${escapeHtml(p.title ?? '')}" /></div>
+          <div class="field-row">
+            <div class="field"><label class="field__label">URL</label><input data-pr-field="url" data-i="${i}" type="url" value="${escapeHtml(p.url ?? '')}" /></div>
+            <div class="field"><label class="field__label">Date</label><input data-pr-field="date" data-i="${i}" type="text" placeholder="YYYY-MM" value="${escapeHtml(p.date ?? '')}" /></div>
+          </div>
+        `;
+        card.appendChild(fields);
+        list.appendChild(card);
+      });
+      list.querySelectorAll<HTMLInputElement>('[data-pr-field]').forEach((el) => {
+        el.addEventListener('input', () => {
+          const i = Number(el.dataset.i);
+          const f = el.dataset.prField as string;
+          state.step4.press[i][f] = el.value;
+        });
+      });
+    }
+
+    shell.addEventListener('click', async (ev) => {
+      const target = (ev.target as HTMLElement).closest<HTMLElement>('[data-action]');
+      if (!target) return;
+      const action = target.dataset.action;
+
+      switch (action) {
+        case 'start':
+          await patch({}, 1);
+          break;
+        case 'continue': {
+          const fromStep = Number(target.dataset.fromStep);
+          let payload: Record<string, unknown> = {};
+          if (fromStep === 1) payload = collectStep1();
+          else if (fromStep === 2) payload = collectStep2();
+          else if (fromStep === 3) payload = collectStep3();
+          else if (fromStep === 4) payload = collectStep4();
+          const ok = await patch(payload, fromStep + 1);
+          if (ok && fromStep === 1) maybeAutoPrefill();
+          if (ok && fromStep === 4) {
+            showSuccess("Saved through trust signals — we'll be in touch when steps 5–10 are ready.");
+          }
+          break;
+        }
+        case 'back':
+          showStep(Math.max(0, state.current_step - 1));
+          break;
+        case 'prefill':
+          await runPrefill();
+          break;
+        case 'add-testimonial':
+          state.step4 = state.step4 ?? {};
+          state.step4.testimonials = state.step4.testimonials ?? [];
+          state.step4.testimonials.push({});
+          renderTestimonials();
+          break;
+        case 'add-project':
+          state.step4 = state.step4 ?? {};
+          state.step4.projects = state.step4.projects ?? [];
+          state.step4.projects.push({});
+          renderProjects();
+          break;
+        case 'add-press':
+          state.step4 = state.step4 ?? {};
+          state.step4.press = state.step4.press ?? [];
+          state.step4.press.push({});
+          renderPress();
+          break;
+      }
+    });
+
+    shell.querySelector<HTMLElement>('[data-save-exit]')?.addEventListener('click', async () => {
+      const fromStep = state.current_step;
+      let payload: Record<string, unknown> = {};
+      if (fromStep === 1) payload = collectStep1();
+      else if (fromStep === 2) payload = collectStep2();
+      else if (fromStep === 3) payload = collectStep3();
+      else if (fromStep === 4) payload = collectStep4();
+      const ok = await patch(payload, null);
+      if (ok) showSuccess('Saved. Use the same email link to come back any time.');
+    });
+
+    // Mark fields edited-by-client when the user types into them.
+    shell.querySelectorAll<HTMLInputElement>('[data-step2-field], [data-step2-address-field]').forEach((el) => {
+      el.addEventListener('input', () => {
+        const key = el.dataset.step2Field || el.dataset.step2AddressField;
+        if (!key) return;
+        markProvenance(key, 'client');
+      });
+    });
+
+    wireUploadSlots();
+    renderTestimonials();
+    renderProjects();
+    renderPress();
+    if (state.step3?.photography?.items?.length) renderPhotoList();
+
+    function maybeAutoPrefill(): void {
+      if (
+        state.current_step === 2
+        && state.step2?.identity?.website_url
+        && !state.step2?.prefill_meta?.last_run_at
+      ) {
+        runPrefill();
+      }
+    }
+
+    // Initial paint sync (covers the case where the URL was hand-edited).
+    showStep(state.current_step);
+    // Auto-fire prefill on initial load if we landed on step 2 with a URL but no prior run.
+    maybeAutoPrefill();
+  }
+</script>
 
 <style>
-  .muted {
-    color: var(--fg-muted);
-    font-size: 0.9rem;
+  /* Layout shim — widen Page.astro's max-width for the form-heavy view. */
+  :global(.page__main:has(.intake-shell)) {
+    max-width: 50rem;
   }
-  strong {
-    font-weight: 600;
+  :global(.field__provenance:empty) {
+    display: none;
   }
 </style>
