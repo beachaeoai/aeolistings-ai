@@ -4,7 +4,6 @@ description: "An honest answer to the most common skeptical question about Answe
 pubDate: 2026-04-19
 author: "AEO Listings"
 tags: ["fundamentals", "seo", "definitions"]
-draft: true
 ---
 
 **Answer Engine Optimization (AEO) shares roughly half its tactics with classical SEO — both reward technical hygiene, structured data, content quality, and authoritative citations. But the discipline diverges on three points that change the work meaningfully: the optimization target is a single synthesized answer rather than a ranked list of links, the dominant unit of retrieval is a passage rather than a page, and entity identity matters more than keyword targeting. Calling AEO "just SEO" undercounts these differences by enough to lose the engagement.**
