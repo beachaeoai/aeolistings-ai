@@ -1428,7 +1428,11 @@ const APPROVAL_MODE_OPTIONS_SOCIAL: { value: string; label: string }[] = [
       };
       if (websiteUrl) {
         state.step2.identity.website_url = websiteUrl;
-        out.step2 = { identity: { ...state.step2.identity, website_url: websiteUrl } };
+        // Preserve step2.prefill_meta — shallow merge on `step2` would otherwise wipe it
+        // if the user revisits Step 1 after a prefill run and clicks Continue.
+        const step2Payload: Record<string, unknown> = { identity: { ...state.step2.identity, website_url: websiteUrl } };
+        if (state.step2.prefill_meta) step2Payload.prefill_meta = state.step2.prefill_meta;
+        out.step2 = step2Payload;
         // Mirror to the visible step-2 input so the user sees what we saved.
         const step2UrlEl = shell.querySelector<HTMLInputElement>('[data-step2-field="website_url"]');
         if (step2UrlEl) step2UrlEl.value = websiteUrl;
@@ -1465,7 +1469,11 @@ const APPROVAL_MODE_OPTIONS_SOCIAL: { value: string; label: string }[] = [
       ident.manufacturer_certifications = certs.length ? certs : undefined;
 
       state.step2.identity = ident;
-      return { step2: { identity: ident, provenance: state.step2.provenance } };
+      // Re-send prefill_meta on every Step-2 PATCH. updateIntakeData shallow-merges
+      // the `step2` key, so omitting prefill_meta would wipe the "Last run: ..." hint.
+      const step2Payload: Record<string, unknown> = { identity: ident, provenance: state.step2.provenance };
+      if (state.step2.prefill_meta) step2Payload.prefill_meta = state.step2.prefill_meta;
+      return { step2: step2Payload };
     }
 
     function collectStep3(): Record<string, unknown> {

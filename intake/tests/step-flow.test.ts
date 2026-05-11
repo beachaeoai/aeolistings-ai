@@ -301,6 +301,80 @@ describe('Prefill button populates Step-2 fields', () => {
 });
 
 // ---------------------------------------------------------------------------
+// prefill_meta survives a subsequent Step-2 save (regression for shallow-merge trap)
+// ---------------------------------------------------------------------------
+//
+// `updateIntakeData` shallow-merges by step key, so any PATCH that sends `step2`
+// REPLACES the whole step2 namespace. If the Step-2 collector forgets to re-send
+// `prefill_meta`, the "Last run: ..." hint disappears server-side on the next save.
+// These tests pin down both the contract (drop happens) and the fix (re-sending
+// prefill_meta preserves it).
+describe('step2 prefill_meta — shallow-merge contract', () => {
+  it('drops prefill_meta when a subsequent step2 PATCH omits it (contract)', async () => {
+    const env = buildEnv();
+    const { token } = await bootstrap(env);
+
+    // Save 1: write identity + prefill_meta (what the prefill button does).
+    const r1 = await patch(env, token, {
+      data: {
+        step2: {
+          identity: { legal_business_name: 'Acme Roofing LLC' },
+          provenance: { legal_business_name: 'website' },
+          prefill_meta: { last_run_at: 1700000000, domain: 'acme.com' },
+        },
+      },
+      current_step: 2,
+    });
+    const { token: t2 } = (await r1.json()) as { token: string };
+
+    // Save 2: re-send step2 WITHOUT prefill_meta (the old, buggy collectStep2 shape).
+    const r2 = await patch(env, t2, {
+      data: {
+        step2: {
+          identity: { legal_business_name: 'Acme Roofing LLC', phone_primary: '602-555-0100' },
+          provenance: { legal_business_name: 'website', phone_primary: 'client' },
+        },
+      },
+      current_step: 3,
+    });
+    const body = (await r2.json()) as { intake: { data: any } };
+    expect(body.intake.data.step2.prefill_meta).toBeUndefined();
+  });
+
+  it('preserves prefill_meta when the collector re-sends it (fix)', async () => {
+    const env = buildEnv();
+    const { token } = await bootstrap(env);
+
+    const r1 = await patch(env, token, {
+      data: {
+        step2: {
+          identity: { legal_business_name: 'Acme Roofing LLC' },
+          provenance: { legal_business_name: 'website' },
+          prefill_meta: { last_run_at: 1700000000, domain: 'acme.com' },
+        },
+      },
+      current_step: 2,
+    });
+    const { token: t2 } = (await r1.json()) as { token: string };
+
+    // Save 2: collectStep2 now always includes prefill_meta when state has it.
+    const r2 = await patch(env, t2, {
+      data: {
+        step2: {
+          identity: { legal_business_name: 'Acme Roofing LLC', phone_primary: '602-555-0100' },
+          provenance: { legal_business_name: 'website', phone_primary: 'client' },
+          prefill_meta: { last_run_at: 1700000000, domain: 'acme.com' },
+        },
+      },
+      current_step: 3,
+    });
+    const body = (await r2.json()) as { intake: { data: any } };
+    expect(body.intake.data.step2.prefill_meta?.last_run_at).toBe(1700000000);
+    expect(body.intake.data.step2.prefill_meta?.domain).toBe('acme.com');
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Sprint 4 — Steps 5–10 PATCH placement assertions
 // ---------------------------------------------------------------------------
 
