@@ -8,6 +8,7 @@
     "deploy": "wrangler deploy",
     "tail": "wrangler tail",
     "secret:resend": "wrangler secret put RESEND_API_KEY",
+    "secret:intake-hmac": "wrangler secret put INTAKE_HMAC_SIGNING_KEY",
     "kv:create": "wrangler kv namespace create QUOTE_EVENTS",
     "typecheck": "tsc --noEmit"
   },

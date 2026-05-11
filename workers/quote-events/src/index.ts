@@ -23,6 +23,11 @@
 interface Env {
   RESEND_API_KEY: string;
   QUOTE_EVENTS?: KVNamespace;
+  // HMAC signing key used to authenticate against the intake create
+  // endpoint (POST /intake/api/intake/create). Same value as the intake
+  // worker's HMAC_SIGNING_KEY secret. Set with:
+  //   npx wrangler secret put INTAKE_HMAC_SIGNING_KEY
+  INTAKE_HMAC_SIGNING_KEY?: string;
 }
 
 type EventKind = 'view' | 'accept';
@@ -66,10 +71,23 @@ interface AcceptPayload extends BasePayload {
 const FROM_ADDRESS = 'AEO Listings <hello@aeolistings.ai>';
 const TO_ADDRESS = 'hello@aeolistings.ai';
 const QUOTE_BASE_URL = 'https://aeolistings.ai/quote/';
+const INTAKE_CREATE_URL = 'https://aeolistings.ai/intake/api/intake/create';
 
 const MAX_FIELD_LEN = 5000;
 const MAX_NOTE_LEN = 20000;
 const VIEW_DEDUP_TTL_SEC = 60 * 60 * 24; // one notification email per quote per 24h
+
+// Map quote line-item ids → intake scope_flags keys. Unknown ids are
+// skipped so adding a new line item in quote markdown doesn't require a
+// worker redeploy; it just won't pre-check that flag in the intake form
+// until this table is updated.
+const SCOPE_FLAG_MAP: Record<string, string> = {
+  website: 'website',
+  gbp: 'gbp',
+  'social-setup': 'social_foundation',
+  'social-management': 'social_management',
+  'aeo-retainer': 'retainer',
+};
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -256,9 +274,17 @@ function buildAcceptAgencyEmail(p: {
   ua: string;
   whenIso: string;
   acceptanceId: string;
+  intakeMagicLink?: string;
+  intakeError?: string;
 }): { subject: string; html: string; text: string } {
   const url = QUOTE_BASE_URL + p.slug;
   const subject = `ACCEPTED: ${p.business} (${p.quoteId}) — ${fmtUSD(p.totals.oneTimeTotal)} upfront, ${fmtUSD(p.totals.recurringTotal)}/mo`;
+
+  const intakeLineText = p.intakeMagicLink
+    ? `Intake link:   ${p.intakeMagicLink}`
+    : p.intakeError
+      ? `⚠️ INTAKE CREATE FAILED — mint manually (${p.intakeError})`
+      : '';
 
   const text = [
     `${p.business} accepted quote ${p.quoteId}.`,
@@ -268,6 +294,7 @@ function buildAcceptAgencyEmail(p: {
     `Acceptance ID: ${p.acceptanceId}`,
     `When:          ${p.whenIso}`,
     `Quote URL:     ${url}`,
+    intakeLineText,
     `IP:            ${p.ip || '(unknown)'}`,
     `UA:            ${p.ua || '(unknown)'}`,
     '',
@@ -308,6 +335,7 @@ function buildAcceptAgencyEmail(p: {
     <tr><td style="padding:6px 16px 6px 0;color:#666;font-size:13px;vertical-align:top;white-space:nowrap;">Acceptance ID</td><td style="padding:6px 0;font-size:13px;font-family:ui-monospace,Menlo,monospace;color:#666;">${escapeHtml(p.acceptanceId)}</td></tr>
     <tr><td style="padding:6px 16px 6px 0;color:#666;font-size:13px;vertical-align:top;white-space:nowrap;">When</td><td style="padding:6px 0;font-size:14px;">${escapeHtml(p.whenIso)}</td></tr>
     <tr><td style="padding:6px 16px 6px 0;color:#666;font-size:13px;vertical-align:top;white-space:nowrap;">Quote URL</td><td style="padding:6px 0;font-size:14px;"><a href="${escapeHtml(url)}" style="color:#8B2F2F;">${escapeHtml(url)}</a></td></tr>
+    ${p.intakeMagicLink ? `<tr><td style="padding:6px 16px 6px 0;color:#666;font-size:13px;vertical-align:top;white-space:nowrap;">Intake link</td><td style="padding:6px 0;font-size:14px;"><a href="${escapeHtml(p.intakeMagicLink)}" style="color:#8B2F2F;">${escapeHtml(p.intakeMagicLink)}</a></td></tr>` : p.intakeError ? `<tr><td style="padding:6px 16px 6px 0;color:#8B2F2F;font-size:13px;vertical-align:top;white-space:nowrap;font-weight:600;">⚠️ Intake</td><td style="padding:6px 0;font-size:13px;color:#8B2F2F;">Intake create failed — mint manually (${escapeHtml(p.intakeError)})</td></tr>` : ''}
     <tr><td style="padding:6px 16px 6px 0;color:#666;font-size:13px;vertical-align:top;white-space:nowrap;">IP</td><td style="padding:6px 0;font-size:14px;">${escapeHtml(p.ip || '(unknown)')}</td></tr>
     <tr><td style="padding:6px 16px 6px 0;color:#666;font-size:13px;vertical-align:top;white-space:nowrap;">User-Agent</td><td style="padding:6px 0;font-size:13px;color:#666;">${escapeHtml(p.ua || '(unknown)')}</td></tr>
   </table>
@@ -316,6 +344,74 @@ function buildAcceptAgencyEmail(p: {
 </body></html>`;
 
   return { subject, html, text };
+}
+
+function deriveScopeFlags(items: CleanSelectedItem[]): Record<string, boolean> {
+  const flags: Record<string, boolean> = {};
+  for (const it of items) {
+    const key = SCOPE_FLAG_MAP[it.id];
+    if (key) flags[key] = true;
+  }
+  return flags;
+}
+
+interface IntakeCreateResult {
+  ok: boolean;
+  magicLink?: string;
+  intakeId?: string;
+  errorDetail?: string;
+}
+
+async function createIntakeRecord(env: Env, params: {
+  acceptanceId: string;
+  email: string;
+  name: string;
+  business: string;
+  selectedItems: CleanSelectedItem[];
+}): Promise<IntakeCreateResult> {
+  if (!env.INTAKE_HMAC_SIGNING_KEY) {
+    console.error('intake create skipped — INTAKE_HMAC_SIGNING_KEY not configured');
+    return { ok: false, errorDetail: 'INTAKE_HMAC_SIGNING_KEY not configured' };
+  }
+  const scopeFlags = deriveScopeFlags(params.selectedItems);
+  const body = {
+    contract_id: params.acceptanceId,
+    client_email: params.email,
+    client_name: params.name,
+    business_name: params.business,
+    scope_flags: scopeFlags,
+  };
+
+  try {
+    const res = await fetch(INTAKE_CREATE_URL, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-admin-key': env.INTAKE_HMAC_SIGNING_KEY,
+      },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const detail = await res.text().catch(() => '<no body>');
+      console.error('intake create failed', res.status, detail);
+      return { ok: false, errorDetail: `HTTP ${res.status}: ${detail.slice(0, 200)}` };
+    }
+    const data = (await res.json().catch(() => null)) as
+      | { intake_id?: string; token?: string; magic_link?: string }
+      | null;
+    if (!data || typeof data.magic_link !== 'string') {
+      console.error('intake create returned malformed body', data);
+      return { ok: false, errorDetail: 'malformed response body' };
+    }
+    return {
+      ok: true,
+      magicLink: data.magic_link,
+      intakeId: data.intake_id,
+    };
+  } catch (err) {
+    console.error('intake create threw', err);
+    return { ok: false, errorDetail: err instanceof Error ? err.message : String(err) };
+  }
 }
 
 function buildAcceptClientReceipt(p: {
@@ -327,10 +423,20 @@ function buildAcceptClientReceipt(p: {
   whenIso: string;
   selectedItems: CleanSelectedItem[];
   totals: CleanTotals;
+  magicLink?: string;
 }): { subject: string; html: string; text: string } {
   const url = QUOTE_BASE_URL + p.slug;
   const subject = `Receipt: quote ${p.quoteId} accepted — AEO Listings`;
   const firstName = p.name.split(' ')[0] || '';
+
+  const intakeSectionText = p.magicLink
+    ? [
+        '',
+        'NEXT: TELL US ABOUT YOUR BUSINESS',
+        p.magicLink,
+        'This 35–60 minute form collects everything we need to start. Save at any step; the link in this email picks up where you left off.',
+      ].join('\n')
+    : '';
 
   const text = [
     `Hi ${firstName},`.trim(),
@@ -347,6 +453,7 @@ function buildAcceptClientReceipt(p: {
     `Acceptance ID: ${p.acceptanceId}`,
     `Recorded:      ${p.whenIso}`,
     `Quote URL:     ${url}`,
+    intakeSectionText,
     '',
     "We'll follow up within one business day with the contract, the first invoice (50% of the upfront total), and an invite for the kickoff call.",
     '',
@@ -376,6 +483,9 @@ function buildAcceptClientReceipt(p: {
     <tr><td style="padding:8px 14px;color:#666;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;border-bottom:1px solid #E5E1D6;">Recorded</td><td style="padding:8px 14px;font-size:13px;border-bottom:1px solid #E5E1D6;">${escapeHtml(p.whenIso)}</td></tr>
     <tr><td style="padding:8px 14px;color:#666;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Quote URL</td><td style="padding:8px 14px;font-size:13px;"><a href="${escapeHtml(url)}" style="color:#8B2F2F;">${escapeHtml(url)}</a></td></tr>
   </table>
+  ${p.magicLink ? `<h3 style="font-size:12px;color:#666;margin:24px 0 8px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Next: tell us about your business</h3>
+  <p style="font-size:15px;line-height:1.55;margin:0 0 16px;">This 35–60 minute form collects everything we need to start. Save at any step; the link in this email picks up where you left off.</p>
+  <p style="margin:0 0 24px;"><a href="${escapeHtml(p.magicLink)}" style="display:inline-block;background:#8B2F2F;color:#FAF8F1;text-decoration:none;padding:12px 22px;font-size:14px;font-weight:600;letter-spacing:0.02em;border-radius:2px;">Start the intake form &rarr;</a></p>` : ''}
   <p style="font-size:15px;line-height:1.55;margin:0 0 16px;">We'll follow up within one business day with the contract, the first invoice (50% of the upfront total), and an invite for the kickoff call.</p>
   <p style="font-size:15px;line-height:1.55;margin:0 0 24px;">Questions or changes — just reply.</p>
   <p style="font-size:15px;line-height:1.55;margin:0 0 4px;">Jake Beach</p>
@@ -561,6 +671,18 @@ export default {
         }
       }
 
+      // Auto-mint an intake record + magic link so the client can start
+      // filling the intake form immediately. Failures here MUST NOT fail
+      // the acceptance — the acceptance is the more important state to
+      // capture, and the agency email gets a ⚠️ warning instead.
+      const intakeResult = await createIntakeRecord(env, {
+        acceptanceId,
+        email,
+        name,
+        business,
+        selectedItems,
+      });
+
       const agencyEmail = buildAcceptAgencyEmail({
         business,
         quoteId,
@@ -574,6 +696,8 @@ export default {
         ua,
         whenIso,
         acceptanceId,
+        intakeMagicLink: intakeResult.magicLink,
+        intakeError: intakeResult.ok ? undefined : intakeResult.errorDetail,
       });
 
       const agencySent = await sendEmail(env, {
@@ -599,6 +723,7 @@ export default {
         whenIso,
         selectedItems,
         totals,
+        magicLink: intakeResult.magicLink,
       });
       ctx.waitUntil(
         sendEmail(env, {
