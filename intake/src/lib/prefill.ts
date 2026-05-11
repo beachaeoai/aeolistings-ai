@@ -80,7 +80,7 @@ export interface PrefillOptions {
 const DEFAULT_CACHE_TTL_SECONDS = 24 * 60 * 60;
 const DEFAULT_FETCH_TIMEOUT_MS = 8_000;
 const USER_AGENT =
-  'AeolistingsIntakeBot/1.0 (+https://intake.aeolistings.ai/about-bot)';
+  'AeolistingsIntakeBot/1.0 (+https://aeolistings.ai/intake/about-bot)';
 
 // ---------------------------------------------------------------------------
 // URL normalization + domain extraction
