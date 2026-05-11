@@ -8,6 +8,36 @@ Bound to: `https://aeolistings.ai/api/quote-event`
 Sends from: `AEO Listings <hello@aeolistings.ai>` (same Resend setup as the contact Worker)
 Storage:    Cloudflare KV namespace `QUOTE_EVENTS`
 
+## Auto-mint intake on accept
+
+When a client accepts a quote, the Worker now POSTs to
+`https://aeolistings.ai/intake/api/intake/create` with the client's
+data + scope flags derived from the selected line items. The intake
+endpoint mints a record + magic-link token, which the Worker then drops
+into the client receipt email as a "Next: tell us about your business"
+section so the intake form is reachable as soon as they accept — Jake no
+longer mints the link by hand.
+
+The scope-flag mapping (quote line-item `id` → intake `scope_flags` key):
+
+| Quote line-item id | Intake `scope_flags` key |
+|---|---|
+| `website`           | `website`            |
+| `gbp`               | `gbp`                |
+| `social-setup`      | `social_foundation`  |
+| `social-management` | `social_management`  |
+| `aeo-retainer`      | `retainer`           |
+
+Unknown line-item ids are skipped (forward-compatible — adding a new
+line item to a quote markdown file doesn't break this Worker; it just
+won't pre-check a flag in the intake form until this table is updated).
+
+If the intake create call fails (network blip, intake worker 5xx,
+missing secret) the acceptance itself still succeeds. The agency email
+gets a `⚠️ INTAKE CREATE FAILED — mint manually` line, the client
+receipt is sent without a magic-link section, and the failure is logged
+to `wrangler tail`.
+
 ## Event shapes
 
 Quote pages POST one of two shapes to `/api/quote-event`:
@@ -46,7 +76,12 @@ npx wrangler kv namespace create QUOTE_EVENTS
 # 3. Set the Resend API key (the same key the contact Worker uses is fine).
 npx wrangler secret put RESEND_API_KEY
 
-# 4. Deploy.
+# 4. Set the intake HMAC signing key — same value as the intake worker's
+#    HMAC_SIGNING_KEY secret (and the INTAKE_HMAC_SIGNING_KEY GitHub
+#    Actions secret). Used to authenticate against /intake/api/intake/create.
+npx wrangler secret put INTAKE_HMAC_SIGNING_KEY  # paste same value as intake/HMAC_SIGNING_KEY
+
+# 5. Deploy.
 npx wrangler deploy
 ```
 
