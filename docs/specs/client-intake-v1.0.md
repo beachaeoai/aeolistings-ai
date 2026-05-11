@@ -18,7 +18,7 @@ Turn a signed Aeolistings sales contract into everything the implementation team
 
 | Decision | Choice | Rationale |
 |---|---|---|
-| Intake URL pattern | `intake.aeolistings.ai/c/<token>` | Subdomain isolates the form from the marketing site; cleaner CSP/cookie scope |
+| Intake URL pattern | `aeolistings.ai/intake/c/<token>` | **Revised 2026-05-07** from `intake.aeolistings.ai/c/<token>`. Cloudflare's edge consistently misrouted the subdomain to the marketing project's Worker despite the API showing the correct Workers Custom Domain attachment; ticket open. Path-based deploy via a Worker Route on the marketing zone (`aeolistings.ai/intake/*` → `aeolistings-intake`) gives a working production URL today, reuses the marketing TLS cert, and keeps clients on the primary brand domain. The intake Pages project's `_worker.js` still answers at `aeolistings-intake.pages.dev/intake/*` as a fallback. |
 | Auth model | Magic-link forever (no passwords ever) | Returning clients re-receive the link to their email; matches user expectation for "intake form" UX |
 | Multi-client splitter | Skip in v1 | Not currently needed; defer until first agency-style client |
 | Editable post-submit | Yes, full edit | Notifies Aeolistings via Slack on edit; same magic-link flow |
@@ -35,7 +35,7 @@ Turn a signed Aeolistings sales contract into everything the implementation team
 CONTRACT SIGNED
        │
        ▼
-Magic-link email → intake.aeolistings.ai/c/<token>
+Magic-link email → aeolistings.ai/intake/c/<token>
        │
        ▼
 [ 0 ] Welcome
@@ -405,7 +405,7 @@ Auto-detect / prefill features at Step 2 are the riskiest piece — derisk in Sp
 | Cloudflare D1 + KV + R2 | $0 at intake-form scale | Generous free tiers |
 | Resend | $0 (existing free tier) | Existing |
 | Google Workspace Appointment Scheduling | $0 | Included with Workspace |
-| `intake.aeolistings.ai` subdomain | $0 | DNS record |
+| `aeolistings.ai/intake/*` path | $0 | Worker Route on existing zone (no new DNS) |
 | Cal.com | — | **Skipped** |
 
 **One user: ~$28/mo new spend. Three users: ~$84/mo.**
@@ -453,7 +453,8 @@ Auto-detect / prefill features at Step 2 are the riskiest piece — derisk in Sp
 - **API token:** stored in 1Password Business → *Aeolistings Client Credentials* vault (Secure Note: "Cloudflare API Token — Intake System Dev")
 - **API token scope:** Account-level — Pages:Edit, Workers Scripts:Edit, D1:Edit, KV:Edit, R2:Edit; Zone-level — `aeolistings.ai` only
 - **API token expiry:** TBD (90 days recommended)
-- **Custom domain:** `intake.aeolistings.ai` ✅ Active, CNAME managed by Pages
+- **Production URL:** `https://aeolistings.ai/intake/` via Worker Route `aeolistings.ai/intake/*` → `aeolistings-intake` (production env). Set automatically by the deploy workflow on every push to `main`.
+- **`intake.aeolistings.ai` subdomain:** ⚠️ pending Cloudflare support — routing layer misrouted to marketing project despite correct Workers Custom Domain binding. Not load-bearing; production runs on the path-based URL.
 
 ### Resend (existing)
 - **API key:** reusing the existing aeolistings.ai contact-form key (stored in 1Password)

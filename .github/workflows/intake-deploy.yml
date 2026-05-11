@@ -40,11 +40,12 @@ jobs:
         working-directory: intake
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      # Account ID is non-sensitive (it appears in URLs and in the
-      # committed spec §13). Hardcoded here so the workflow doesn't
-      # silently degrade when the optional `vars.CLOUDFLARE_ACCOUNT_ID`
-      # is missing or misplaced under Secrets instead of Variables.
+      # Account + zone IDs are non-sensitive (they appear in URLs and in
+      # the committed spec §13). Hardcoded here so the workflow doesn't
+      # silently degrade when the optional `vars.CLOUDFLARE_*` is missing
+      # or misplaced under Secrets instead of Variables.
       CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID || 'f700964246b5d61966399989f1910a56' }}
+      CLOUDFLARE_ZONE_ID: ${{ vars.CLOUDFLARE_ZONE_ID || '0c19359079073ed4a0624d55eff48501' }}
 
     steps:
       - name: Check out repo
@@ -66,111 +67,117 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Ensure Pages project exists
-        # First-run idempotency: if the project doesn't exist yet, create it
-        # with main as the production branch. If it already exists (the
-        # common case), `project create` exits non-zero and we move on.
-        run: |
-          npx wrangler pages project create aeolistings-intake \
-            --production-branch=main \
-            --compatibility-date=2026-05-06 \
-          || echo "Project exists or create failed harmlessly — continuing"
-
-      - name: Sync Pages env config (bindings + vars + secret) for production + preview
-        # Cloudflare Pages reads wrangler.toml bindings into the *preview*
-        # env automatically on direct-upload deploys, but NOT into the
-        # production env. We PATCH deployment_configs.{production,preview}
-        # directly to make both envs identical for Sprint 1 (no env split
-        # yet). Same idempotent shape: re-runs each deploy, fully overwrites.
-        # Avoids `wrangler pages secret put` which preflights /memberships
-        # and needs User->User Details:Read — keeping the token account-only.
-        run: |
-          payload=$(jq -n --arg s "${{ secrets.INTAKE_HMAC_SIGNING_KEY }}" '
-            ({
-              env_vars: {
-                ENVIRONMENT:                { type: "plain_text", value: "production" },
-                APP_URL:                    { type: "plain_text", value: "https://aeolistings-intake.pages.dev" },
-                NOTION_TEMPLATE_PAGE_ID:    { type: "plain_text", value: "8b0e273250f1492e91918e43e2e3ba66" },
-                NOTION_PARENT_PAGE_ID:      { type: "plain_text", value: "3585fbf10b5e8057b035f7abb6cb5a7d" },
-                ONEPASSWORD_VAULT_UUID:     { type: "plain_text", value: "qqzfcrgw4bbqnkirebfwtylh5i" },
-                APPOINTMENT_SCHEDULING_URL: { type: "plain_text", value: "https://calendar.app.google/Y6VXe3HC2qnqUBV19" },
-                SENDER_EMAIL:               { type: "plain_text", value: "intake@aeolistings.ai" },
-                SLACK_CHANNEL_INTAKE_OPS:   { type: "plain_text", value: "#client-onboarding" },
-                SLACK_CHANNEL_BUILD:        { type: "plain_text", value: "#aeolistings-build" },
-                HMAC_SIGNING_KEY:           { type: "secret_text", value: $s }
-              },
-              d1_databases: {
-                DB: { id: "cf3e45b6-ad1d-4faf-a974-59c98e378819" }
-              },
-              kv_namespaces: {
-                INTAKE_TOKENS: { namespace_id: "3cefdf13b4984181a07c0560b3ccd8e5" }
-              },
-              r2_buckets: {
-                UPLOADS: { name: "aeolistings-intake-uploads" }
-              },
-              compatibility_date: "2026-05-06"
-            }) as $env
-            | { deployment_configs: { production: $env, preview: $env } }
-          ')
-          response=$(curl -sS -w '\n%{http_code}' -X PATCH \
-            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/aeolistings-intake" \
-            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
-            -H "Content-Type: application/json" \
-            -d "$payload")
-          body=$(printf '%s' "$response" | sed '$d')
-          code=$(printf '%s' "$response" | tail -n 1)
-          echo "HTTP $code"
-          printf '%s\n' "$body" | jq '{success, errors, "deployment_configs.production.d1_databases": .result.deployment_configs.production.d1_databases, "deployment_configs.production.kv_namespaces": .result.deployment_configs.production.kv_namespaces}'
-          test "$code" = "200" && printf '%s' "$body" | jq -e '.success == true' >/dev/null
-
       - name: Apply D1 migrations (remote)
         # `migrations apply` only runs *pending* migrations, so re-running
         # on every deploy is a no-op after the first.
-        run: npx wrangler d1 migrations apply intake-db --remote --config ./wrangler.toml
+        if: github.ref == 'refs/heads/main'
+        run: npx wrangler d1 migrations apply intake-db --remote --config ./wrangler.jsonc
 
-      - name: Deploy to Pages
-        # Branch flag determines preview vs production:
-        #   --branch=main  → production (also gets <project>.pages.dev)
-        #   --branch=other → preview at <other>.<project>.pages.dev
+      - name: Deploy Worker (Static Assets)
+        # Production-only — Workers Static Assets doesn't have per-branch
+        # previews the way Pages did. Preview branches still get tests +
+        # build coverage above; the deploy step is skipped. (Re-add a
+        # name-suffixed staging worker later if previews matter.)
+        if: github.ref == 'refs/heads/main'
         id: deploy
-        run: |
-          BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
-          npx wrangler pages deploy dist \
-            --project-name=aeolistings-intake \
-            --branch="$BRANCH" \
-            --commit-dirty=true \
-            --commit-hash="$GITHUB_SHA"
+        run: npx wrangler deploy --config ./wrangler.jsonc
 
-      - name: Smoke-test /api/health
+      - name: Push HMAC signing key as a Worker secret
+        # Workers Static Assets reads bindings + vars from wrangler.jsonc
+        # directly. Secrets are the one thing that can't live in the
+        # file — set them after the worker exists. Idempotent: every
+        # deploy overwrites with the current value.
+        if: github.ref == 'refs/heads/main'
+        run: |
+          printf '%s' "${{ secrets.INTAKE_HMAC_SIGNING_KEY }}" \
+            | npx wrangler secret put HMAC_SIGNING_KEY --config ./wrangler.jsonc
+
+      - name: Ensure Worker Route aeolistings.ai/intake/* → intake
+        # Carves the /intake/* prefix out of the marketing zone and sends
+        # it to the intake Worker. Worker Routes have higher precedence
+        # than the marketing site's Workers Custom Domain on aeolistings.ai
+        # (which acts as a hostname/*. wildcard), so this only affects
+        # /intake/* — marketing is untouched. Only set on main so preview
+        # branches don't fight over the route.
+        #
+        # Required token scope: Zone → Workers Routes → Edit on
+        # aeolistings.ai. If missing, this step warns and exits zero so
+        # the rest of the deploy still ships — assumes the route was
+        # provisioned out-of-band (one-time manual setup with a scoped
+        # token; see intake/README.md → Deploy → "One-time setup").
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        env:
+          PATTERN: 'aeolistings.ai/intake/*'
+          SCRIPT: intake
+        run: |
+          list_response=$(curl -sS -w '\n%{http_code}' \
+            "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/workers/routes" \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}")
+          list_code=$(printf '%s' "$list_response" | tail -n 1)
+          list_body=$(printf '%s' "$list_response" | sed '$d')
+          if [ "$list_code" = "403" ] || [ "$list_code" = "401" ]; then
+            echo "::warning::Cloudflare returned HTTP ${list_code} listing Worker Routes for zone aeolistings.ai. The CLOUDFLARE_API_TOKEN secret is missing 'Zone → Workers Routes → Edit'. Skipping route management — assuming the route is set up out-of-band (see intake/README.md → Deploy)."
+            printf '%s\n' "$list_body" | jq '{success, errors}' || true
+            exit 0
+          fi
+          if [ "$list_code" != "200" ]; then
+            echo "::error::Unexpected HTTP $list_code listing Worker Routes"
+            printf '%s\n' "$list_body"
+            exit 1
+          fi
+          existing=$(printf '%s' "$list_body" | jq -r --arg p "$PATTERN" '.result[]? | select(.pattern == $p) | .id')
+          if [ -z "$existing" ]; then
+            echo "Creating Worker Route $PATTERN → $SCRIPT"
+            curl -sS -X POST \
+              "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/workers/routes" \
+              -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+              -H "Content-Type: application/json" \
+              -d "{\"pattern\":\"${PATTERN}\",\"script\":\"${SCRIPT}\"}" \
+              | jq '{success, errors, "result.id": .result.id, "result.pattern": .result.pattern, "result.script": .result.script}'
+          else
+            echo "Worker Route exists ($existing) — updating target script to $SCRIPT"
+            curl -sS -X PUT \
+              "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/workers/routes/${existing}" \
+              -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+              -H "Content-Type: application/json" \
+              -d "{\"pattern\":\"${PATTERN}\",\"script\":\"${SCRIPT}\"}" \
+              | jq '{success, errors, "result.pattern": .result.pattern, "result.script": .result.script}'
+          fi
+
+      - name: Smoke-test /intake/api/health
         # Sprint 1 only requires the bindings + HMAC. Other secrets
         # (Notion / Slack / 1Password / Resend) come online in Sprint 5,
         # so the endpoint legitimately reports "degraded" until then.
-        # Pass the run as long as the four Sprint-1 checks are green.
-        # Production (main) doesn't get a `<branch>.<project>.pages.dev`
-        # alias — it lives at the project's bare domain instead.
+        # Pass when the four Sprint-1 checks are green on EITHER URL:
+        #   1. intake.<acct>.workers.dev/intake/api/health — confirms the
+        #      Worker itself is healthy (no zone routing involved).
+        #   2. aeolistings.ai/intake/api/health — confirms the Worker
+        #      Route is also wired. Optional on first deploy: the route
+        #      gets swapped to point at 'intake' separately if the deploy
+        #      token can't manage it.
+        if: github.ref == 'refs/heads/main'
         run: |
-          BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
-          if [ "$BRANCH" = "main" ]; then
-            URL="https://aeolistings-intake.pages.dev/api/health"
-          else
-            SLUG=$(echo "$BRANCH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g')
-            URL="https://${SLUG}.aeolistings-intake.pages.dev/api/health"
-          fi
-          echo "Probing $URL"
+          DIRECT="https://intake.beacho1830.workers.dev/intake/api/health"
+          ROUTED="https://aeolistings.ai/intake/api/health"
+          green() {
+            printf '%s' "$1" | jq -e '.checks.db and .checks.kv and .checks.r2 and .checks.hmac_key_present' >/dev/null 2>&1
+          }
           for i in 1 2 3 4 5 6; do
-            # The endpoint returns 503 when degraded; -f would reject that.
-            # Use --fail-with-body equivalent: capture body + status separately.
-            body=$(curl -sS "$URL")
-            if [ -n "$body" ]; then
+            body=$(curl -sS "$DIRECT" 2>/dev/null)
+            if [ -n "$body" ] && green "$body"; then
+              echo "✓ Worker healthy at $DIRECT"
               echo "$body"
-              if printf '%s' "$body" \
-                  | jq -e '.checks.db and .checks.kv and .checks.r2 and .checks.hmac_key_present' \
-                  >/dev/null; then
-                echo "Sprint-1 checks green."
-                exit 0
+              # Also try the routed URL — informational only.
+              routed_body=$(curl -sS "$ROUTED" 2>/dev/null)
+              if [ -n "$routed_body" ] && green "$routed_body"; then
+                echo "✓ Worker Route working — $ROUTED is also live"
+              else
+                echo "::warning::Worker is healthy but Worker Route at $ROUTED is not (yet) returning the intake JSON. Update route → script 'intake' if first deploy; see README → Deploy."
               fi
+              exit 0
             fi
             sleep 5
           done
-          echo "Health check did not satisfy Sprint-1 binding requirements."
+          echo "::error::Direct Worker URL never satisfied Sprint-1 binding requirements after retries."
           exit 1

@@ -6,17 +6,17 @@
   "description": "Aeolistings client intake form — turns a signed contract into a structured asset/access package",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
-    "preview": "wrangler pages dev ./dist --config ./wrangler.toml",
-    "deploy": "npm run build && wrangler pages deploy dist --project-name=aeolistings-intake",
+    "build": "astro build && node -e \"require('fs').writeFileSync('dist/.assetsignore', '_worker.js\\n_routes.json\\n')\"",
+    "preview": "wrangler dev --config ./wrangler.jsonc --local",
+    "deploy": "npm run build && wrangler deploy --config ./wrangler.jsonc",
     "astro": "astro",
     "typecheck": "astro check",
     "test": "vitest run",
     "test:watch": "vitest",
-    "db:migrate:local": "wrangler d1 migrations apply intake-db --local --config ./wrangler.toml",
-    "db:migrate:remote": "wrangler d1 migrations apply intake-db --remote --config ./wrangler.toml",
-    "db:query:local": "wrangler d1 execute intake-db --local --config ./wrangler.toml --command",
-    "db:query:remote": "wrangler d1 execute intake-db --remote --config ./wrangler.toml --command"
+    "db:migrate:local": "wrangler d1 migrations apply intake-db --local --config ./wrangler.jsonc",
+    "db:migrate:remote": "wrangler d1 migrations apply intake-db --remote --config ./wrangler.jsonc",
+    "db:query:local": "wrangler d1 execute intake-db --local --config ./wrangler.jsonc --command",
+    "db:query:remote": "wrangler d1 execute intake-db --remote --config ./wrangler.jsonc --command"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",
