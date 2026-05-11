@@ -92,7 +92,13 @@ npx wrangler d1 execute intake-db --remote --command "SELECT * FROM intake_recor
 
 ## Deploy
 
-Deploys are driven by [`.github/workflows/intake-deploy.yml`](../.github/workflows/intake-deploy.yml). Any push that touches `intake/**` triggers it: tests run, the app builds, the HMAC secret and bindings are PATCHed onto the Pages project, pending D1 migrations apply against the remote DB, the `aeolistings.ai/intake/*` Worker Route is ensured (production only), and `wrangler pages deploy` publishes. Push to `main` → production at `https://aeolistings.ai/intake/`. Push to any other branch → preview at `https://<branch-slug>.aeolistings-intake.pages.dev/intake/` (no Worker Route on previews — they hit the pages.dev URL directly). The workflow ends with a curl probe of `/intake/api/health` so a deploy that fails to bind D1/KV/R2 fails the run instead of silently shipping.
+The intake app deploys as a **Workers Static Assets** worker named `intake` (matching the marketing site at the repo root, which uses the same model). Deploys are driven by [`.github/workflows/intake-deploy.yml`](../.github/workflows/intake-deploy.yml). Any push that touches `intake/**` runs tests + build. Push to `main` also applies pending D1 migrations remotely, runs `wrangler deploy`, pushes the HMAC secret to the worker, ensures the `aeolistings.ai/intake/*` Worker Route points at the worker, then probes `/intake/api/health` on the production URL.
+
+**Production:** `https://aeolistings.ai/intake/` — served by Worker Route `aeolistings.ai/intake/*` → `intake` (the Worker Route outranks the marketing site's hostname-level Custom Domain on `aeolistings.ai/*`).
+
+**Direct worker URL:** `https://intake.beacho1830.workers.dev/intake/api/health` — used in the smoke test as a fallback signal that doesn't depend on zone-level routing.
+
+**Why Workers Static Assets and not Pages?** Cloudflare Pages projects can't be targeted by Worker Routes — they're only addressable by Workers Custom Domains (hostname-level). Path-based routing requires a real Workers Script in the regular Workers namespace. Both the intake and marketing site now use the same deploy model.
 
 ### One-time setup
 
@@ -101,31 +107,46 @@ Configure these in `Settings → Secrets and variables → Actions` for the repo
 | Kind | Name | Value |
 |---|---|---|
 | Variable | `CLOUDFLARE_ACCOUNT_ID` | `f700964246b5d61966399989f1910a56` (per spec §13) |
-| Secret | `CLOUDFLARE_API_TOKEN` | Created in Cloudflare → My Profile → API Tokens. Scopes: Account-level Pages:Edit + Workers Scripts:Edit + D1:Edit + KV:Edit + R2:Edit; Zone-level `aeolistings.ai`: Zone:Read + DNS:Edit + (optionally) Workers Routes:Edit |
+| Secret | `CLOUDFLARE_API_TOKEN` | Created in Cloudflare → My Profile → API Tokens. Scopes: Account-level Workers Scripts:Edit + D1:Edit + KV:Edit + R2:Edit; Zone-level `aeolistings.ai`: Zone:Read + DNS:Edit + (optionally) Workers Routes:Edit |
 | Secret | `INTAKE_HMAC_SIGNING_KEY` | `openssl rand -hex 32`. **Different value from local `.dev.vars`** — store this one in 1Password Business → *Aeolistings Client Credentials* vault as "Intake System HMAC Signing Key — Prod" |
 
-The first run also calls `wrangler pages project create`, so the Pages project doesn't have to pre-exist.
+The first deploy creates the `intake` worker automatically (`wrangler deploy` upserts).
 
-The deploy workflow attempts to manage the `aeolistings.ai/intake/*` Worker Route, but if the token lacks `Workers Routes:Edit` the step warns and continues (the route only needs to be created once anyway). Provision it manually one time:
+If the deploy token lacks `Workers Routes:Edit`, the workflow's route-management step warns and exits zero, leaving the route as-is. The route only needs to be set up once. Provision/update it manually:
 
 ```bash
-# Use a one-shot "Custom Token" with: Zone → Workers Routes → Edit on aeolistings.ai
+# Custom Token: Zone → Workers Routes → Edit on aeolistings.ai
 export ROUTES_TOKEN='<paste>'
-curl -sS -X POST \
-  "https://api.cloudflare.com/client/v4/zones/0c19359079073ed4a0624d55eff48501/workers/routes" \
+ZONE_ID='0c19359079073ed4a0624d55eff48501'
+
+# Find any existing route at the pattern
+ROUTE_ID=$(curl -sS "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes" \
   -H "Authorization: Bearer ${ROUTES_TOKEN}" \
-  -H "Content-Type: application/json" \
-  -d '{"pattern":"aeolistings.ai/intake/*","script":"aeolistings-intake"}' \
-  | jq
-# Delete the token after — the deploy token doesn't need this scope going forward.
+  | jq -r '.result[]? | select(.pattern == "aeolistings.ai/intake/*") | .id')
+
+if [ -n "$ROUTE_ID" ]; then
+  # Update existing → point at the `intake` worker
+  curl -sS -X PUT \
+    "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes/${ROUTE_ID}" \
+    -H "Authorization: Bearer ${ROUTES_TOKEN}" \
+    -H "Content-Type: application/json" \
+    -d '{"pattern":"aeolistings.ai/intake/*","script":"intake"}' | jq
+else
+  # Create new
+  curl -sS -X POST \
+    "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes" \
+    -H "Authorization: Bearer ${ROUTES_TOKEN}" \
+    -H "Content-Type: application/json" \
+    -d '{"pattern":"aeolistings.ai/intake/*","script":"intake"}' | jq
+fi
+# Delete the one-shot token afterward.
 ```
 
 ### Ad-hoc local deploy (rare)
 
 ```bash
 npm run build
-CLOUDFLARE_API_TOKEN=… CLOUDFLARE_ACCOUNT_ID=… \
-  npx wrangler pages deploy dist --project-name=aeolistings-intake
+CLOUDFLARE_API_TOKEN=… npx wrangler deploy --config ./wrangler.jsonc
 ```
 
 ## Project structure
