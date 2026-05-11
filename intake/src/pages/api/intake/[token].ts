@@ -1,5 +1,8 @@
-// GET  /api/intake/[token] — resume flow: verify token, return intake data
-// POST /api/intake/[token] — save flow: verify, patch data, rotate token
+// GET  /intake/api/intake/[token] — resume flow: verify token, return intake data
+// POST /intake/api/intake/[token] — save flow: verify, patch data, rotate token
+//   (deployed URLs — Astro `base: '/intake'` prefixes every route. The doubled
+//    "intake" in the path is from `src/pages/api/intake/` colliding with the
+//    base prefix; tracked as a follow-up rename.)
 //
 // Token verification is via HMAC + KV record lookup (see lib/tokens.ts).
 // Save rotates the single-use ID, returning a new token for the same intake.

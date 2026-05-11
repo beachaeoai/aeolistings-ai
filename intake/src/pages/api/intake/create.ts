@@ -1,4 +1,5 @@
-// POST /api/intake/create
+// POST /intake/api/intake/create
+//   (deployed URL — Astro `base: '/intake'` prefixes every route)
 //
 // Admin-only endpoint that mints a fresh intake record + magic-link token from
 // signed-contract data. Body must match CreateIntakeInput. Sprint 1 returns the
