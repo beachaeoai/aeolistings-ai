@@ -17,7 +17,8 @@ export default defineConfig({
   adapter: cloudflare({
     platformProxy: {
       enabled: true,
-      configPath: './wrangler.toml',
+      configPath: './wrangler.jsonc',
+      experimentalJsonConfig: true,
     },
     imageService: 'compile',
   }),

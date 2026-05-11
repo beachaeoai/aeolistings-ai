@@ -1,0 +1,75 @@
+/**
+ * Cloudflare Workers Static Assets configuration for the Aeolistings
+ * client intake app.
+ *
+ * Why this is a Worker (not a Pages project):
+ *   Cloudflare Pages projects can't be targets of Worker Routes — Worker
+ *   Routes only address scripts in the regular Workers namespace. With
+ *   the path-based deploy at `aeolistings.ai/intake/*`, we need a Worker
+ *   Route to win against the marketing site's hostname-level Custom
+ *   Domain on aeolistings.ai. So the intake app deploys as Workers
+ *   Static Assets, same shape as the marketing site at the repo root
+ *   (../wrangler.jsonc).
+ *
+ * Worker name is intentionally different from the legacy Pages project
+ * (`aeolistings-intake`) so both can coexist during cutover. Once the
+ * Worker Route points here and we've validated production traffic, the
+ * Pages project can be deleted.
+ *
+ * Deploy: `npx wrangler deploy --config ./wrangler.jsonc` (from intake/).
+ * Auto-runs on push to main via .github/workflows/intake-deploy.yml.
+ */
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "intake",
+  "main": "./dist/_worker.js/index.js",
+  "compatibility_date": "2026-05-07",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // Workers Static Assets — serves /dist/ as static files, falls through
+  // to the Worker (main) for anything not matched, e.g. /intake/api/*.
+  // The Astro build emits dist/_routes.json which controls the boundary.
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS"
+  },
+
+  // ============================================================
+  // Bindings (D1, KV, R2) — same IDs the Pages project was using
+  // ============================================================
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "intake-db",
+      "database_id": "cf3e45b6-ad1d-4faf-a974-59c98e378819"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "INTAKE_TOKENS",
+      "id": "3cefdf13b4984181a07c0560b3ccd8e5"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "UPLOADS",
+      "bucket_name": "aeolistings-intake-uploads"
+    }
+  ],
+
+  // ============================================================
+  // Public, non-secret env vars. Secrets (HMAC_SIGNING_KEY etc.) are
+  // set via `wrangler secret put` or the dashboard, NOT here.
+  // ============================================================
+  "vars": {
+    "ENVIRONMENT": "production",
+    "APP_URL": "https://aeolistings.ai/intake",
+    "NOTION_TEMPLATE_PAGE_ID": "8b0e273250f1492e91918e43e2e3ba66",
+    "NOTION_PARENT_PAGE_ID": "3585fbf10b5e8057b035f7abb6cb5a7d",
+    "ONEPASSWORD_VAULT_UUID": "qqzfcrgw4bbqnkirebfwtylh5i",
+    "APPOINTMENT_SCHEDULING_URL": "https://calendar.app.google/Y6VXe3HC2qnqUBV19",
+    "SENDER_EMAIL": "intake@aeolistings.ai",
+    "SLACK_CHANNEL_INTAKE_OPS": "#client-onboarding",
+    "SLACK_CHANNEL_BUILD": "#aeolistings-build"
+  }
+}
