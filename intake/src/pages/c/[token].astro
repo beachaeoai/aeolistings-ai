@@ -1344,6 +1344,14 @@ const APPROVAL_MODE_OPTIONS_SOCIAL: { value: string; label: string }[] = [
     const state: State = JSON.parse(stateScript?.textContent ?? '{}');
     let token: string = shell.dataset.token ?? '';
 
+    // Astro's `base: '/intake'` (see astro.config.mjs) prefixes every server
+    // route — but it does NOT prefix runtime `fetch()` calls or
+    // `history.replaceState` URLs. Derive the base from Astro's build-time
+    // BASE_URL constant so client-side URLs work in both dev (BASE='/') and
+    // prod (BASE='/intake'). Stripping the trailing slash makes the resulting
+    // template strings like `${BASE}/api/...` clean either way.
+    const BASE = (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '');
+
     const stepEls = Array.from(shell.querySelectorAll<HTMLElement>('.intake-step'));
     const progressLabel = shell.querySelector<HTMLElement>('[data-progress-label]');
     const progressBar = shell.querySelector<HTMLElement>('[data-progress-bar]');
@@ -1382,7 +1390,7 @@ const APPROVAL_MODE_OPTIONS_SOCIAL: { value: string; label: string }[] = [
     async function patch(partial: Record<string, unknown>, toStep: number | null): Promise<boolean> {
       setSaveStatus('Saving…');
       try {
-        const res = await fetch(`/api/intake/${token}`, {
+        const res = await fetch(`${BASE}/api/intake/${token}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1398,7 +1406,7 @@ const APPROVAL_MODE_OPTIONS_SOCIAL: { value: string; label: string }[] = [
         }
         const body = (await res.json()) as { token: string };
         token = body.token;
-        history.replaceState(null, '', `/c/${token}`);
+        history.replaceState(null, '', `${BASE}/c/${token}`);
         if (toStep !== null) showStep(toStep);
         setSaveStatus('Saved.');
         return true;
@@ -1605,7 +1613,7 @@ const APPROVAL_MODE_OPTIONS_SOCIAL: { value: string; label: string }[] = [
       const status = shell.querySelector<HTMLElement>('[data-prefill-status]');
       if (status) status.textContent = `Looking up ${url}…`;
       try {
-        const res = await fetch(`/api/intake/${token}/prefill`, {
+        const res = await fetch(`${BASE}/api/intake/${token}/prefill`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ url }),
@@ -1710,7 +1718,7 @@ const APPROVAL_MODE_OPTIONS_SOCIAL: { value: string; label: string }[] = [
       fd.append('category', category);
       fd.append('file', file);
       try {
-        const res = await fetch(`/api/intake/${token}/upload`, { method: 'POST', body: fd });
+        const res = await fetch(`${BASE}/api/intake/${token}/upload`, { method: 'POST', body: fd });
         if (!res.ok) {
           const body = await res.json().catch(() => ({}));
           showError(`Upload failed: ${(body as any).error ?? res.status}`);
@@ -2043,7 +2051,7 @@ const APPROVAL_MODE_OPTIONS_SOCIAL: { value: string; label: string }[] = [
       for (const c of creds) {
         if (!c.method) continue;
         try {
-          await fetch(`/api/intake/${token}/credentials`, {
+          await fetch(`${BASE}/api/intake/${token}/credentials`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
