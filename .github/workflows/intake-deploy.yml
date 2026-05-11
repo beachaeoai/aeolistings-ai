@@ -133,9 +133,12 @@ jobs:
         # so preview branches don't fight over the route.
         #
         # Required token scope: Zone → Workers Routes → Edit on
-        # aeolistings.ai. If missing, this step exits with a clear error
-        # rather than a jq parse failure.
+        # aeolistings.ai. If missing, this step warns and exits zero so
+        # the rest of the deploy still ships — assumes the route was
+        # provisioned out-of-band (one-time manual setup with a scoped
+        # token; see intake/README.md → Deploy → "One-time setup").
         if: github.ref == 'refs/heads/main'
+        continue-on-error: true
         env:
           PATTERN: 'aeolistings.ai/intake/*'
           SCRIPT: aeolistings-intake
@@ -149,9 +152,9 @@ jobs:
           list_code=$(printf '%s' "$list_response" | tail -n 1)
           list_body=$(printf '%s' "$list_response" | sed '$d')
           if [ "$list_code" = "403" ] || [ "$list_code" = "401" ]; then
-            echo "::error::Cloudflare returned HTTP ${list_code} listing Worker Routes for zone aeolistings.ai. The CLOUDFLARE_API_TOKEN secret needs 'Zone → Workers Routes → Edit' added at https://dash.cloudflare.com/profile/api-tokens. Token value stays the same. After updating, re-run this workflow."
+            echo "::warning::Cloudflare returned HTTP ${list_code} listing Worker Routes for zone aeolistings.ai. The CLOUDFLARE_API_TOKEN secret is missing 'Zone → Workers Routes → Edit'. Skipping route management — assuming the route was set up out-of-band (one-time manual setup, see intake/README.md → Deploy). If the route exists and is correct, traffic still works."
             printf '%s\n' "$list_body" | jq '{success, errors}' || true
-            exit 1
+            exit 0
           fi
           if [ "$list_code" != "200" ]; then
             echo "::error::Unexpected HTTP $list_code listing Worker Routes — see body below"

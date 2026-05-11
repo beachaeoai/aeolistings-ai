@@ -101,10 +101,24 @@ Configure these in `Settings → Secrets and variables → Actions` for the repo
 | Kind | Name | Value |
 |---|---|---|
 | Variable | `CLOUDFLARE_ACCOUNT_ID` | `f700964246b5d61966399989f1910a56` (per spec §13) |
-| Secret | `CLOUDFLARE_API_TOKEN` | Created in Cloudflare → My Profile → API Tokens. Scope per spec §13: Account-level Pages:Edit + Workers:Edit + D1:Edit + KV:Edit + R2:Edit; Zone-level `aeolistings.ai` only |
+| Secret | `CLOUDFLARE_API_TOKEN` | Created in Cloudflare → My Profile → API Tokens. Scopes: Account-level Pages:Edit + Workers Scripts:Edit + D1:Edit + KV:Edit + R2:Edit; Zone-level `aeolistings.ai`: Zone:Read + DNS:Edit + (optionally) Workers Routes:Edit |
 | Secret | `INTAKE_HMAC_SIGNING_KEY` | `openssl rand -hex 32`. **Different value from local `.dev.vars`** — store this one in 1Password Business → *Aeolistings Client Credentials* vault as "Intake System HMAC Signing Key — Prod" |
 
 The first run also calls `wrangler pages project create`, so the Pages project doesn't have to pre-exist.
+
+The deploy workflow attempts to manage the `aeolistings.ai/intake/*` Worker Route, but if the token lacks `Workers Routes:Edit` the step warns and continues (the route only needs to be created once anyway). Provision it manually one time:
+
+```bash
+# Use a one-shot "Custom Token" with: Zone → Workers Routes → Edit on aeolistings.ai
+export ROUTES_TOKEN='<paste>'
+curl -sS -X POST \
+  "https://api.cloudflare.com/client/v4/zones/0c19359079073ed4a0624d55eff48501/workers/routes" \
+  -H "Authorization: Bearer ${ROUTES_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{"pattern":"aeolistings.ai/intake/*","script":"aeolistings-intake"}' \
+  | jq
+# Delete the token after — the deploy token doesn't need this scope going forward.
+```
 
 ### Ad-hoc local deploy (rare)
 
