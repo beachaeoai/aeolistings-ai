@@ -89,7 +89,7 @@ jobs:
             ({
               env_vars: {
                 ENVIRONMENT:                { type: "plain_text", value: "production" },
-                APP_URL:                    { type: "plain_text", value: "https://aeolistings-intake.pages.dev" },
+                APP_URL:                    { type: "plain_text", value: "https://aeolistings.ai/intake" },
                 NOTION_TEMPLATE_PAGE_ID:    { type: "plain_text", value: "8b0e273250f1492e91918e43e2e3ba66" },
                 NOTION_PARENT_PAGE_ID:      { type: "plain_text", value: "3585fbf10b5e8057b035f7abb6cb5a7d" },
                 ONEPASSWORD_VAULT_UUID:     { type: "plain_text", value: "qqzfcrgw4bbqnkirebfwtylh5i" },
@@ -123,6 +123,41 @@ jobs:
           printf '%s\n' "$body" | jq '{success, errors, "deployment_configs.production.d1_databases": .result.deployment_configs.production.d1_databases, "deployment_configs.production.kv_namespaces": .result.deployment_configs.production.kv_namespaces}'
           test "$code" = "200" && printf '%s' "$body" | jq -e '.success == true' >/dev/null
 
+      - name: Ensure Worker Route aeolistings.ai/intake/* → aeolistings-intake
+        # Carves the /intake/* prefix out of the marketing zone and sends
+        # it to the intake project's underlying Worker. Worker Routes have
+        # higher precedence than the marketing site's Workers Custom Domain
+        # on aeolistings.ai (which acts as a hostname/*. wildcard), so this
+        # only affects /intake/* — marketing is untouched. Only set on main
+        # so preview branches don't fight over the route.
+        if: github.ref == 'refs/heads/main'
+        env:
+          ZONE_ID: 0c19359079073ed4a0624d55eff48501
+          PATTERN: 'aeolistings.ai/intake/*'
+          SCRIPT: aeolistings-intake
+        run: |
+          existing=$(curl -sS \
+            "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes" \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            | jq -r --arg p "$PATTERN" '.result[]? | select(.pattern == $p) | .id')
+          if [ -z "$existing" ]; then
+            echo "Creating Worker Route $PATTERN → $SCRIPT"
+            curl -sS -X POST \
+              "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes" \
+              -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+              -H "Content-Type: application/json" \
+              -d "{\"pattern\":\"${PATTERN}\",\"script\":\"${SCRIPT}\"}" \
+              | jq '{success, errors, "result.id": .result.id, "result.pattern": .result.pattern, "result.script": .result.script}'
+          else
+            echo "Worker Route exists ($existing) — verifying target script"
+            curl -sS -X PUT \
+              "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes/${existing}" \
+              -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+              -H "Content-Type: application/json" \
+              -d "{\"pattern\":\"${PATTERN}\",\"script\":\"${SCRIPT}\"}" \
+              | jq '{success, errors, "result.pattern": .result.pattern, "result.script": .result.script}'
+          fi
+
       - name: Apply D1 migrations (remote)
         # `migrations apply` only runs *pending* migrations, so re-running
         # on every deploy is a no-op after the first.
@@ -141,20 +176,21 @@ jobs:
             --commit-dirty=true \
             --commit-hash="$GITHUB_SHA"
 
-      - name: Smoke-test /api/health
+      - name: Smoke-test /intake/api/health
         # Sprint 1 only requires the bindings + HMAC. Other secrets
         # (Notion / Slack / 1Password / Resend) come online in Sprint 5,
         # so the endpoint legitimately reports "degraded" until then.
         # Pass the run as long as the four Sprint-1 checks are green.
-        # Production (main) doesn't get a `<branch>.<project>.pages.dev`
-        # alias — it lives at the project's bare domain instead.
+        # All routes now live under the /intake base path (per spec §2
+        # revision). Production probes the Worker Route URL on the
+        # marketing zone; previews hit the pages.dev URL.
         run: |
           BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
           if [ "$BRANCH" = "main" ]; then
-            URL="https://aeolistings-intake.pages.dev/api/health"
+            URL="https://aeolistings.ai/intake/api/health"
           else
             SLUG=$(echo "$BRANCH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g')
-            URL="https://${SLUG}.aeolistings-intake.pages.dev/api/health"
+            URL="https://${SLUG}.aeolistings-intake.pages.dev/intake/api/health"
           fi
           echo "Probing $URL"
           for i in 1 2 3 4 5 6; do

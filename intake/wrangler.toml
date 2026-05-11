@@ -34,7 +34,7 @@ bucket_name = "aeolistings-intake-uploads"
 # ============================================================
 [vars]
 ENVIRONMENT = "production"
-APP_URL = "https://intake.aeolistings.ai"
+APP_URL = "https://aeolistings.ai/intake"
 
 # Notion
 NOTION_TEMPLATE_PAGE_ID = "8b0e273250f1492e91918e43e2e3ba66"
