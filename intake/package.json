@@ -6,7 +6,7 @@
   "description": "Aeolistings client intake form — turns a signed contract into a structured asset/access package",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build && node -e \"require('fs').writeFileSync('dist/.assetsignore', '_worker.js\\n_routes.json\\n')\"",
     "preview": "wrangler dev --config ./wrangler.jsonc --local",
     "deploy": "npm run build && wrangler deploy --config ./wrangler.jsonc",
     "astro": "astro",
