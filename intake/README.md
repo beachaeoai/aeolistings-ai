@@ -2,13 +2,13 @@
 
 The intake form clients fill out after signing a sales contract. Built per [`docs/specs/client-intake-v1.0.md`](../docs/specs/client-intake-v1.0.md).
 
-**Status:** Scaffolded · Sprint 1 (auth + tokens) not yet implemented · Production deploy: `intake.aeolistings.ai`
+**Status:** Sprint 1 shipped · Production deploy: `https://aeolistings.ai/intake/` (path-based; see spec §2 for the URL-pattern revision)
 
 ## Quick reference
 
 | Item | Value |
 |---|---|
-| Production URL | `https://intake.aeolistings.ai/c/<token>` |
+| Production URL | `https://aeolistings.ai/intake/c/<token>` (path-based via Worker Route — see spec §2) |
 | Cloudflare Pages project | `aeolistings-intake` |
 | GitHub repo | `beachaeoai/aeolistings-ai` (this monorepo) |
 | Spec | [`docs/specs/client-intake-v1.0.md`](../docs/specs/client-intake-v1.0.md) |
@@ -92,7 +92,7 @@ npx wrangler d1 execute intake-db --remote --command "SELECT * FROM intake_recor
 
 ## Deploy
 
-Deploys are driven by [`.github/workflows/intake-deploy.yml`](../.github/workflows/intake-deploy.yml). Any push that touches `intake/**` triggers it: tests run, the app builds, the HMAC secret is pushed to Pages, pending D1 migrations apply against the remote DB, and `wrangler pages deploy` publishes. Push to `main` → production at `intake.aeolistings.ai`. Push to any other branch → preview at `<branch-slug>.aeolistings-intake.pages.dev`. The workflow ends with a curl probe of `/api/health` so a deploy that fails to bind D1/KV/R2 fails the run instead of silently shipping.
+Deploys are driven by [`.github/workflows/intake-deploy.yml`](../.github/workflows/intake-deploy.yml). Any push that touches `intake/**` triggers it: tests run, the app builds, the HMAC secret and bindings are PATCHed onto the Pages project, pending D1 migrations apply against the remote DB, the `aeolistings.ai/intake/*` Worker Route is ensured (production only), and `wrangler pages deploy` publishes. Push to `main` → production at `https://aeolistings.ai/intake/`. Push to any other branch → preview at `https://<branch-slug>.aeolistings-intake.pages.dev/intake/` (no Worker Route on previews — they hit the pages.dev URL directly). The workflow ends with a curl probe of `/intake/api/health` so a deploy that fails to bind D1/KV/R2 fails the run instead of silently shipping.
 
 ### One-time setup
 
