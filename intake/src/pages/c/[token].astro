@@ -1269,10 +1269,15 @@ const APPROVAL_MODE_OPTIONS_SOCIAL: { value: string; label: string }[] = [
           {/* Hydrated client-side from `state` so it always reflects the latest in-memory edits. */}
         </div>
 
-        <div class="banner banner--info" data-step10-success-stub hidden>
-          <strong>Submitted.</strong> Sprint 5 will wire the integrations on
-          submit (Notion / Slack / Drive / 1Password). For now, we've recorded
-          your submission and will follow up by email.
+        <div class="banner banner--success" data-step10-submitted hidden>
+          <strong>Submitted ✓</strong> — check your inbox. We've notified ops,
+          created your Notion workspace, and logged your access methods. You
+          can still use this magic link for the next 7 days to edit anything.
+        </div>
+        <div class="banner banner--info" data-step10-partial hidden>
+          <strong>Submitted with partial follow-up.</strong>
+          <span data-step10-partial-detail></span>
+          Ops has been notified by email and will reconcile manually.
         </div>
 
         <div class="button-row">
@@ -1603,6 +1608,52 @@ const APPROVAL_MODE_OPTIONS_SOCIAL: { value: string; label: string }[] = [
       state.step10 = state.step10 ?? {};
       state.step10.reviewed_at = Math.floor(Date.now() / 1000);
       return { step10: state.step10 };
+    }
+
+    async function submitIntake(triggerBtn: HTMLElement): Promise<void> {
+      setSaveStatus('Submitting…');
+      triggerBtn.setAttribute('disabled', 'true');
+      try {
+        const res = await fetch(`${BASE}/api/intake/${token}/submit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        const body = await res.json().catch(() => ({})) as {
+          warnings?: { step: string; error: string }[];
+          notion_url?: string;
+          error?: string;
+        };
+        if (!res.ok) {
+          showError(`Submit failed: ${body.error ?? res.status}`);
+          setSaveStatus('Submit failed.');
+          triggerBtn.removeAttribute('disabled');
+          return;
+        }
+        state.status = 'submitted';
+        const warnings = body.warnings ?? [];
+        const partial = shell.querySelector<HTMLElement>('[data-step10-partial]');
+        const submitted = shell.querySelector<HTMLElement>('[data-step10-submitted]');
+        if (warnings.length === 0) {
+          if (submitted) submitted.hidden = false;
+          if (partial) partial.hidden = true;
+          showSuccess('Intake submitted. Check your inbox for confirmation.');
+        } else {
+          if (partial) {
+            partial.hidden = false;
+            const detail = partial.querySelector<HTMLElement>('[data-step10-partial-detail]');
+            if (detail) {
+              detail.textContent = ` Pending: ${warnings.map((w) => w.step).join(', ')}.`;
+            }
+          }
+          if (submitted) submitted.hidden = true;
+          showSuccess('Intake submitted (some follow-ups pending — ops notified).');
+        }
+        setSaveStatus('Submitted.');
+      } catch (err) {
+        showError(`Submit error: ${(err as Error).message}`);
+        setSaveStatus('Submit failed.');
+        triggerBtn.removeAttribute('disabled');
+      }
     }
 
     function cssEscape(value: string): string {
@@ -2017,17 +2068,15 @@ const APPROVAL_MODE_OPTIONS_SOCIAL: { value: string; label: string }[] = [
           break;
         }
         case 'submit': {
-          // Sprint 4 stub: collect step 10 and PATCH current_step=10. The full
-          // submit handler (Notion / Slack / 1Password / R2 sync) lands in Sprint 5.
+          // Sprint 5. Save step-10 state first so the submitted record on the
+          // server includes the final review timestamp, then POST /submit to
+          // fire Notion / Slack / 1Password / R2-manifest / email.
           const payload = collectStep10();
           state.step10!.submitted_at = Math.floor(Date.now() / 1000);
           (payload.step10 as any).submitted_at = state.step10!.submitted_at;
-          const ok = await patch(payload, 10);
-          if (ok) {
-            const stub = shell.querySelector<HTMLElement>('[data-step10-success-stub]');
-            if (stub) stub.hidden = false;
-            showSuccess("Intake submitted. Sprint 5 will wire the integrations on submit.");
-          }
+          const saved = await patch(payload, 10);
+          if (!saved) break;
+          await submitIntake(target);
           break;
         }
       }

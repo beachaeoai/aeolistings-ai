@@ -213,11 +213,23 @@ Per spec section 10:
 - ✅ **Sprint 2** — Step 2 prefill: website crawl (JSON-LD + scrape fallback), AZ ROC + BBB lookups, 24h KV cache, `POST /api/intake/[token]/prefill` (50/50 tests)
 - ✅ **Sprint 3** — Steps 0–4 UI: welcome, confirm scope, business identity (with auto-prefill + per-field provenance), brand assets (logo + photo upload to R2), trust signals (testimonials/projects/press repeating cards). `POST /api/intake/[token]/upload` endpoint added; client-side state machine PATCHes the API on continue, rotates the token, and updates the URL via `history.replaceState` (79/79 tests, +29 for Sprint 3)
 - ✅ **Sprint 4** — Steps 5–10 UI: digital access (credential metadata via `intake_credentials`, never raw passwords), service area (Phoenix-metro checklist + custom cities), voice & guardrails, team & approvals, schedule (Google Appointment Scheduling iframe + blackouts), review & submit (per-section read-only summary with edit links + Sprint-5-stub success state). `POST /api/intake/[token]/credentials` endpoint added; `collectStep5..collectStep10` follow the Sprint-3 pattern (92/92 tests, +13 for Sprint 4)
-- **Sprint 5** — Submit handler + Notion / Slack / R2 / 1Password integrations (4–5 days)
+- ✅ **Sprint 5** — Submit handler + integrations. `POST /api/intake/[token]/submit` flips `status='submitted'`, stamps `submitted_at`, then fires five side-effects independently: Slack `#client-onboarding` notification, Notion child page under "Client Engagements" populated with the engagement summary, 1Password Secure Note with the credential-method summary, R2 → Drive manifest built from `intake_files`, and Resend confirmations to client + ops. Each failure is captured as a `warnings[]` entry; partial failure never 500s the request. The Step-10 client UI replaces its stub banner with a real "Submitted ✓" state (or a partial-failure banner listing pending integrations). New lib modules: `email.ts` + `drive-sync.ts`; `notion.ts` / `slack.ts` / `1password.ts` filled from their stubs; `markIntakeSubmitted` + `listIntakeFiles` added to `lib/intake.ts`. 103/103 tests, +11 for Sprint 5.
 - **Sprint 6** — Post-submit edit flow + notification logic (2–3 days)
 - **Sprint 7** — QA, polish, prefill edge cases, mobile responsive (3–4 days)
 
 For Claude-in-Code dev sessions, each sprint is roughly **one focused session**.
+
+## Lessons from Sprint 5 (read before Sprint 6+)
+
+1. **The submit endpoint is partial-failure tolerant by design — and the response shape encodes that.** `POST /api/intake/[token]/submit` returns 200 with `warnings: [{step, error}]` for any side-effect that fails. The client UI renders `[data-step10-submitted]` only when `warnings` is empty; otherwise it renders `[data-step10-partial]` with the comma-separated step names. Don't add a top-level error short-circuit — partial means the *intake row* is `status='submitted'`, just that one or more downstreams haven't acknowledged. Ops gets an email summary regardless (modulo email itself failing).
+2. **Side effects fire sequentially, not in parallel.** A `Promise.allSettled` would be slightly faster on the happy path, but the warnings array needs deterministic ordering so the test suite and the Slack message stay stable. The five steps run in this order: Notion → 1Password → Slack → email-client → email-ops. Slack runs *after* Notion so the Slack message can include the Notion URL when Notion succeeded. The drive-asset manifest is built before any of them because its result feeds Notion.
+3. **Slack notifies even when Notion failed** — but `notion_url` is omitted from the Slack message in that case. The `pending_items` list in the Slack body comes from the warnings array accumulated so far, which is why Slack is ordered third (after Notion + 1Password). Don't refactor this ordering without updating the Slack-warning assertions in `tests/submit.test.ts`.
+4. **Double-submit returns 409, not 200.** The side effects are not idempotent (a second submit would create a second Notion page, a second 1Password note, etc.). The endpoint checks `existing.status === 'submitted' && existing.submitted_at`. Sprint 6's edit flow flips status back to `'editing'` on a save against a submitted intake — that doesn't allow re-submit; clients edit-in-place and ops see a Slack edit-notification.
+5. **Reads from D1 tables, not from `data.step5` / `data.step3`.** The intake data JSON is a mirror; the authoritative source for credentials is `intake_credentials`, and for files is `intake_files`. The submit handler reads both directly via `listCredentials` + `listIntakeFiles`. If you ever drift the JSON mirror from the table, prefer the table — that's what Sprint 4's `persistCredentialsToTable` and Sprint 3's upload endpoint write to.
+6. **Notion's REST API has no "duplicate page" endpoint.** Sprint 5 chose to write the engagement summary as a flat child page under `NOTION_PARENT_PAGE_ID` rather than recursively walk + recreate the master template's block tree. The master template still lives at `NOTION_TEMPLATE_PAGE_ID` (linked in the new page's "Next steps" block) for ops to expand manually. If a future sprint adds full tree duplication, do it as a separate `duplicateTemplateBlocks(env, source_page_id, dest_page_id)` helper — keep `createClientPageTree` as the surface the submit handler calls so partial-failure semantics don't change.
+7. **`@notionhq/client` import was removed.** The stub imported `Client` from `@notionhq/client`, but Sprint 5 uses direct fetch calls (one `POST /pages`, that's it). The SDK is still in package.json — it's not pulling in node-only deps in the way `ulid` did, but a single fetch keeps the Workers bundle smaller and matches the pattern of `resend` (also direct fetch, not the SDK). Remove `@notionhq/client` from deps in a follow-up cleanup if no other surface comes to need it.
+8. **All five integrations accept an optional `env.fetcher` override.** Mirrors the Sprint-2 prefill pattern so tests stay hermetic (`makeFetcher([{match, respond}, ...])`). Production uses `globalThis.fetch`. Don't introduce a separate "live" vs "test" path — the override is the only thing the test fixture flips.
+9. **Local dev needs `.dev.vars` for the dev server to start cleanly.** Without it, secrets like `HMAC_SIGNING_KEY` are undefined and token verification 401s on every request. The README's "first-time setup" already mentions copying `.dev.vars.example`; future Claude should do that on a fresh checkout rather than try to bypass the missing secret. Placeholder values (e.g. `re_dev_placeholder`) are fine for UI verification — they just cause integrations to fail with a captured warning, which is exactly the partial-failure path you want to exercise anyway.
 
 ## Lessons from Sprint 4 (read before Sprint 5+)
 
@@ -258,34 +270,39 @@ For Claude-in-Code dev sessions, each sprint is roughly **one focused session**.
 
 ## Future-Claude: starting prompts per sprint
 
-### Sprint 5 — Submit handler + integrations
+### Sprint 6 — Post-submit edit flow + notification logic
 
 ```
-Read intake/README.md (especially "Lessons from Sprint 4"),
-docs/specs/client-intake-v1.0.md sections 8 (submit handler) and 9
-(Notion template structure), and the Sprint-4 stub at the bottom of
-the click handler in intake/src/pages/c/[token].astro (the 'submit'
-case). Replace the Sprint-4 success-banner stub with a real submit
-handler:
+Read intake/README.md (especially "Lessons from Sprint 5"),
+docs/specs/client-intake-v1.0.md section 8 (Edit handler), and the
+Sprint-5 submit handler at intake/src/pages/api/intake/[token]/submit.ts.
 
-  POST /api/intake/[token]/submit
-  1. Validate the intake (record exists, not already submitted)
-  2. status='submitted', submitted_at=now
-  3. Side effects (run as Worker subtasks; partial-failure tolerant):
-     a. Slack webhook → #client-onboarding
-     b. Notion API: duplicate the master template page, populate fields
-     c. R2 → Drive sync of brand assets (read intake_files directly)
-     d. 1Password notify: post credential-method summary to ops vault
-        (read intake_credentials directly — not data.step5)
-     e. Email confirmation (Resend) to client + ops
+Sprint 6 wires the edit flow on top of the Sprint-5 submit:
 
-Wire the existing lib stubs (notion.ts, slack.ts, 1password.ts) to
-real API calls. Keep secrets in env per the existing pattern.
-The Step 10 client UI replaces its stub banner with the real
-"Submitted ✓ — check your inbox" state on a 200.
+  PATCH /api/intake/[token]  (already exists)
+  When a save fires against an intake with status='submitted':
+    1. Flip status to 'editing' and record the edited step name
+    2. Slack-notify ops via notifyIntakeEdited() in lib/slack.ts
+       (the convenience function is already stubbed in shape)
+    3. Schedule auto-transition back to 'submitted' after 24h of
+       no further edits — implement as a "last_edited_at" stamp +
+       a cron worker (separate route) that scans every 6h, OR
+       defer to a soft signal in the response so the next save
+       cleans it up
 
-Tests: stub each integration's fetch path (see prefill.test.ts for
-the pattern) so the test suite remains hermetic. Confirm partial
-failure (e.g. Slack down) doesn't 500 the submit endpoint.
-Local + preview deploy + UX walkthrough on the live URL before PR.
+The client UI (Step 10 banner) should show "Editing your submitted
+intake — we'll be notified" when state.status === 'editing'. The
+existing renderReview() can stay; just add a banner that reads
+state.status and renders accordingly. Status changes round-trip
+via the existing GET /api/intake/[token] resume path.
+
+Tests: extend tests/submit.test.ts with a new describe('post-submit
+edit') block that submits, then patches, then asserts status flipped
+to 'editing' AND Slack was notified. Keep the partial-failure
+pattern from Sprint 5 — a missing Slack should not 500 the save.
+
+Out of scope: Sprint 6 does NOT re-fire the Notion / 1Password /
+Resend side effects on edit. Only Slack notifies on edit. The
+"don't double-side-effect" guard in submit.ts already does the
+right thing if a client tries to resubmit (returns 409).
 ```

@@ -78,13 +78,23 @@ class ExtendedStatement {
       });
       return { success: true };
     }
-    if (sql.startsWith('UPDATE intake_records')) {
+    if (sql.startsWith('UPDATE intake_records SET data = ?, current_step = ?, updated_at = ? WHERE id = ?')) {
       const [data, current_step, updated_at, id] = this.params as [
         string, number, number, string,
       ];
       const row = this.db.records.get(id);
       if (row) {
         this.db.records.set(id, { ...row, data, current_step, updated_at });
+      }
+      return { success: true };
+    }
+    if (sql.startsWith('UPDATE intake_records SET status = ?, current_step = ?, submitted_at = ?, updated_at = ? WHERE id = ?')) {
+      const [status, current_step, submitted_at, updated_at, id] = this.params as [
+        string, number, number | null, number, string,
+      ];
+      const row = this.db.records.get(id);
+      if (row) {
+        this.db.records.set(id, { ...row, status, current_step, submitted_at, updated_at });
       }
       return { success: true };
     }
@@ -153,6 +163,13 @@ class ExtendedStatement {
       const rows = Array.from(this.db.credentials.values())
         .filter((r) => r.intake_id === intake_id)
         .sort((a, b) => a.credential_type.localeCompare(b.credential_type));
+      return { results: rows as unknown as T[] };
+    }
+    if (sql.startsWith('SELECT * FROM intake_files WHERE intake_id = ? ORDER BY uploaded_at')) {
+      const intake_id = this.params[0] as string;
+      const rows = Array.from(this.db.files.values())
+        .filter((r) => r.intake_id === intake_id)
+        .sort((a, b) => a.uploaded_at - b.uploaded_at);
       return { results: rows as unknown as T[] };
     }
     throw new Error(`FakeD1Extended all() does not handle: ${sql}`);

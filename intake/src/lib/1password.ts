@@ -1,51 +1,122 @@
-// 1Password Connect client — Sprint 5 implementation target.
+// 1Password Service Account client — Sprint 5.
 //
-// Auth: ONEPASSWORD_SERVICE_ACCOUNT_TOKEN (secret).
-// Vault: ONEPASSWORD_VAULT_UUID — Aeolistings Client Credentials.
+// On intake submit, post a credential-method summary as a Secure Note to the
+// Aeolistings Client Credentials vault (ONEPASSWORD_VAULT_UUID). The note
+// records *how* the client granted access (delegate / password manager /
+// screen-share / skip) per spec §5 — actual credentials never touch this
+// system.
 //
-// Responsibilities:
-//   - When the intake submit handler creates a new client, it creates a
-//     placeholder folder/tag in the vault for that client (e.g.,
-//     `client:eco-roofing`).
-//   - For each credential the client granted via the "share via 1Password"
-//     path in Step 5 of intake, the system records metadata (granted-at,
-//     method, status) in the D1 intake_credentials table — NOT the credential
-//     itself. The actual credential goes into 1Password manually by the
-//     Aeolistings team after the client uses 1Password Share / BitWarden Send.
-//   - Optional v1.1: programmatically generate 1Password Share links from
-//     placeholder items so the form can hand the client a direct upload URL.
-//
-// THIS FILE IS A STUB. Sprint 5 fills it in.
-//
-// API reference:
-//   https://developer.1password.com/docs/connect/connect-api-reference/
-//   https://developer.1password.com/docs/service-accounts/
+// Auth: Bearer ONEPASSWORD_SERVICE_ACCOUNT_TOKEN.
+// API: https://developer.1password.com/docs/service-accounts/
 
 const ONEPASSWORD_API_BASE = 'https://my.1password.com/api/v2';
 
-/**
- * Create a tag for a new client in the vault.
- * Tag format: `client:<slug>` (e.g., `client:eco-roofing`)
- */
-export async function createClientTag(
-  env: Env,
-  client_slug: string,
-): Promise<void> {
-  throw new Error('Not implemented — Sprint 5');
+export interface OnePasswordEnv {
+  ONEPASSWORD_SERVICE_ACCOUNT_TOKEN: string;
+  ONEPASSWORD_VAULT_UUID: string;
+  fetcher?: typeof fetch;
+}
+
+export interface CredentialSummaryEntry {
+  credential_type: string;
+  method: string;
+  status?: string;
+  notes?: string;
+}
+
+export interface PostCredentialSummaryArgs {
+  business_name: string;
+  client_slug: string;
+  intake_id: string;
+  credentials: CredentialSummaryEntry[];
+}
+
+export interface PostCredentialSummaryResult {
+  item_id: string;
+}
+
+function clientSlug(business_name: string): string {
+  return business_name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
+}
+
+export { clientSlug };
+
+async function onepasswordFetch(
+  env: OnePasswordEnv,
+  path: string,
+  init: RequestInit,
+): Promise<unknown> {
+  const fetcher = env.fetcher ?? fetch;
+  const res = await fetcher(`${ONEPASSWORD_API_BASE}${path}`, {
+    ...init,
+    headers: {
+      Authorization: `Bearer ${env.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN}`,
+      'Content-Type': 'application/json',
+      ...(init.headers ?? {}),
+    },
+  });
+  const text = await res.text();
+  if (!res.ok) {
+    throw new Error(`1password ${path} ${res.status}: ${text.slice(0, 300)}`);
+  }
+  if (!text) return {};
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`1password ${path} returned non-JSON`);
+  }
 }
 
 /**
- * Create a placeholder Secure Note for a credential the client will fill in.
- * The note title format: "<Business Name> — <Credential Type>"
- * Returns the item ID for later reference / Share-link generation.
+ * Create a Secure Note in the client-credentials vault summarising the
+ * methods the client chose for each access category. The note is tagged
+ * `client:<slug>` and `intake:<id>` so ops can filter by either.
  */
-export async function createCredentialPlaceholder(
-  env: Env,
-  args: {
-    business_name: string;
-    client_slug: string;
-    credential_type: string; // e.g., "Domain Registrar", "WordPress Admin"
-  },
-): Promise<string> {
-  throw new Error('Not implemented — Sprint 5');
+export async function postCredentialSummary(
+  env: OnePasswordEnv,
+  args: PostCredentialSummaryArgs,
+): Promise<PostCredentialSummaryResult> {
+  const slug = args.client_slug || clientSlug(args.business_name);
+  const lines: string[] = [
+    `Intake ID: ${args.intake_id}`,
+    `Business: ${args.business_name}`,
+    `Submitted: ${new Date().toISOString()}`,
+    '',
+    'Access methods granted at intake submission:',
+  ];
+  for (const c of args.credentials) {
+    const status = c.status ? ` [${c.status}]` : '';
+    lines.push(`• ${c.credential_type}: ${c.method}${status}`);
+    if (c.notes) lines.push(`    notes: ${c.notes}`);
+  }
+  if (args.credentials.length === 0) {
+    lines.push('• (no credential methods recorded yet)');
+  }
+
+  const body = {
+    title: `${args.business_name} — Access summary (intake ${args.intake_id})`,
+    category: 'SECURE_NOTE',
+    vault: { id: env.ONEPASSWORD_VAULT_UUID },
+    tags: [`client:${slug}`, `intake:${args.intake_id}`],
+    fields: [
+      {
+        id: 'notesPlain',
+        type: 'STRING',
+        purpose: 'NOTES',
+        label: 'notesPlain',
+        value: lines.join('\n'),
+      },
+    ],
+  };
+
+  const result = (await onepasswordFetch(env, `/vaults/${env.ONEPASSWORD_VAULT_UUID}/items`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })) as { id?: string };
+  if (!result.id) throw new Error('1password create item response missing id');
+  return { item_id: result.id };
 }
