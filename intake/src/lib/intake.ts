@@ -152,6 +152,79 @@ export async function updateIntakeData(
 }
 
 /**
+ * Apply a save patch AND flip status to 'editing' in one UPDATE. Sprint 6:
+ * when a save fires against an already-submitted intake, the row transitions
+ * from 'submitted' → 'editing'. The submitted_at stamp is preserved (the row
+ * was, historically, submitted), so the auto-reconcile-back-to-submitted in
+ * `reconcileEditingTimeout` can flip status without losing that timestamp.
+ */
+export async function applyEditToSubmitted(
+  id: string,
+  patch: UpdateIntakeInput,
+  env: IntakeEnv,
+): Promise<IntakeRecord | null> {
+  const existing = await getIntakeById(id, env);
+  if (!existing) return null;
+
+  const merged: IntakeRecord = {
+    ...existing,
+    data: patch.data ? { ...existing.data, ...patch.data } : existing.data,
+    current_step: patch.current_step ?? existing.current_step,
+    status: 'editing',
+    updated_at: Math.floor(Date.now() / 1000),
+  };
+
+  await env.DB.prepare(
+    `UPDATE intake_records
+       SET data = ?, current_step = ?, status = ?, updated_at = ?
+     WHERE id = ?`,
+  )
+    .bind(
+      JSON.stringify(merged.data),
+      merged.current_step,
+      merged.status,
+      merged.updated_at,
+      id,
+    )
+    .run();
+
+  return merged;
+}
+
+/**
+ * If the record is `status='editing'` and the last edit was more than
+ * `staleAfterSeconds` ago (default 24h), flip it back to `'submitted'` and
+ * persist. Returns the (possibly-mutated) record. Sprint 6: called on
+ * every GET so submitted-then-abandoned intakes self-heal without a cron.
+ *
+ * No Slack notification on the auto-flip — the original "edit" already
+ * pinged ops; flipping back is a passive timeout, not an event.
+ */
+export async function reconcileEditingTimeout(
+  record: IntakeRecord,
+  env: IntakeEnv,
+  staleAfterSeconds: number = 24 * 60 * 60,
+): Promise<IntakeRecord> {
+  if (record.status !== 'editing') return record;
+  const now = Math.floor(Date.now() / 1000);
+  if (now - record.updated_at < staleAfterSeconds) return record;
+
+  const reconciled: IntakeRecord = {
+    ...record,
+    status: 'submitted',
+    updated_at: now,
+  };
+  await env.DB.prepare(
+    `UPDATE intake_records
+       SET status = ?, updated_at = ?
+     WHERE id = ?`,
+  )
+    .bind(reconciled.status, reconciled.updated_at, record.id)
+    .run();
+  return reconciled;
+}
+
+/**
  * Flip an intake to status='submitted' and stamp submitted_at. Used by the
  * Sprint-5 submit handler. Idempotent at the row level (re-running yields
  * the same end state) but the submit handler itself guards against double-
