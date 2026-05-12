@@ -150,3 +150,63 @@ export async function updateIntakeData(
 
   return merged;
 }
+
+/**
+ * Flip an intake to status='submitted' and stamp submitted_at. Used by the
+ * Sprint-5 submit handler. Idempotent at the row level (re-running yields
+ * the same end state) but the submit handler itself guards against double-
+ * submit so side-effects don't fire twice.
+ */
+export async function markIntakeSubmitted(
+  id: string,
+  env: IntakeEnv,
+): Promise<IntakeRecord | null> {
+  const existing = await getIntakeById(id, env);
+  if (!existing) return null;
+
+  const now = Math.floor(Date.now() / 1000);
+  const updated: IntakeRecord = {
+    ...existing,
+    status: 'submitted',
+    current_step: 10,
+    submitted_at: now,
+    updated_at: now,
+  };
+
+  await env.DB.prepare(
+    `UPDATE intake_records
+       SET status = ?, current_step = ?, submitted_at = ?, updated_at = ?
+     WHERE id = ?`,
+  )
+    .bind(updated.status, updated.current_step, updated.submitted_at, updated.updated_at, id)
+    .run();
+
+  return updated;
+}
+
+export interface IntakeFileRow {
+  id: string;
+  intake_id: string;
+  category: string;
+  filename: string;
+  r2_key: string;
+  mime_type: string;
+  size_bytes: number;
+  uploaded_at: number;
+}
+
+/**
+ * List the files uploaded for an intake. Sprint 5 reads this directly when
+ * preparing the brand-asset manifest for the Drive-sync step.
+ */
+export async function listIntakeFiles(
+  intake_id: string,
+  env: IntakeEnv,
+): Promise<IntakeFileRow[]> {
+  const result = await env.DB.prepare(
+    `SELECT * FROM intake_files WHERE intake_id = ? ORDER BY uploaded_at ASC`,
+  )
+    .bind(intake_id)
+    .all<IntakeFileRow>();
+  return result.results ?? [];
+}
