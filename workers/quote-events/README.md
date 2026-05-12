@@ -81,9 +81,29 @@ npx wrangler secret put RESEND_API_KEY
 #    Actions secret). Used to authenticate against /intake/api/intake/create.
 npx wrangler secret put INTAKE_HMAC_SIGNING_KEY  # paste same value as intake/HMAC_SIGNING_KEY
 
-# 5. Deploy.
+# 5. Deploy. The [[services]] binding in wrangler.toml requires the `intake`
+#    Worker to already exist on the same account — it does (deployed by
+#    .github/workflows/intake-deploy.yml). If you deploy this Worker BEFORE
+#    the intake Worker exists for the first time, wrangler will warn and the
+#    binding will be undefined at runtime; the auto-mint flow then falls back
+#    to global fetch (which fails on same-zone subrequests; see note below).
+#    Re-deploy this Worker after the intake Worker is live to wire it up.
 npx wrangler deploy
 ```
+
+### Note on same-zone subrequests
+
+The auto-mint-on-accept flow calls `POST /intake/api/intake/create` on the
+intake Worker. Both Workers run on the `aeolistings.ai` zone. Cloudflare's
+edge has a same-zone subrequest pathology where global `fetch()` from one
+Worker to another Worker's public URL **bypasses Worker Routes** and returns
+404 from the static-asset origin instead of routing to the intended Worker.
+
+We work around this with a **Service Binding** (`[[services]]` in
+wrangler.toml, exposed as `env.INTAKE_SERVICE` at runtime). Service Bindings
+route Worker-to-Worker subrequests directly, regardless of zone routing.
+The code falls back to global `fetch()` if the binding is missing so local
+tests and old deploys still work in degraded mode.
 
 After deploy, the Worker is live at `https://aeolistings.ai/api/quote-event`
 and quote pages will start recording views + accepts.

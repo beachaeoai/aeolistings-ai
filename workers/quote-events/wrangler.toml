@@ -22,5 +22,17 @@ id = "697b82c1f69443c0a9849de671a823c7"
 # Set it once with:    wrangler secret put RESEND_API_KEY
 # (The same Resend API key used by the contact Worker is fine to reuse.)
 
+# Service binding to the intake Worker. Required for the auto-mint-on-accept
+# flow (PR #16) — calling https://aeolistings.ai/intake/api/intake/create via
+# global fetch() hits a Cloudflare same-zone subrequest pathology that returns
+# 404 instead of routing to the intake Worker. The service binding routes the
+# subrequest directly to the bound script regardless of zone-level routing.
+#
+# The bound script name MUST match the intake Worker's `name` in
+# intake/wrangler.jsonc (currently `intake`). If that name changes, update here.
+[[services]]
+binding = "INTAKE_SERVICE"
+service = "intake"
+
 [observability]
 enabled = true
