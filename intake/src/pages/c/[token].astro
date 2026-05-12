@@ -156,6 +156,28 @@ const APPROVAL_MODE_OPTIONS_SOCIAL: { value: string; label: string }[] = [
       <div class="banner banner--error" data-banner-error hidden></div>
       <div class="banner banner--success" data-banner-success hidden></div>
 
+      {/* Sprint 6 — Status banner. Rendered when status is 'submitted' or
+          'editing'; hidden for fresh in-progress intakes. The client-side
+          controller toggles it via refreshStatusBanner() after every save. */}
+      <div
+        class="banner banner--info"
+        data-status-banner
+        hidden={state.status === 'in_progress'}
+      >
+        {state.status === 'submitted' && (
+          <>
+            <strong>This intake has been submitted ✓</strong> — you can still
+            edit any section. We'll notify the Aeolistings team on every change.
+          </>
+        )}
+        {state.status === 'editing' && (
+          <>
+            <strong>Editing your submitted intake.</strong> Ops has been
+            notified — they'll review your changes within the next business day.
+          </>
+        )}
+      </div>
+
       {/* Step 0 — Welcome */}
       <section
         class="intake-step"
@@ -1363,6 +1385,28 @@ const APPROVAL_MODE_OPTIONS_SOCIAL: { value: string; label: string }[] = [
     const saveStatus = shell.querySelector<HTMLElement>('[data-save-status]');
     const errorBanner = shell.querySelector<HTMLElement>('[data-banner-error]');
     const successBanner = shell.querySelector<HTMLElement>('[data-banner-success]');
+    const statusBanner = shell.querySelector<HTMLElement>('[data-status-banner]');
+
+    function refreshStatusBanner(): void {
+      if (!statusBanner) return;
+      const isPostSubmit = state.status === 'submitted' || state.status === 'editing';
+      statusBanner.hidden = !isPostSubmit;
+      // Swap the inner text for the current status. Kept inline (vs. two
+      // separate hidden elements) so a single banner element re-renders
+      // without leaving stale copies in the DOM.
+      if (state.status === 'submitted') {
+        statusBanner.innerHTML =
+          '<strong>This intake has been submitted ✓</strong> — you can still ' +
+          "edit any section. We'll notify the Aeolistings team on every change.";
+      } else if (state.status === 'editing') {
+        statusBanner.innerHTML =
+          '<strong>Editing your submitted intake.</strong> Ops has been ' +
+          "notified — they'll review your changes within the next business day.";
+      }
+      // Step-10 Submit button is meaningless once submitted; hide it.
+      const submitBtn = shell.querySelector<HTMLElement>('button[data-action="submit"]');
+      if (submitBtn) submitBtn.hidden = isPostSubmit;
+    }
 
     function showStep(n: number): void {
       state.current_step = n;
@@ -1409,9 +1453,19 @@ const APPROVAL_MODE_OPTIONS_SOCIAL: { value: string; label: string }[] = [
           setSaveStatus('Save failed.');
           return false;
         }
-        const body = (await res.json()) as { token: string };
+        const body = (await res.json()) as {
+          token: string;
+          intake?: { status?: string };
+        };
         token = body.token;
         history.replaceState(null, '', `${BASE}/c/${token}`);
+        // Sprint 6 — the server flips status to 'editing' when this save was
+        // an edit against an already-submitted intake. Mirror that here so
+        // the editing banner renders without needing a page reload.
+        if (body.intake?.status && body.intake.status !== state.status) {
+          state.status = body.intake.status;
+          refreshStatusBanner();
+        }
         if (toStep !== null) showStep(toStep);
         setSaveStatus('Saved.');
         return true;
@@ -1630,6 +1684,7 @@ const APPROVAL_MODE_OPTIONS_SOCIAL: { value: string; label: string }[] = [
           return;
         }
         state.status = 'submitted';
+        refreshStatusBanner();
         const warnings = body.warnings ?? [];
         const partial = shell.querySelector<HTMLElement>('[data-step10-partial]');
         const submitted = shell.querySelector<HTMLElement>('[data-step10-submitted]');
@@ -2148,6 +2203,7 @@ const APPROVAL_MODE_OPTIONS_SOCIAL: { value: string; label: string }[] = [
     renderExperts();
     renderBlackouts();
     renderReview();
+    refreshStatusBanner();
     if (state.step3?.photography?.items?.length) renderPhotoList();
 
     function renderCustomCities(): void {

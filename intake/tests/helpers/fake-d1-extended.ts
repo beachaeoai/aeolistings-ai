@@ -98,6 +98,24 @@ class ExtendedStatement {
       }
       return { success: true };
     }
+    if (sql.startsWith('UPDATE intake_records SET data = ?, current_step = ?, status = ?, updated_at = ? WHERE id = ?')) {
+      const [data, current_step, status, updated_at, id] = this.params as [
+        string, number, string, number, string,
+      ];
+      const row = this.db.records.get(id);
+      if (row) {
+        this.db.records.set(id, { ...row, data, current_step, status, updated_at });
+      }
+      return { success: true };
+    }
+    if (sql.startsWith('UPDATE intake_records SET status = ?, updated_at = ? WHERE id = ?')) {
+      const [status, updated_at, id] = this.params as [string, number, string];
+      const row = this.db.records.get(id);
+      if (row) {
+        this.db.records.set(id, { ...row, status, updated_at });
+      }
+      return { success: true };
+    }
     if (sql.startsWith('INSERT INTO intake_files')) {
       const [
         id, intake_id, category, filename, r2_key,

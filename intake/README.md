@@ -214,10 +214,21 @@ Per spec section 10:
 - ✅ **Sprint 3** — Steps 0–4 UI: welcome, confirm scope, business identity (with auto-prefill + per-field provenance), brand assets (logo + photo upload to R2), trust signals (testimonials/projects/press repeating cards). `POST /api/intake/[token]/upload` endpoint added; client-side state machine PATCHes the API on continue, rotates the token, and updates the URL via `history.replaceState` (79/79 tests, +29 for Sprint 3)
 - ✅ **Sprint 4** — Steps 5–10 UI: digital access (credential metadata via `intake_credentials`, never raw passwords), service area (Phoenix-metro checklist + custom cities), voice & guardrails, team & approvals, schedule (Google Appointment Scheduling iframe + blackouts), review & submit (per-section read-only summary with edit links + Sprint-5-stub success state). `POST /api/intake/[token]/credentials` endpoint added; `collectStep5..collectStep10` follow the Sprint-3 pattern (92/92 tests, +13 for Sprint 4)
 - ✅ **Sprint 5** — Submit handler + integrations. `POST /api/intake/[token]/submit` flips `status='submitted'`, stamps `submitted_at`, then fires five side-effects independently: Slack `#client-onboarding` notification, Notion child page under "Client Engagements" populated with the engagement summary, 1Password Secure Note with the credential-method summary, R2 → Drive manifest built from `intake_files`, and Resend confirmations to client + ops. Each failure is captured as a `warnings[]` entry; partial failure never 500s the request. The Step-10 client UI replaces its stub banner with a real "Submitted ✓" state (or a partial-failure banner listing pending integrations). New lib modules: `email.ts` + `drive-sync.ts`; `notion.ts` / `slack.ts` / `1password.ts` filled from their stubs; `markIntakeSubmitted` + `listIntakeFiles` added to `lib/intake.ts`. 103/103 tests, +11 for Sprint 5.
-- **Sprint 6** — Post-submit edit flow + notification logic (2–3 days)
+- ✅ **Sprint 6** — Post-submit edit flow. A save against a `status='submitted'` row flips it to `'editing'` in one UPDATE (`applyEditToSubmitted` in `lib/intake.ts`) and Slack-notifies ops via `notifyIntakeEdited`. Subsequent saves while still `'editing'` do NOT re-notify. The resume `GET /api/intake/[token]` lazy-reconciles a row that's been `'editing'` >24h back to `'submitted'` — no cron needed. The form UI now renders a persistent status banner above all steps (hidden when `status='in_progress'`, shows "Submitted ✓" or "Editing…" otherwise) and hides the Step-10 Submit button once submitted. Notion / 1Password / Resend do NOT re-fire on edit — only Slack notifies. 110/110 tests, +7 for Sprint 6.
 - **Sprint 7** — QA, polish, prefill edge cases, mobile responsive (3–4 days)
 
 For Claude-in-Code dev sessions, each sprint is roughly **one focused session**.
+
+## Lessons from Sprint 6 (read before Sprint 7+)
+
+1. **Save endpoint now has two code paths: regular save and edit-save.** `POST /api/intake/[token]` fetches the existing record up front and branches on `status`. If `'submitted'`, it calls `applyEditToSubmitted` (one UPDATE that includes the status flip) and then `notifyIntakeEdited`. Otherwise it falls through to the original `updateIntakeData`. The branch happens *before* the rotate-token + response, so the new token returned with the response is already tied to the freshly-edited (status='editing') row. Don't separate the status flip from the data update into two UPDATEs — atomicity matters here.
+2. **Lazy reconcile lives in `reconcileEditingTimeout`, called from `GET /api/intake/[token]`.** No cron worker. A row that's been `'editing'` for >24h since its `updated_at` flips back to `'submitted'` on the next read (or save's pre-read). The flip persists via a status-only UPDATE that touches `updated_at` as well — keeping the original `submitted_at` intact. Tests use `env._db.records.set(intake_id, {...row, updated_at: row.updated_at - 25 * 3600})` to fast-forward; in prod, real wall-clock does the same job.
+3. **Slack only fires on the `submitted → editing` transition, not on every edit save.** The second + third edit (while still `'editing'`) don't notify because `before.status === 'submitted'` is false at that point. This matches user expectations — they tweak a field, click Continue, and don't expect three Slack pings for three keystrokes. The first transition is the meaningful signal.
+4. **Slack down does not 500 the save** — same partial-failure pattern as Sprint 5. The handler wraps `notifyIntakeEdited` in try/catch and returns `warnings: [{step: 'slack', error}]`. The data has already been persisted by that point; failing here would lose the save, not just the notification.
+5. **The status banner is a single element with `innerHTML` swap, not two hidden siblings.** Two siblings worked for Sprint 5's success/partial banners because they were mutually exclusive Step-10-only states with very different markup. Sprint 6's banner is global (above every step) and only ever shows one of three states (in_progress=hidden, submitted, editing); innerHTML keeps the DOM clean and the toggle in one place. `refreshStatusBanner()` is the single entry point — call it after init, after submit, and after every save where status might have changed.
+6. **`describeEditedStep` is intentionally dumb.** It reports the top-level keys of `patch.data` (e.g. "step7") or falls back to `step N` from `current_step`. The Slack message says "Stag Electric updated step7" which is good enough for ops to know which area to review. Don't try to humanize the step name here — that's UI territory; the Slack channel readers know the schema.
+7. **The form UI reads `body.intake.status` from the save response to update `state.status` in-place.** This is the first time the client mirrors a server-side status change without a reload. Sprint 7's mobile-responsive pass should be careful not to break this — if the client UI ever skips reading the response (e.g. for an "optimistic" navigation), the editing banner will lag a save behind.
+8. **Sprint 6 does NOT re-fire Notion / 1Password / Resend on edit.** Per spec §8, only Slack notifies on edit; the Sprint-5 side effects are submit-only. If a future requirement adds "re-sync Notion on edit," do it as a separate explicit endpoint (e.g. `POST /api/intake/[token]/resync`) rather than tangling it into the save path — the partial-failure surface gets ugly quickly when multiple integrations have to coordinate.
 
 ## Lessons from Sprint 5 (read before Sprint 6+)
 
@@ -270,39 +281,65 @@ For Claude-in-Code dev sessions, each sprint is roughly **one focused session**.
 
 ## Future-Claude: starting prompts per sprint
 
-### Sprint 6 — Post-submit edit flow + notification logic
+### Sprint 7 — QA, polish, prefill edge cases, mobile responsive
 
 ```
-Read intake/README.md (especially "Lessons from Sprint 5"),
-docs/specs/client-intake-v1.0.md section 8 (Edit handler), and the
-Sprint-5 submit handler at intake/src/pages/api/intake/[token]/submit.ts.
+Read intake/README.md (all six "Lessons from Sprint N" sections
+1–6 — they encode the full design history) and walk the production
+URL https://aeolistings.ai/intake/c/<a-fresh-token> end-to-end on
+a real phone (or DevTools mobile emulator) before touching any code.
 
-Sprint 6 wires the edit flow on top of the Sprint-5 submit:
+Sprint 7 is the v1.0 finishing pass. Three buckets, scoped:
 
-  PATCH /api/intake/[token]  (already exists)
-  When a save fires against an intake with status='submitted':
-    1. Flip status to 'editing' and record the edited step name
-    2. Slack-notify ops via notifyIntakeEdited() in lib/slack.ts
-       (the convenience function is already stubbed in shape)
-    3. Schedule auto-transition back to 'submitted' after 24h of
-       no further edits — implement as a "last_edited_at" stamp +
-       a cron worker (separate route) that scans every 6h, OR
-       defer to a soft signal in the response so the next save
-       cleans it up
+1. PREFILL EDGE CASES (lib/prefill.ts + tests/prefill.test.ts)
+   - JSON-LD parsing: handle @graph arrays, multiple Organization
+     nodes, schema:ProfessionalService variants. Currently picks
+     the first match; some real sites have noise (Person /
+     WebSite) before the Organization.
+   - AZ ROC: the Salesforce-rendered page returns near-empty HTML
+     to server-side fetch. If proper API access lands (spec §14)
+     before Sprint 7 starts, swap the scrape for the API; if not,
+     document the "miss" rate per real client and decide whether
+     to drop the scrape (since manual entry already works).
+   - BBB: same — accreditation date parsing has only been tested
+     against one HTML shape. Add fixtures from 3+ real BBB pages.
 
-The client UI (Step 10 banner) should show "Editing your submitted
-intake — we'll be notified" when state.status === 'editing'. The
-existing renderReview() can stay; just add a banner that reads
-state.status and renders accordingly. Status changes round-trip
-via the existing GET /api/intake/[token] resume path.
+2. MOBILE RESPONSIVE (src/styles/form.css + Page.astro)
+   - Repeat-item cards (testimonials, projects, custom cities,
+     named experts, blackout ranges) stack awkwardly on <420px.
+     Cards should single-column with full-width inputs.
+   - File-upload slots: the dual color-logo + white-logo + favicon
+     row breaks on phones. Consider a vertical stack with full-
+     width drop targets.
+   - The status banner from Sprint 6 is full-width good — verify
+     it doesn't push the progress bar off-screen on iPhone SE.
+   - Touch targets: every checkbox / radio in Steps 1 + 5 + 6
+     needs to be ≥44px. Tailwind utilities should cover this; the
+     few hand-styled spots in form.css may not.
 
-Tests: extend tests/submit.test.ts with a new describe('post-submit
-edit') block that submits, then patches, then asserts status flipped
-to 'editing' AND Slack was notified. Keep the partial-failure
-pattern from Sprint 5 — a missing Slack should not 500 the save.
+3. POLISH + TESTING
+   - Auto-save heartbeat: currently saves only on Continue. Sprint
+     7 could add a 10-second debounced save on input — but only if
+     the token-rotation cost is acceptable. Decide based on
+     real-client failure modes (mainly: did anyone lose work?).
+   - Empty-state UX: a fresh intake has nothing in many sections.
+     The render functions (renderTestimonials etc.) should show
+     "Add your first <thing>" not a blank list.
+   - Brother-QA pattern from Sprint 4: fresh-eyes pass on every
+     step. Track what trips up a non-engineer. Fix anything that
+     does, log the rest as v1.1.
 
-Out of scope: Sprint 6 does NOT re-fire the Notion / 1Password /
-Resend side effects on edit. Only Slack notifies on edit. The
-"don't double-side-effect" guard in submit.ts already does the
-right thing if a client tries to resubmit (returns 409).
+Tests: extend the existing suites (prefill.test.ts gets fixtures;
+no new test file needed unless adding the auto-save heartbeat).
+Run npm test + astro check + the production smoke (mint a token
+via quote-events accept → complete intake → verify Notion + Slack
++ 1Password + emails) before the PR.
+
+Out of scope for Sprint 7:
+- Multi-client agency splitter (per spec §11 — v1.1+)
+- Internal admin UI for ops (per spec §11)
+- Bulk export (spec §11)
+- Multilingual (spec §11)
+- The intake.aeolistings.ai subdomain (pending CF support per spec §13)
 ```
+
