@@ -4,7 +4,6 @@ description: "A definitional explainer on /llms.txt — what it is, what it isn'
 pubDate: 2026-04-21
 author: "AEO Listings"
 tags: ["technical", "fundamentals", "standards"]
-draft: true
 ---
 
 **`/llms.txt` is a plain-text file at the root of a website (e.g., `https://example.com/llms.txt`) that summarizes the site's purpose and links to its most important pages, written in a Markdown format optimized for large language models to ingest. It is a proposed convention, not an industry standard. Major LLM crawlers — OpenAI's GPTBot, Anthropic's ClaudeBot, Google-Extended, PerplexityBot — do not currently announce that they consume `llms.txt` differently from regular HTML. Shipping one is cheap, mildly helpful as a summary entry point for any LLM that does respect it, and useful as a forcing function for clarifying your own site's information architecture.**
