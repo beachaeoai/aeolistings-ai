@@ -2,7 +2,7 @@
 title: "How much does AEO cost for a small business?"
 description: "Real pricing ranges for Answer Engine Optimization for local service businesses in 2026, what the work actually involves, and what to be skeptical of in agency proposals."
 pubDate: 2026-05-11
-author: "AEO Listings"
+author: "Jake Beach"
 tags: ["cost", "fundamentals", "agency"]
 draft: true
 ---

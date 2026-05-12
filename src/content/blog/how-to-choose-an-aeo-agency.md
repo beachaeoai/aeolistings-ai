@@ -2,7 +2,7 @@
 title: "How to choose an AEO agency (and what to watch out for)"
 description: "A vetting checklist for choosing an Answer Engine Optimization agency in 2026 — what real expertise looks like, what red flags to walk away from, and the questions to ask on a discovery call."
 pubDate: 2026-05-13
-author: "AEO Listings"
+author: "Jake Beach"
 tags: ["agency", "vetting", "fundamentals"]
 draft: true
 ---

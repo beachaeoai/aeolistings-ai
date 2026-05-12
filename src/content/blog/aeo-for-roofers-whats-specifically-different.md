@@ -2,7 +2,7 @@
 title: "AEO for roofers: what's specifically different"
 description: "What makes Answer Engine Optimization work for roofing contractors specifically — buyer-intent prompts, climate-driven seasonality, the tile vs shingle vs foam category problem, and what to track."
 pubDate: 2026-05-18
-author: "AEO Listings"
+author: "Jake Beach"
 tags: ["vertical-roofing", "case-study", "fundamentals"]
 draft: true
 ---

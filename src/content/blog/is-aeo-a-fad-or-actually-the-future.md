@@ -2,7 +2,7 @@
 title: "Is AEO a fad, or is local search actually changing?"
 description: "The honest answer for skeptical business owners: how much local-search behavior has actually shifted to AI assistants by 2026, what's hype, what's structural, and how to make a defensible call on whether to invest."
 pubDate: 2026-05-20
-author: "AEO Listings"
+author: "Jake Beach"
 tags: ["objections", "fundamentals", "market"]
 draft: true
 ---

@@ -2,7 +2,7 @@
 title: "AEO for electricians: what's specifically different"
 description: "What makes Answer Engine Optimization work for electrical contractors — EV charger queries, panel-upgrade economics, troubleshooting buyer intent, and the manufacturer-certification leverage most electricians miss."
 pubDate: 2026-06-08
-author: "AEO Listings"
+author: "Jake Beach"
 tags: ["vertical-electrical", "case-study", "fundamentals"]
 draft: true
 ---
