@@ -28,6 +28,14 @@ interface Env {
   // worker's HMAC_SIGNING_KEY secret. Set with:
   //   npx wrangler secret put INTAKE_HMAC_SIGNING_KEY
   INTAKE_HMAC_SIGNING_KEY?: string;
+  // Service binding to the intake Worker (see wrangler.toml [[services]]).
+  // Global fetch() to the public URL fails for same-zone subrequests —
+  // Cloudflare's edge bypasses Worker Routes on internal subrequests in some
+  // configurations and the request ends up at the static-asset origin (404).
+  // Calling env.INTAKE_SERVICE.fetch(...) routes directly to the bound
+  // script regardless of zone routing. Optional in the type so dev builds
+  // without the binding still typecheck; runtime falls back to global fetch.
+  INTAKE_SERVICE?: Fetcher;
 }
 
 type EventKind = 'view' | 'accept';
@@ -382,8 +390,13 @@ async function createIntakeRecord(env: Env, params: {
     scope_flags: scopeFlags,
   };
 
+  // Prefer the service binding (Worker-to-Worker direct route — bypasses the
+  // same-zone subrequest pathology that returns 404 from global fetch). Fall
+  // back to global fetch only if the binding is missing (mis-configured prod
+  // or local-dev tests without the binding wired).
+  const fetcher: { fetch: typeof fetch } = env.INTAKE_SERVICE ?? { fetch };
   try {
-    const res = await fetch(INTAKE_CREATE_URL, {
+    const res = await fetcher.fetch(INTAKE_CREATE_URL, {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
