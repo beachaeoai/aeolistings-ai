@@ -4,7 +4,6 @@ description: "A realistic timeline for when ChatGPT, Claude, Perplexity, and Goo
 pubDate: 2026-04-20
 author: "AEO Listings"
 tags: ["timelines", "measurement", "fundamentals"]
-draft: true
 ---
 
 **A realistic timeline for AEO results in a local services business: foundation work (entity discipline, schema, Google Business Profile, citations) begins to register in AI answers within four to eight weeks. Visibility lifts (passage-retrievable content, FAQ pages, off-site corroboration) compound over the following two to three months. Durable citation share — the kind that survives competitor moves and model updates — generally takes six to twelve months. Anyone promising results in four weeks is either misrepresenting the work or measuring something other than citations.**
