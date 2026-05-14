@@ -215,7 +215,7 @@ Per spec section 10:
 - ✅ **Sprint 4** — Steps 5–10 UI: digital access (credential metadata via `intake_credentials`, never raw passwords), service area (Phoenix-metro checklist + custom cities), voice & guardrails, team & approvals, schedule (Google Appointment Scheduling iframe + blackouts), review & submit (per-section read-only summary with edit links + Sprint-5-stub success state). `POST /api/intake/[token]/credentials` endpoint added; `collectStep5..collectStep10` follow the Sprint-3 pattern (92/92 tests, +13 for Sprint 4)
 - ✅ **Sprint 5** — Submit handler + integrations. `POST /api/intake/[token]/submit` flips `status='submitted'`, stamps `submitted_at`, then fires five side-effects independently: Slack `#client-onboarding` notification, Notion child page under "Client Engagements" populated with the engagement summary, 1Password Secure Note with the credential-method summary, R2 → Drive manifest built from `intake_files`, and Resend confirmations to client + ops. Each failure is captured as a `warnings[]` entry; partial failure never 500s the request. The Step-10 client UI replaces its stub banner with a real "Submitted ✓" state (or a partial-failure banner listing pending integrations). New lib modules: `email.ts` + `drive-sync.ts`; `notion.ts` / `slack.ts` / `1password.ts` filled from their stubs; `markIntakeSubmitted` + `listIntakeFiles` added to `lib/intake.ts`. 103/103 tests, +11 for Sprint 5.
 - ✅ **Sprint 6** — Post-submit edit flow. A save against a `status='submitted'` row flips it to `'editing'` in one UPDATE (`applyEditToSubmitted` in `lib/intake.ts`) and Slack-notifies ops via `notifyIntakeEdited`. Subsequent saves while still `'editing'` do NOT re-notify. The resume `GET /api/intake/[token]` lazy-reconciles a row that's been `'editing'` >24h back to `'submitted'` — no cron needed. The form UI now renders a persistent status banner above all steps (hidden when `status='in_progress'`, shows "Submitted ✓" or "Editing…" otherwise) and hides the Step-10 Submit button once submitted. Notion / 1Password / Resend do NOT re-fire on edit — only Slack notifies. 110/110 tests, +7 for Sprint 6.
-- **Sprint 7** — QA, polish, prefill edge cases, mobile responsive (3–4 days)
+- **Sprint 7** — Magic-link auto-recover (P1), prefill edge cases, mobile responsive, QA polish (3–4 days)
 
 For Claude-in-Code dev sessions, each sprint is roughly **one focused session**.
 
@@ -289,9 +289,44 @@ Read intake/README.md (all six "Lessons from Sprint N" sections
 URL https://aeolistings.ai/intake/c/<a-fresh-token> end-to-end on
 a real phone (or DevTools mobile emulator) before touching any code.
 
-Sprint 7 is the v1.0 finishing pass. Three buckets, scoped:
+Sprint 7 is the v1.0 finishing pass. Four buckets, scoped:
 
-1. PREFILL EDGE CASES (lib/prefill.ts + tests/prefill.test.ts)
+1. MAGIC-LINK AUTO-RECOVER (P1 — confirmed gap during Sprint 6 QA)
+   The "This link is no longer valid" page at /intake/c/<consumed-token>
+   currently tells the user to email intake@aeolistings.ai for a fresh
+   link. That's a manual ops touchpoint. Real-world user behavior: they
+   go back to the receipt email, click the same link, hit the 401 page.
+   Auto-recover removes the human from the loop.
+
+   Build:
+   - POST /intake/api/intake/resend-link with body { email }
+     · Look up most-recently-updated intake_records WHERE client_email = ?
+     · If found: createToken(intake_id, env) + sendEmail with the magic link
+     · Return 200 on hit AND miss (don't leak intake existence)
+     · Rate-limit 1 req per email per 5 min via INTAKE_TOKENS KV with
+       'resend:' prefix (same pattern Sprint 2 used for prefill cache)
+   - Update the 401 page in src/pages/c/[token].astro:
+     · Inline form: email input + "Email me a fresh link" button
+     · On POST → swap form for "Check your inbox — if we have your intake
+       on file, a new link is on its way."
+     · Keep mailto:intake@aeolistings.ai as a fallback link below
+   - Email template: reuse the Sprint-5 email.ts helpers; new function
+     sendMagicLinkRecovery(env, { to, magic_link }). Subject: "Your
+     Aeolistings intake — fresh magic link inside". 7-day expiry note.
+
+   Security note: the recovery factor is the email address already on
+   the intake row. If an attacker has email access they have everything
+   else anyway. Rate limit + don't-leak-existence are sufficient.
+
+   Tests: tests/resend-link.test.ts with stubbed fetch (same pattern as
+   submit.test.ts):
+   · 200 + email sent when intake exists
+   · 200 + no email sent when intake doesn't exist (no enumeration)
+   · 429 when rate-limited (or just 200 with the same generic message —
+     decide based on whether ops needs the signal)
+   · Token returned by createToken verifies via verifyToken (sanity)
+
+2. PREFILL EDGE CASES (lib/prefill.ts + tests/prefill.test.ts)
    - JSON-LD parsing: handle @graph arrays, multiple Organization
      nodes, schema:ProfessionalService variants. Currently picks
      the first match; some real sites have noise (Person /
@@ -304,7 +339,7 @@ Sprint 7 is the v1.0 finishing pass. Three buckets, scoped:
    - BBB: same — accreditation date parsing has only been tested
      against one HTML shape. Add fixtures from 3+ real BBB pages.
 
-2. MOBILE RESPONSIVE (src/styles/form.css + Page.astro)
+3. MOBILE RESPONSIVE (src/styles/form.css + Page.astro)
    - Repeat-item cards (testimonials, projects, custom cities,
      named experts, blackout ranges) stack awkwardly on <420px.
      Cards should single-column with full-width inputs.
@@ -317,7 +352,7 @@ Sprint 7 is the v1.0 finishing pass. Three buckets, scoped:
      needs to be ≥44px. Tailwind utilities should cover this; the
      few hand-styled spots in form.css may not.
 
-3. POLISH + TESTING
+4. POLISH + TESTING
    - Auto-save heartbeat: currently saves only on Continue. Sprint
      7 could add a 10-second debounced save on input — but only if
      the token-rotation cost is acceptable. Decide based on
