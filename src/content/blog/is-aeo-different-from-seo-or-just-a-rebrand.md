@@ -1,7 +1,7 @@
 ---
 title: "Is AEO different from SEO, or just a rebrand?"
 description: "An honest answer to the most common skeptical question about Answer Engine Optimization. The overlap, the genuine differences, and why the difference matters for the work."
-pubDate: 2026-05-07
+pubDate: 2026-05-12
 author: "AEO Listings"
 tags: ["fundamentals", "seo", "definitions"]
 ---

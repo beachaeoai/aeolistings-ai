@@ -19,9 +19,12 @@ name: Draft review
 
 on:
   schedule:
-    # Days 1, 7, 13, 19, 25 at 16:00 UTC = 09:00 America/Phoenix.
-    # Adjust the times if you'd rather get the email at a different hour.
-    - cron: '0 16 1,7,13,19,25 * *'
+    # Days 3, 11, 18, 26 at 16:00 UTC = 09:00 America/Phoenix.
+    # Variable spacing (8, 7, 8 days) so published pubDates don't form
+    # a visible cron pattern on the blog index. Previous uniform 6-day
+    # schedule made every post look machine-published. Adjust the days
+    # if you'd rather get the email at a different cadence.
+    - cron: '0 16 3,11,18,26 * *'
   workflow_dispatch:
 
 # Need write access to push the publish/<slug> branch and to open the PR.

@@ -1,7 +1,7 @@
 ---
 title: "How AI chatbots decide which local business to recommend"
 description: "ChatGPT, Claude, Perplexity, and Gemini don't pick local businesses at random. A walk through the retrieval signals that actually drive who gets named."
-pubDate: 2026-05-02
+pubDate: 2026-05-05
 author: "AEO Listings"
 tags: ["fundamentals", "retrieval", "local"]
 ---
