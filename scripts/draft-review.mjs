@@ -234,12 +234,99 @@ Sent automatically by .github/workflows/draft-review-cron.yml
 // Main
 // ──────────────────────────────────────────────────────────────
 
+/** Count how many posts are currently published (for the empty-queue email). */
+function countPublishedPosts() {
+  const files = readdirSync(BLOG_DIR).filter((f) => f.endsWith('.md') || f.endsWith('.mdx'));
+  let count = 0;
+  for (const f of files) {
+    const { fm } = parseFrontmatter(readFileSync(join(BLOG_DIR, f), 'utf8'));
+    if (fm.draft !== 'true') count += 1;
+  }
+  return count;
+}
+
+function buildEmptyQueueEmail(publishedCount) {
+  const html = `<!DOCTYPE html>
+<html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1a1a1a;max-width:640px;margin:0 auto;padding:24px;background:#FAF8F1;">
+  <h2 style="font-size:18px;margin:0 0 16px;font-weight:600;">Draft queue is empty — nothing to publish today</h2>
+
+  <p style="font-size:15px;line-height:1.65;margin:0 0 16px;">The scheduled review just ran and found no drafts waiting. <strong>Nothing is broken</strong> — the cron is firing correctly, there's just no content for it to surface.</p>
+
+  <table style="border-collapse:collapse;width:100%;margin-bottom:24px;">
+    <tr><td style="padding:6px 16px 6px 0;color:#666;font-size:13px;vertical-align:top;white-space:nowrap;">Posts published</td><td style="padding:6px 0;font-size:14px;color:#1a1a1a;">${publishedCount}</td></tr>
+    <tr><td style="padding:6px 16px 6px 0;color:#666;font-size:13px;vertical-align:top;white-space:nowrap;">Drafts in queue</td><td style="padding:6px 0;font-size:14px;color:#1a1a1a;">0</td></tr>
+    <tr><td style="padding:6px 16px 6px 0;color:#666;font-size:13px;vertical-align:top;white-space:nowrap;">Next cron tick</td><td style="padding:6px 0;font-size:14px;color:#1a1a1a;">~6 days from now</td></tr>
+  </table>
+
+  <h3 style="font-size:12px;color:#666;margin:24px 0 8px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">To resume the cadence</h3>
+  <p style="font-size:14px;line-height:1.65;margin:0 0 12px;">Add one or more <code>.md</code> files to <code>src/content/blog/</code> with frontmatter that includes <code>draft: true</code>. The next cron tick will pick the oldest one (by <code>pubDate</code>), open a PR, and email you for review.</p>
+
+  <p style="font-size:14px;line-height:1.65;margin:0 0 12px;">Minimum frontmatter shape:</p>
+  <pre style="font-size:13px;background:#fff;padding:14px;border-left:3px solid #8B2F2F;border-radius:0 2px 2px 0;line-height:1.5;color:#1a1a1a;white-space:pre-wrap;">---
+title: "Your post title"
+description: "A one-line description for meta tags and the blog index."
+pubDate: 2026-06-15
+author: "AEO Listings"
+tags: ["tag-1", "tag-2"]
+draft: true
+---
+
+Post body in Markdown here.</pre>
+
+  <h3 style="font-size:12px;color:#666;margin:24px 0 8px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">To stop these reminder emails</h3>
+  <p style="font-size:14px;line-height:1.65;margin:0;">If you'd rather not be reminded until you actually add drafts: disable the workflow in GitHub (Actions tab → Draft review → "···" → Disable workflow). Re-enable when you add new drafts.</p>
+
+  <p style="font-size:12px;color:#999;margin:32px 0 0;">Sent automatically by .github/workflows/draft-review-cron.yml — scripts/draft-review.mjs, empty-queue branch.</p>
+</body></html>`;
+  const text = `Draft queue is empty — nothing to publish today.
+
+Nothing is broken — the cron fired correctly, there's just no content
+for it to surface.
+
+  Posts published: ${publishedCount}
+  Drafts in queue: 0
+  Next cron tick:  ~6 days from now
+
+To resume the cadence:
+  Add one or more .md files to src/content/blog/ with frontmatter
+  that includes "draft: true". Next cron tick picks the oldest
+  one by pubDate.
+
+To stop these reminders until you add drafts:
+  GitHub → Actions → Draft review → "···" → Disable workflow.
+
+Sent automatically by .github/workflows/draft-review-cron.yml.
+`;
+  return { html, text };
+}
+
 async function main() {
   console.log(DRY_RUN ? '▸ DRY RUN — no changes will be made\n' : '');
 
   const draft = findNextDraft();
   if (!draft) {
-    console.log('✓ No drafts in queue. Nothing to do today.');
+    const published = countPublishedPosts();
+    console.log(`✓ No drafts in queue. Posts already published: ${published}.`);
+
+    if (DRY_RUN) {
+      console.log('▸ DRY RUN — would send empty-queue notification email');
+      return;
+    }
+
+    // Email the owner so they know the cron ran and what to do next.
+    // Without this, a silent exit looks identical to "the system is broken".
+    console.log('▸ Sending empty-queue notification email...');
+    try {
+      const { html, text } = buildEmptyQueueEmail(published);
+      await sendEmail({
+        subject: 'Draft queue empty — add more posts to resume the cadence',
+        html,
+        text,
+      });
+      console.log(`    ✓ Sent to ${EMAIL_TO}`);
+    } catch (e) {
+      console.error(`    ✗ Email send failed: ${e.message}`);
+    }
     return;
   }
 

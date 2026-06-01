@@ -30,6 +30,10 @@ Pages describing local market dynamics for the East Valley + Phoenix metro citie
 
 - [Blog index](https://aeolistings.ai/blog): Editorial notes and research on Answer Engine Optimization — fundamentals, tactics, and measurement.
 - [What is Answer Engine Optimization (AEO)?](https://aeolistings.ai/blog/what-is-aeo): A definitional introduction to AEO — what it is, how it differs from SEO, and why it matters now.
+- [How AI chatbots decide which local business to recommend](https://aeolistings.ai/blog/how-ai-chatbots-decide-which-local-business-to-recommend): The four retrieval signals that actually drive who gets named — entity strength, corroboration, retrievability, recency — and how they differ from SEO ranking factors.
+- [Is AEO different from SEO, or just a rebrand?](https://aeolistings.ai/blog/is-aeo-different-from-seo-or-just-a-rebrand): An honest answer to the most common skeptical question — the overlap, the genuine differences, and why the difference matters for the work.
+- [How long until AI search recommends my business?](https://aeolistings.ai/blog/how-long-until-ai-search-recommends-my-business): A realistic phased timeline (4–8 weeks for foundation signals, 4–12 weeks for visibility, 6–12 months for durable citation share) and why anyone promising results in 4 weeks is misrepresenting the work.
+- [What is llms.txt, and should my business have one?](https://aeolistings.ai/blog/what-is-llms-txt-and-should-my-business-have-one): A definitional explainer on /llms.txt — what it is, what it isn't, which crawlers actually use it, and when it's worth shipping.
 - [How to check if ChatGPT recommends your business](https://aeolistings.ai/blog/how-to-check-if-chatgpt-recommends-your-business): A practical, repeatable method for running an AI-citation audit across ChatGPT, Claude, Perplexity, and Google AI Overview — including the prompt set, methodology, and what to do with the results.
 
 ## Key facts
