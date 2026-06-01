@@ -1,7 +1,7 @@
 ---
 title: "How to check if ChatGPT recommends your business"
 description: "A practical, repeatable method for testing whether ChatGPT, Claude, Perplexity, and Google AI Overview cite your business — and what to do with the answer."
-pubDate: 2026-04-22
+pubDate: 2026-04-27
 author: "AEO Listings"
 tags: ["measurement", "audit", "tactics"]
 ---

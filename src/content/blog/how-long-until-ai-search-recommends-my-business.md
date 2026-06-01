@@ -1,7 +1,7 @@
 ---
 title: "How long until AI search recommends my business?"
 description: "A realistic timeline for when ChatGPT, Claude, Perplexity, and Google AI Overview start citing a local business after AEO work begins. Phased by signal type."
-pubDate: 2026-04-20
+pubDate: 2026-05-13
 author: "AEO Listings"
 tags: ["timelines", "measurement", "fundamentals"]
 ---

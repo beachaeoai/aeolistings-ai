@@ -1,7 +1,7 @@
 ---
 title: "What is llms.txt, and should my business have one?"
 description: "A definitional explainer on /llms.txt — what it is, what it isn't, which crawlers actually use it, and when it's worth shipping."
-pubDate: 2026-04-21
+pubDate: 2026-05-20
 author: "AEO Listings"
 tags: ["technical", "fundamentals", "standards"]
 ---

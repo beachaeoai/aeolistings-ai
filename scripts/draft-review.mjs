@@ -95,15 +95,46 @@ function findNextDraft() {
 }
 
 // ──────────────────────────────────────────────────────────────
-// File mutation: remove `draft: true` line from frontmatter.
-// (The collection schema defaults draft to false, so absence === published.)
+// File mutation: remove `draft: true` AND update pubDate to today.
+//
+// Two changes happen at publish time:
+//   1. The `draft: true` line is removed (the schema defaults draft to
+//      false, so absence === published).
+//   2. The `pubDate` is rewritten to today's UTC date.
+//
+// Why update pubDate: the original pubDate in a draft is just a queue-
+// ordering hint, not a publication date. Without this, the live blog
+// shows the draft-authoring date (often weeks earlier) as the publish
+// date — confusing for readers and wrong for schema.
 // ──────────────────────────────────────────────────────────────
+
+function todayUtcDateString() {
+  // YYYY-MM-DD in UTC. Astro coerces this to a Date in en-US display.
+  const d = new Date();
+  const yyyy = d.getUTCFullYear();
+  const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const dd = String(d.getUTCDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
 
 function flipDraftFlag(filePath) {
   const text = readFileSync(filePath, 'utf8');
-  const updated = text.replace(/\r?\ndraft:\s*true(?=\r?\n)/g, '');
+  let updated = text.replace(/\r?\ndraft:\s*true(?=\r?\n)/g, '');
   if (updated === text) {
     throw new Error(`No \`draft: true\` line found in ${filePath} — frontmatter may be malformed.`);
+  }
+  // Rewrite pubDate to today's UTC date. Matches "pubDate: YYYY-MM-DD"
+  // with optional surrounding whitespace; preserves the rest of the line.
+  const today = todayUtcDateString();
+  const pubDateReplaced = updated.replace(
+    /^pubDate:\s*\S+\s*$/m,
+    `pubDate: ${today}`,
+  );
+  if (pubDateReplaced === updated) {
+    // No pubDate field present — unusual but not fatal; just warn.
+    console.warn(`  ⚠️  ${filePath} has no pubDate field — published date will be missing in schema.`);
+  } else {
+    updated = pubDateReplaced;
   }
   writeFileSync(filePath, updated, 'utf8');
 }
