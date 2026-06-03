@@ -1,10 +1,9 @@
 ---
 title: "Why ChatGPT recommends your competitor instead of you"
 description: "When ChatGPT, Claude, or Perplexity names a competitor and not you, the cause is rarely the obvious one. Five specific patterns explain almost every case — and each has a different fix."
-pubDate: 2026-06-02
+pubDate: 2026-06-03
 author: "AEO Listings"
 tags: ["diagnostics", "competitor-analysis", "tactics"]
-draft: true
 ---
 
 **When an AI chatbot recommends your competitor and not you for a buyer-intent prompt, the cause is rarely "they have more reviews" or "they're better at SEO." In our work across home service and local professional businesses, almost every case fits one of five specific patterns: an entity-signal asymmetry, a passage-retrievability gap, a recency gap, a corroboration gap, or a category-specificity mismatch. The first step is identifying which one — because the fix for each is different, and applying the wrong fix wastes months.**
