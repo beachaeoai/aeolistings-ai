@@ -472,8 +472,19 @@ async function main() {
   console.log('▸ Done. Action the PR when you have a moment.');
 }
 
-main().catch((e) => {
-  console.error('✗ Fatal error:');
-  console.error(e);
-  process.exit(1);
-});
+// Only auto-run main() when invoked directly (e.g. `node scripts/draft-review.mjs`
+// from the GitHub Action). Skip when this module is imported as a library —
+// otherwise an inspect-via-import accidentally creates a branch and a PR.
+import { fileURLToPath } from 'node:url';
+import { argv } from 'node:process';
+
+const invokedDirectly =
+  argv[1] && fileURLToPath(import.meta.url) === argv[1];
+
+if (invokedDirectly) {
+  main().catch((e) => {
+    console.error('✗ Fatal error:');
+    console.error(e);
+    process.exit(1);
+  });
+}
