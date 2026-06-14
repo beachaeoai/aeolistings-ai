@@ -108,13 +108,26 @@ function findNextDraft() {
 // date — confusing for readers and wrong for schema.
 // ──────────────────────────────────────────────────────────────
 
-function todayUtcDateString() {
-  // YYYY-MM-DD in UTC. Astro coerces this to a Date in en-US display.
-  const d = new Date();
-  const yyyy = d.getUTCFullYear();
-  const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
-  const dd = String(d.getUTCDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}`;
+function todayInPublishTimezone() {
+  // YYYY-MM-DD in America/Phoenix (the agency's local timezone), NOT UTC.
+  //
+  // Why Phoenix not UTC: scheduled cron runs at 09:00 Phoenix = 16:00 UTC,
+  // where the UTC and Phoenix dates match — so for the normal flow this
+  // makes no difference. But workflow_dispatch can fire at any time of
+  // day, and if it runs after 17:00 Phoenix (00:00+ UTC) the UTC date is
+  // already "tomorrow" while the agency (and its readers) are still on
+  // today's date. Using Phoenix consistently means the displayed pubDate
+  // always matches the day the agency considers the post to have shipped.
+  //
+  // Astro coerces this YYYY-MM-DD to a Date at midnight UTC, and the
+  // blog index formatter renders in UTC during the Cloudflare build, so
+  // a Phoenix-date string produces a matching display date everywhere.
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Phoenix',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
 }
 
 function flipDraftFlag(filePath) {
@@ -123,9 +136,10 @@ function flipDraftFlag(filePath) {
   if (updated === text) {
     throw new Error(`No \`draft: true\` line found in ${filePath} — frontmatter may be malformed.`);
   }
-  // Rewrite pubDate to today's UTC date. Matches "pubDate: YYYY-MM-DD"
-  // with optional surrounding whitespace; preserves the rest of the line.
-  const today = todayUtcDateString();
+  // Rewrite pubDate to today's date in America/Phoenix (the agency's
+  // local timezone). Matches "pubDate: YYYY-MM-DD" with optional
+  // surrounding whitespace; preserves the rest of the line.
+  const today = todayInPublishTimezone();
   const pubDateReplaced = updated.replace(
     /^pubDate:\s*\S+\s*$/m,
     `pubDate: ${today}`,
