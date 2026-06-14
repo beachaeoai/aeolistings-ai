@@ -1,10 +1,9 @@
 ---
 title: "Google Business Profile mistakes that kill AI visibility"
 description: "Your Google Business Profile is the single highest-leverage signal for AI citation of a local business. Seven common errors quietly cost businesses citation share — and the fix for each takes under 30 minutes."
-pubDate: 2026-06-03
+pubDate: 2026-06-14
 author: "AEO Listings"
 tags: ["google-business-profile", "tactics", "common-mistakes"]
-draft: true
 ---
 
 **Google Business Profile (GBP) is the single highest-leverage AI visibility signal for a local service business. It's the first authoritative source most LLMs read when constructing their representation of you, and it propagates into every directory that scrapes Google — meaning a single error on your GBP cascades across the web. Seven specific mistakes account for most of the AI-visibility damage we see: wrong primary category, mis-set service area, generic service descriptions, missing structured services, NAP inconsistency, stale review velocity, and an ignored Q&A section. Each is fixable in under 30 minutes.**
