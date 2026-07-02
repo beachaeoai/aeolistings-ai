@@ -1,0 +1,385 @@
+---
+import Base from '../layouts/Base.astro';
+import Container from '../components/Container.astro';
+import { site } from '../lib/site';
+
+// ProfessionalService entity for this specific vertical. References the
+// root Organization (`#org`) shipped from Base.astro rather than
+// redeclaring the whole thing. `areaServed` here is national (this is a
+// vertical page, not a geo page); `serviceType` is the specific vertical.
+const verticalServiceSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfessionalService',
+  '@id': `${site.url}/aeo-for-home-service-contractors#service`,
+  name: 'AEO for Home Service Contractors',
+  url: `${site.url}/aeo-for-home-service-contractors`,
+  description:
+    'Answer Engine Optimization for home service contractors — plumbers, HVAC, roofers, electricians, landscapers, painters, remodelers. Get recommended by ChatGPT, Claude, Perplexity, Gemini, and Google AI Overview when prospects ask who to hire.',
+  provider: { '@id': `${site.url}/#org` },
+  parentOrganization: { '@id': `${site.url}/#org` },
+  serviceType: 'Answer Engine Optimization for Home Services',
+  audience: {
+    '@type': 'BusinessAudience',
+    name: 'Home service contractors: HVAC, plumbing, roofing, electrical, landscaping, painting, remodeling',
+  },
+  areaServed: [
+    { '@type': 'Country', name: 'United States' },
+    { '@type': 'City', name: 'Mesa' },
+    { '@type': 'AdministrativeArea', name: 'Phoenix metropolitan area' },
+  ],
+};
+
+const faqs = [
+  {
+    q: 'What does AEO actually do for a home service contractor?',
+    a: "AEO gets your business named when a prospect asks ChatGPT, Claude, Perplexity, Gemini, or Google AI Overview a buyer-intent question in your trade — 'best HVAC in Mesa', 'plumber for a slab leak in Phoenix', 'roofer that does tile in Scottsdale'. The work is different from traditional SEO because the answer engine cites zero to three sources, not ten. Being named is the whole game.",
+  },
+  {
+    q: 'Which trades do you work with?',
+    a: "Plumbers, HVAC contractors, roofers, electricians, landscapers, painters, remodelers, general contractors, and adjacent home service pros doing roughly $500K to $10M in annual revenue. If you sell installed labor to homeowners, the playbook applies. We turn down work outside this range — either too small to justify the retainer or too large to move the needle at our scale.",
+  },
+  {
+    q: 'How is this different from SEO or Google Business Profile optimization?',
+    a: "SEO targets ranked link lists on a search results page. AEO targets the single synthesized answer an AI chatbot returns. The two disciplines overlap at the foundation — clean structured data, consistent citations, complete Google Business Profile — but diverge above that. AEO also involves passage retrievability (writing so the model can quote you), off-site corroboration (getting described correctly by sources you don't control), and prompt-set monitoring. GBP optimization is a subset of the entity-signals track; it is necessary but not sufficient.",
+  },
+  {
+    q: 'How long until I see results?',
+    a: "Foundation work registers in AI answers within four to eight weeks. Visibility lifts compound over the following two to three months. Durable citation share — the kind that survives competitor moves and model updates — generally takes six to twelve months. Anyone promising results in four weeks for a home service business is either measuring something cheaper than citation share or playing tricks on a single chatbot that will evaporate at the next model update.",
+  },
+  {
+    q: 'What does a monthly report look like?',
+    a: "A prompt-by-prompt citation report across ChatGPT, Claude, Perplexity, Gemini, and Google AI Overview — 40 to 60 buyer-intent prompts specific to your trade and service area. For each prompt: cited yes/no per engine, position relative to competitors, sentiment of how you're described, and which competitors are being named instead. Plus month-over-month deltas so you can see the trajectory.",
+  },
+  {
+    q: 'How much does it cost?',
+    a: "Retainer pricing runs from low four figures monthly for a single-track engagement (Foundation only, for smaller shops) to mid-to-high four figures for the full stack (Foundation, Visibility, Authority, Operations). No annual contracts, no setup fees, no per-page pricing games. Cancellation is one email. Exact number depends on your trade's competitive density, the current state of your entity signals, and how many prompts we track monthly.",
+  },
+  {
+    q: 'Do you work with contractors outside Arizona?',
+    a: "Yes. We are headquartered in Mesa, Arizona, and work with clients across the United States. Local concentration is the East Valley and Phoenix metro (Mesa, Phoenix, Scottsdale, Tempe, Chandler, Gilbert) because we live here — but the work is delivered remotely and the playbook is the same in Nashville or Charleston or Denver. We turn down work only when the trade or size doesn't fit, not when the city is outside Arizona.",
+  },
+  {
+    q: 'What if my GBP is a mess and my citations are inconsistent everywhere?',
+    a: "That's expected — it's the situation most home service contractors are in when they hire us. The Foundation track is specifically designed for it: audit every directory that AI models actually read, fix the NAP inconsistencies, complete the GBP fields most owners never touch, deploy Schema.org markup on your site. It's the unglamorous first month of work, but every other track compounds on it. Skipping foundation is the reason most SEO shops fail at AEO for contractors.",
+  },
+  {
+    q: 'Will you take on my direct competitor?',
+    a: "No. Once we take on a client in a specific service area and trade combination, we turn down direct competitors in that same area. Our client roster is small on purpose — the work is senior-hands-only and there is no scale advantage to running fifty accounts in the same trade in the same market.",
+  },
+];
+
+const faqPageSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  '@id': `${site.url}/aeo-for-home-service-contractors#faq`,
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  '@id': `${site.url}/aeo-for-home-service-contractors#breadcrumbs`,
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: site.url },
+    { '@type': 'ListItem', position: 2, name: 'AEO for Home Service Contractors', item: `${site.url}/aeo-for-home-service-contractors` },
+  ],
+};
+
+const trades = [
+  { trade: 'HVAC contractors', hook: 'year-round emergency demand, tight response-time windows' },
+  { trade: 'Plumbers', hook: 'emergency + planned mix, high AI-search adoption for slab-leak/repipe queries' },
+  { trade: 'Roofers', hook: 'insurance-adjacent language, storm-season spike patterns' },
+  { trade: 'Electricians', hook: 'permit-heavy work, safety trust signals matter' },
+  { trade: 'Landscapers & irrigation', hook: 'zone-specific plant knowledge, seasonal maintenance retainers' },
+  { trade: 'Painters', hook: 'quote-heavy sales cycle, before/after portfolio surfacing' },
+  { trade: 'Remodelers & GCs', hook: 'high ticket, longer consideration cycle, portfolio depth matters' },
+];
+
+const calendar = [
+  {
+    marker: 'Day 30',
+    delivery:
+      "Foundation lands. Google Business Profile audit and rebuild complete — every field filled, service descriptions written for retrieval, structured services expanded. Schema.org markup deployed sitewide. NAP inconsistencies fixed across the top 10 directories for your trade. Baseline citation audit across 40+ prompts — the number you'll measure future months against.",
+  },
+  {
+    marker: 'Day 60',
+    delivery:
+      "Visibility work is compounding. Two to four core service pages rewritten around answer-first structure. FAQ block deployed with FAQPage schema. First round of neighborhood-level content shipped. Review request flow built into your post-service workflow. Month 1 delta report shipped: which prompts moved, which didn't, which competitors surfaced.",
+  },
+  {
+    marker: 'Day 90',
+    delivery:
+      "Authority track is live. Industry-specific directory placements (Houzz, Angi, BBB, trade associations) with rich service descriptions. First press mention or trade publication secured. Reddit and forum corroboration active. Month 2 delta report: citation share against defined competitor set now trending. Operations rhythm established for month 4 forward.",
+  },
+];
+---
+<Base
+  title="AEO for Home Service Contractors"
+  description="Answer Engine Optimization for home service contractors — HVAC, plumbing, roofing, electrical, landscaping, painting, remodeling. Get recommended by ChatGPT, Claude, Perplexity, Gemini, and Google AI Overview when prospects ask who to hire."
+  path="/aeo-for-home-service-contractors"
+  schema={[verticalServiceSchema, faqPageSchema, breadcrumbSchema]}
+>
+  <!-- HERO -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-32">
+      <div class="mono-label">Services · Home service contractors</div>
+
+      <h1 class="mt-8 text-balance max-w-[24ch]"
+          style="font-family: var(--font-serif); font-size: var(--text-display); line-height: 1.02;">
+        AEO for home service contractors.
+      </h1>
+
+      <p class="mt-10 max-w-2xl text-lg md:text-xl leading-[1.6] text-[color:var(--color-fg-muted)]">
+        When someone asks ChatGPT, Claude, Perplexity, Gemini, or Google AI Overview
+        <em>who's a good [your trade] near me</em> — we make sure your business is the answer.
+      </p>
+
+      <p class="mt-6 max-w-2xl text-[color:var(--color-fg-muted)] leading-[1.65]">
+        Monthly retainer. No annual contract. Cancel by email. For plumbers, HVAC pros,
+        roofers, electricians, landscapers, painters, remodelers, and general contractors
+        doing roughly $500K to $10M in annual revenue.
+      </p>
+
+      <div class="mt-10 flex flex-wrap items-center gap-4">
+        <a href="/contact" class="btn btn--primary">
+          <span>Start a project</span>
+          <span aria-hidden="true">→</span>
+        </a>
+        <a href={`mailto:${site.email}`} class="btn">
+          <span>Email {site.email}</span>
+        </a>
+      </div>
+    </Container>
+  </section>
+
+  <!-- TRADES WE WORK WITH -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28">
+      <div class="grid md:grid-cols-[1fr_2fr] gap-12 md:gap-20">
+        <div>
+          <div class="mono-label">01 · Trades we work with</div>
+          <h2 class="mt-5"
+              style="font-size: var(--text-h1); line-height: 1.05;">
+            Seven trades.<br/>One AEO playbook.
+          </h2>
+          <p class="mt-6 text-[color:var(--color-fg-muted)] leading-[1.65] max-w-md">
+            Each trade has its own AI-search behavior — response-time expectations, seasonal
+            patterns, buyer language, permit context. The Foundation, Visibility, Authority,
+            Operations stack works across all of them; the <em>weighting</em> changes by trade.
+          </p>
+        </div>
+        <div class="space-y-4 text-[1.0625rem] leading-[1.65]">
+          {trades.map((t) => (
+            <div class="border-b border-[color:var(--color-hairline)] pb-4">
+              <div class="font-[family-name:var(--font-serif)] text-[1.25rem] leading-tight">
+                {t.trade}
+              </div>
+              <p class="mt-2 text-[color:var(--color-fg-muted)] text-[0.9375rem]">
+                {t.hook}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Container>
+  </section>
+
+  <!-- HOW IT WORKS: FOUR-TRACK STACK REFERENCE -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28">
+      <div class="grid md:grid-cols-[1fr_2fr] gap-12 md:gap-20">
+        <div>
+          <div class="mono-label">02 · The work</div>
+          <h2 class="mt-5"
+              style="font-size: var(--text-h1); line-height: 1.05;">
+            Foundation, Visibility,<br/>Authority, Operations.
+          </h2>
+        </div>
+        <div class="space-y-6 text-[1.0625rem] leading-[1.65] max-w-[60ch]">
+          <p>
+            <strong>Foundation</strong> — Google Business Profile audit and rebuild, NAP
+            consistency across the directories AI models read, Schema.org markup deployed
+            sitewide. Every trade starts here. It's unglamorous and every subsequent track
+            compounds on it.
+          </p>
+          <p>
+            <strong>Visibility</strong> — service pages rewritten around answer-first H2s
+            and self-contained paragraphs. FAQ deployment with FAQPage schema. Neighborhood-
+            level content for the sub-markets that matter. This is what LLMs actually retrieve.
+          </p>
+          <p>
+            <strong>Authority</strong> — industry-specific directory placements (Houzz, Angi,
+            BBB, trade associations). Press mentions. Reddit and forum corroboration. Off-site
+            work that gets you described correctly by sources you don't control.
+          </p>
+          <p>
+            <strong>Operations</strong> — monthly prompt-set tracking across 40 to 60 buyer-
+            intent prompts. Delta reports showing what moved. Model-update response. Review
+            velocity monitoring. This is the ongoing work that keeps results durable as the
+            AI landscape shifts.
+          </p>
+          <div class="pt-4">
+            <a href="/services" class="link-slide text-[color:var(--color-fg)]">
+              Full four-track service breakdown →
+            </a>
+          </div>
+        </div>
+      </div>
+    </Container>
+  </section>
+
+  <!-- 30/60/90 CALENDAR -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28">
+      <div class="grid md:grid-cols-[1fr_2fr] gap-12 md:gap-20">
+        <div>
+          <div class="mono-label">03 · First 90 days</div>
+          <h2 class="mt-5"
+              style="font-size: var(--text-h1); line-height: 1.05;">
+            What you see,<br/>when you see it.
+          </h2>
+        </div>
+        <div class="space-y-8 text-[1.0625rem] leading-[1.65] max-w-[62ch]">
+          {calendar.map((c) => (
+            <div class="border-l-2 border-[color:var(--color-accent)] pl-6">
+              <div class="mono-label text-[color:var(--color-accent)]">{c.marker}</div>
+              <p class="mt-3">{c.delivery}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Container>
+  </section>
+
+  <!-- PRICING -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28">
+      <div class="grid md:grid-cols-[1fr_2fr] gap-12 md:gap-20">
+        <div>
+          <div class="mono-label">04 · Pricing</div>
+          <h2 class="mt-5"
+              style="font-size: var(--text-h1); line-height: 1.05;">
+            Monthly retainer.<br/>No annual contract.
+          </h2>
+        </div>
+        <div class="space-y-6 text-[1.0625rem] leading-[1.65] max-w-[60ch]">
+          <p>
+            Retainer engagements run from <strong>low four figures monthly</strong> for
+            single-track Foundation work (best for smaller shops fixing entity signals) to
+            <strong>mid-to-high four figures</strong> for the full four-track stack (best for
+            contractors ready to compete for citation share against a defined competitor set).
+          </p>
+          <p class="text-[color:var(--color-fg-muted)]">
+            No annual contracts. No setup fees. No per-page pricing games. Cancellation is
+            one email. We publish this range specifically so you can decide before we talk
+            whether it's a fit — the sales call is for understanding your trade and market,
+            not for shocking you with a number.
+          </p>
+          <p class="text-[color:var(--color-fg-muted)]">
+            Exact monthly number depends on: your trade's competitive density, the current
+            state of your entity signals (audit tells us this in the first call), how many
+            prompts we track monthly, and whether you want us on Authority track outbound
+            or just internal Visibility work.
+          </p>
+        </div>
+      </div>
+    </Container>
+  </section>
+
+  <!-- REGIONAL COVERAGE -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28">
+      <div class="grid md:grid-cols-[1fr_2fr] gap-12 md:gap-20">
+        <div>
+          <div class="mono-label">05 · Coverage</div>
+          <h2 class="mt-5"
+              style="font-size: var(--text-h1); line-height: 1.05;">
+            Mesa-based.<br/>Nationwide clients.
+          </h2>
+        </div>
+        <div class="space-y-6 text-[1.0625rem] leading-[1.65] max-w-[60ch]">
+          <p>
+            We're headquartered in <a href="/locations/mesa" class="link-slide text-[color:var(--color-fg)]">Mesa, Arizona</a>,
+            with local concentration across the East Valley and Phoenix metro. Direct
+            experience in six regional markets: Mesa, <a href="/locations/phoenix" class="link-slide text-[color:var(--color-fg)]">Phoenix</a>,
+            <a href="/locations/scottsdale" class="link-slide text-[color:var(--color-fg)]">Scottsdale</a>,
+            <a href="/locations/tempe" class="link-slide text-[color:var(--color-fg)]">Tempe</a>,
+            <a href="/locations/chandler" class="link-slide text-[color:var(--color-fg)]">Chandler</a>, and
+            <a href="/locations/gilbert" class="link-slide text-[color:var(--color-fg)]">Gilbert</a>.
+          </p>
+          <p class="text-[color:var(--color-fg-muted)]">
+            Beyond Arizona: we work with home service contractors nationwide. The AEO
+            playbook is remote-delivered — your GBP, your website, your directories, your
+            citation tracking — all of it runs the same in Nashville or Charleston as it
+            does in Chandler. The only reason to be in the same market is if we're
+            physically walking your service area, which nobody needs.
+          </p>
+          <p class="text-[color:var(--color-fg-muted)]">
+            <em>Do not see your city here?</em> That's not a fit problem — we work nationally.
+            The six above are just the ones we have the most pattern recognition for.
+          </p>
+        </div>
+      </div>
+    </Container>
+  </section>
+
+  <!-- FAQ -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28">
+      <div class="grid md:grid-cols-[1fr_2fr] gap-12 md:gap-20">
+        <div>
+          <div class="mono-label">06 · Questions</div>
+          <h2 class="mt-5"
+              style="font-size: var(--text-h1); line-height: 1.05;">
+            Nine specific to<br/>home service contractors.
+          </h2>
+          <p class="mt-6 text-[color:var(--color-fg-muted)] leading-[1.65] max-w-md">
+            The ones we get most from HVAC, plumbing, roofing, electrical, and remodeling
+            business owners in the first sales call.
+          </p>
+        </div>
+        <div class="max-w-[60ch] space-y-3">
+          {faqs.map((item) => (
+            <details class="group border-b border-[color:var(--color-hairline)] py-5">
+              <summary class="cursor-pointer list-none flex items-baseline justify-between gap-4 font-[family-name:var(--font-serif)] text-[1.25rem] md:text-[1.375rem] leading-snug">
+                <span>{item.q}</span>
+                <span aria-hidden="true" class="font-[family-name:var(--font-mono)] text-sm text-[color:var(--color-fg-muted)] shrink-0 transition-transform group-open:rotate-45">+</span>
+              </summary>
+              <div class="mt-4 text-[color:var(--color-fg-muted)] leading-[1.65]">
+                <p>{item.a}</p>
+              </div>
+            </details>
+          ))}
+        </div>
+      </div>
+    </Container>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section>
+    <Container class="py-20 md:py-28 text-center">
+      <p class="font-[family-name:var(--font-serif)] italic text-balance mx-auto max-w-3xl"
+         style="font-size: clamp(1.75rem, 3.5vw, 2.5rem); line-height: 1.2;">
+        Run a free AI citation audit on your business.
+      </p>
+      <p class="mt-6 max-w-xl mx-auto text-[color:var(--color-fg-muted)] leading-[1.65]">
+        Thirty minutes. No pitch. We pull live citation data for your business across
+        ChatGPT, Claude, Perplexity, Gemini, and Google AI Overview — and walk you through
+        what the chatbots are actually saying about you today.
+      </p>
+      <div class="mt-10 flex justify-center flex-wrap gap-4">
+        <a href="/contact" class="btn btn--primary">
+          <span>Start a project</span>
+          <span aria-hidden="true">→</span>
+        </a>
+        <a href={`mailto:${site.email}`} class="btn">
+          <span>Email us directly</span>
+        </a>
+      </div>
+    </Container>
+  </section>
+</Base>

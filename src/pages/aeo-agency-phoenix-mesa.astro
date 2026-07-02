@@ -1,0 +1,329 @@
+---
+import Base from '../layouts/Base.astro';
+import Container from '../components/Container.astro';
+import { site } from '../lib/site';
+
+// ProfessionalService entity scoped to the Phoenix/Mesa geo. References
+// the root Organization by `@id`. `areaServed` on THIS entity is the
+// East Valley + Phoenix metro cities we have direct experience with;
+// the root Org's areaServed already covers the national scope.
+const geoServiceSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfessionalService',
+  '@id': `${site.url}/aeo-agency-phoenix-mesa#service`,
+  name: 'AEO Agency in Phoenix / Mesa, Arizona',
+  url: `${site.url}/aeo-agency-phoenix-mesa`,
+  description:
+    'Mesa, Arizona-based Answer Engine Optimization agency serving the Phoenix metro. Get recommended by ChatGPT, Claude, Perplexity, Gemini, and Google AI Overview when Phoenix, Mesa, Scottsdale, Tempe, Chandler, or Gilbert prospects ask who to hire.',
+  provider: { '@id': `${site.url}/#org` },
+  parentOrganization: { '@id': `${site.url}/#org` },
+  serviceType: 'Answer Engine Optimization',
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Mesa',
+    addressRegion: 'AZ',
+    addressCountry: 'US',
+  },
+  areaServed: [
+    { '@type': 'City', name: 'Mesa', containedInPlace: { '@type': 'State', name: 'Arizona' } },
+    { '@type': 'City', name: 'Phoenix', containedInPlace: { '@type': 'State', name: 'Arizona' } },
+    { '@type': 'City', name: 'Scottsdale', containedInPlace: { '@type': 'State', name: 'Arizona' } },
+    { '@type': 'City', name: 'Tempe', containedInPlace: { '@type': 'State', name: 'Arizona' } },
+    { '@type': 'City', name: 'Chandler', containedInPlace: { '@type': 'State', name: 'Arizona' } },
+    { '@type': 'City', name: 'Gilbert', containedInPlace: { '@type': 'State', name: 'Arizona' } },
+    { '@type': 'AdministrativeArea', name: 'Phoenix metropolitan area' },
+  ],
+};
+
+const faqs = [
+  {
+    q: 'What is an AEO agency and why does Phoenix specifically need one?',
+    a: "An AEO agency does Answer Engine Optimization — the discipline of making a business the name AI chatbots (ChatGPT, Claude, Perplexity, Gemini, Google AI Overview) cite when prospects ask for a recommendation. Phoenix specifically needs it because the metro is one of the fastest-growing AI-search-adoption markets in the country — most new residents come from California, Texas, and Washington, the metros where ChatGPT and Perplexity crossed mainstream first. Local service businesses that were fine on Google alone two years ago are losing visible share of top-of-funnel to AI right now.",
+  },
+  {
+    q: 'Are you actually based in Mesa, or is this a virtual address?',
+    a: "Mesa is our real headquarters. The founder (Jake Beach) lives and works in Mesa, Arizona. We are not a national agency with a virtual office here for local-SEO benefits — the Mesa specialization is genuine, and it shows up in the depth of local pattern recognition we have across the East Valley. See our locations pages for the specific market dynamics we've documented for Mesa, Phoenix, Scottsdale, Tempe, Chandler, and Gilbert.",
+  },
+  {
+    q: 'Do you only work with Phoenix-area businesses?',
+    a: "No. Mesa is our headquarters, but our service area is the United States. We work with home service contractors and local professionals nationwide, delivered remotely. The Phoenix concentration is a market advantage, not a service-area restriction — we have deeper local knowledge here, so audits and prompt sets are richer, but the AEO playbook is remote-first and works identically in Nashville, Charleston, Denver, or Portland.",
+  },
+  {
+    q: 'How is AEO different from local SEO for Phoenix businesses?',
+    a: "Local SEO targets Google's local pack — the map + three ranked businesses that show up on 'plumber near me' searches. AEO targets AI answer engines — the single synthesized recommendation ChatGPT or Perplexity gives when a Phoenix prospect asks who to call. They overlap at the foundation (Google Business Profile completeness, NAP consistency, structured data) but diverge above that. AEO adds passage retrievability (writing so LLMs can quote you), off-site corroboration (getting cited by sources you don't control), and citation monitoring across five AI surfaces instead of one. Most Phoenix agencies calling themselves 'AEO agencies' are running the same local SEO playbook and hoping the acronym is enough. It isn't.",
+  },
+  {
+    q: 'What if I need coverage across multiple East Valley cities?',
+    a: "That's actually the default engagement for Phoenix-metro home service contractors — most operate across at least three cities (say, Mesa, Chandler, and Gilbert), sometimes across the whole East Valley or the full Phoenix metro. Our Foundation and Visibility tracks handle multi-city coverage without extra fee; the work is the same schema, the same GBP configuration, the same content architecture. What varies is the Authority track — if you want citation share tracked across six cities separately, that's more prompts and more competitive analysis. We can quote either shape.",
+  },
+  {
+    q: 'What kinds of Phoenix-area businesses do you turn down?',
+    a: "Two categories. First, businesses outside the roughly $500K to $10M annual revenue range — smaller shops usually can't justify the retainer, larger ones need a different scale of operation than we run. Second, direct competitors of existing clients in the same service area. If we've already taken on an HVAC contractor in Scottsdale, we won't take a second one — the citation share game is competitive, and we won't play both sides.",
+  },
+  {
+    q: 'How long is a typical Phoenix engagement?',
+    a: "Retainers run month-to-month with no annual contract. Most engagements last 12 to 24 months — foundation work registers within the first 4-8 weeks, visibility lifts compound over months 2-3, and durable citation share against a defined competitor set takes 6-12 months to lock in. After that, Operations work maintains position as AI models update. Clients who cancel early usually do so in month 2 or 3 because they expected search-engine-speed results; that is not the shape of AEO, and we say so on the sales call.",
+  },
+  {
+    q: 'What does your first month look like for a Phoenix contractor?',
+    a: "Week 1: baseline citation audit across 40+ prompts specific to your trade and East Valley coverage. GBP audit and initial cleanup. NAP consistency audit across the directories AI models actually read. Week 2-3: GBP rebuild, Schema.org markup deployment, first citation fixes going live. Week 4: first service page rewrite in progress. End of month 1: report showing baseline citation share number, top 5 competitors surfacing instead of you, and the Foundation work delta. Not sexy, but it's the work that makes every subsequent month compound.",
+  },
+];
+
+const faqPageSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  '@id': `${site.url}/aeo-agency-phoenix-mesa#faq`,
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  '@id': `${site.url}/aeo-agency-phoenix-mesa#breadcrumbs`,
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: site.url },
+    { '@type': 'ListItem', position: 2, name: 'AEO Agency in Phoenix / Mesa', item: `${site.url}/aeo-agency-phoenix-mesa` },
+  ],
+};
+
+const cities = [
+  { name: 'Mesa', slug: 'mesa', hook: 'Headquarters city. Entity-disambiguation problem — third-largest AZ city inside a bigger metro.' },
+  { name: 'Phoenix', slug: 'phoenix', hook: 'Fifth-largest U.S. city, densest year-round HVAC/pool services market in the Southwest.' },
+  { name: 'Scottsdale', slug: 'scottsdale', hook: 'Luxury-tier services market. Median home values ~2x metro average.' },
+  { name: 'Tempe', slug: 'tempe', hook: 'ASU-driven services market. Student rentals, off-campus housing, parent buyers.' },
+  { name: 'Chandler', slug: 'chandler', hook: 'Intel semiconductor hub. Concentrated high-wage tech-worker households.' },
+  { name: 'Gilbert', slug: 'gilbert', hook: 'Master-planned neighborhood districts. Neighborhood-level AEO matters here.' },
+];
+---
+<Base
+  title="AEO Agency in Phoenix / Mesa, Arizona"
+  description="Mesa, Arizona-based Answer Engine Optimization agency serving the Phoenix metro. Get recommended by ChatGPT, Claude, Perplexity, Gemini, and Google AI Overview when prospects across Mesa, Phoenix, Scottsdale, Tempe, Chandler, and Gilbert ask who to hire."
+  path="/aeo-agency-phoenix-mesa"
+  schema={[geoServiceSchema, faqPageSchema, breadcrumbSchema]}
+>
+  <!-- HERO -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-32">
+      <div class="mono-label">Services · Phoenix metro · Mesa headquartered</div>
+
+      <h1 class="mt-8 text-balance max-w-[24ch]"
+          style="font-family: var(--font-serif); font-size: var(--text-display); line-height: 1.02;">
+        AEO agency in Phoenix. Based in Mesa.
+      </h1>
+
+      <p class="mt-10 max-w-2xl text-lg md:text-xl leading-[1.6] text-[color:var(--color-fg-muted)]">
+        We are the Answer Engine Optimization agency for East Valley and Phoenix-metro
+        service businesses — headquartered in Mesa, working nationally, with the deepest
+        local pattern recognition of any AEO shop in Arizona.
+      </p>
+
+      <p class="mt-6 max-w-2xl text-[color:var(--color-fg-muted)] leading-[1.65]">
+        When a Phoenix, Mesa, Scottsdale, Tempe, Chandler, or Gilbert prospect asks
+        ChatGPT, Claude, Perplexity, Gemini, or Google AI Overview <em>who's a good
+        [your trade] near me</em> — we make sure your business is the answer.
+      </p>
+
+      <div class="mt-10 flex flex-wrap items-center gap-4">
+        <a href="/contact" class="btn btn--primary">
+          <span>Start a project</span>
+          <span aria-hidden="true">→</span>
+        </a>
+        <a href={`mailto:${site.email}`} class="btn">
+          <span>Email {site.email}</span>
+        </a>
+      </div>
+    </Container>
+  </section>
+
+  <!-- WHY LOCAL AEO IN PHOENIX IS DIFFERENT -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28">
+      <div class="grid md:grid-cols-[1fr_2fr] gap-12 md:gap-20">
+        <div>
+          <div class="mono-label">01 · Why here, why now</div>
+          <h2 class="mt-5"
+              style="font-size: var(--text-h1); line-height: 1.05;">
+            Phoenix is a<br/>leading AI-search<br/>market.
+          </h2>
+        </div>
+        <div class="space-y-6 text-[1.0625rem] leading-[1.65] max-w-[60ch]">
+          <p>
+            The Phoenix metro adds roughly 80,000 to 90,000 new residents per year, most
+            of them from California, Texas, and Washington — the metros where ChatGPT and
+            Perplexity crossed mainstream adoption first. That translates to a materially
+            higher-than-national baseline rate of AI-search use for local services here.
+          </p>
+          <p>
+            For home service contractors and local professionals, this means the share of
+            top-of-funnel discovery happening inside an AI chatbot rather than a Google
+            results page is already meaningful — and growing 30 to 50 percent year over
+            year. Businesses that were fine on Google alone two years ago are visibly
+            behind now, and the gap widens every quarter.
+          </p>
+          <p class="text-[color:var(--color-fg-muted)]">
+            Second reason: the Phoenix contractor market — especially HVAC, pool service,
+            roofing, and remodeling — is one of the densest in the U.S. by per-capita
+            business count. Standing out in dense markets is where AEO earns its keep.
+            In a thin market, Google alone might be enough. In Phoenix, it isn't.
+          </p>
+        </div>
+      </div>
+    </Container>
+  </section>
+
+  <!-- CITIES WE COVER -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28">
+      <div class="grid md:grid-cols-[1fr_2fr] gap-12 md:gap-20">
+        <div>
+          <div class="mono-label">02 · Cities we cover</div>
+          <h2 class="mt-5"
+              style="font-size: var(--text-h1); line-height: 1.05;">
+            Six markets.<br/>Documented depth.
+          </h2>
+          <p class="mt-6 text-[color:var(--color-fg-muted)] leading-[1.65] max-w-md">
+            Each has its own AEO dynamics. We've written a market-analysis page for each.
+          </p>
+        </div>
+        <div class="space-y-4">
+          {cities.map((c) => (
+            <a href={`/locations/${c.slug}`}
+               class="block group border-b border-[color:var(--color-hairline)] pb-4 transition-colors hover:bg-[color:var(--color-bg-2)] px-2 -mx-2">
+              <div class="grid md:grid-cols-[auto_1fr_auto] items-baseline gap-4">
+                <span class="font-[family-name:var(--font-serif)] text-[1.375rem] leading-tight group-hover:text-[color:var(--color-accent)] transition-colors">
+                  {c.name}
+                </span>
+                <p class="text-[color:var(--color-fg-muted)] text-[0.9375rem] leading-[1.6]">
+                  {c.hook}
+                </p>
+                <span aria-hidden="true"
+                      class="hidden md:inline font-[family-name:var(--font-mono)] text-sm text-[color:var(--color-fg-muted)] group-hover:text-[color:var(--color-accent)] group-hover:translate-x-1 transition-transform">
+                  →
+                </span>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </Container>
+  </section>
+
+  <!-- FOUR-TRACK REFERENCE -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28">
+      <div class="grid md:grid-cols-[1fr_2fr] gap-12 md:gap-20">
+        <div>
+          <div class="mono-label">03 · The work</div>
+          <h2 class="mt-5"
+              style="font-size: var(--text-h1); line-height: 1.05;">
+            Four tracks.<br/>Same in Phoenix<br/>as everywhere.
+          </h2>
+        </div>
+        <div class="space-y-6 text-[1.0625rem] leading-[1.65] max-w-[60ch]">
+          <p>
+            The AEO playbook doesn't change by geography — <a href="/services" class="link-slide text-[color:var(--color-fg)]">Foundation, Visibility, Authority, Operations</a>
+            run the same in Phoenix as they do in Nashville. What changes locally is the
+            <em>weighting</em>: which competitors to track, which regional directories to prioritize,
+            which neighborhood signals to build.
+          </p>
+          <p class="text-[color:var(--color-fg-muted)]">
+            For Phoenix-metro engagements specifically, the Foundation track leans hard on
+            entity-disambiguation work (Mesa vs. Phoenix vs. "the Valley" — see the
+            <a href="/locations/mesa" class="link-slide text-[color:var(--color-fg)]">Mesa page</a>
+            for detail). Visibility work weights neighborhood-level content more than in
+            most markets — Phoenix is geographically huge and buyers use neighborhood
+            names (Arcadia, Ahwatukee, Desert Ridge, North Central) as qualifiers.
+          </p>
+        </div>
+      </div>
+    </Container>
+  </section>
+
+  <!-- PRICING -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28">
+      <div class="grid md:grid-cols-[1fr_2fr] gap-12 md:gap-20">
+        <div>
+          <div class="mono-label">04 · Pricing</div>
+          <h2 class="mt-5"
+              style="font-size: var(--text-h1); line-height: 1.05;">
+            Retainer, monthly.<br/>Cancel by email.
+          </h2>
+        </div>
+        <div class="space-y-6 text-[1.0625rem] leading-[1.65] max-w-[60ch]">
+          <p>
+            Retainer engagements run <strong>low four figures monthly</strong> for a single-
+            track Foundation engagement (best for shops with clean-ish current signals
+            wanting to catch up) up to <strong>mid-to-high four figures</strong> for the
+            full four-track stack across the whole Phoenix metro.
+          </p>
+          <p class="text-[color:var(--color-fg-muted)]">
+            No annual contract. No setup fee. No per-page pricing. Cancellation is one
+            email. Exact monthly number depends on your trade's competitive density, the
+            current state of your entity signals, and how many cities we track for you.
+          </p>
+        </div>
+      </div>
+    </Container>
+  </section>
+
+  <!-- FAQ -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28">
+      <div class="grid md:grid-cols-[1fr_2fr] gap-12 md:gap-20">
+        <div>
+          <div class="mono-label">05 · Questions</div>
+          <h2 class="mt-5"
+              style="font-size: var(--text-h1); line-height: 1.05;">
+            Specific to<br/>Phoenix metro.
+          </h2>
+          <p class="mt-6 text-[color:var(--color-fg-muted)] leading-[1.65] max-w-md">
+            Eight questions we hear most from East Valley and Phoenix-area business owners.
+          </p>
+        </div>
+        <div class="max-w-[60ch] space-y-3">
+          {faqs.map((item) => (
+            <details class="group border-b border-[color:var(--color-hairline)] py-5">
+              <summary class="cursor-pointer list-none flex items-baseline justify-between gap-4 font-[family-name:var(--font-serif)] text-[1.25rem] md:text-[1.375rem] leading-snug">
+                <span>{item.q}</span>
+                <span aria-hidden="true" class="font-[family-name:var(--font-mono)] text-sm text-[color:var(--color-fg-muted)] shrink-0 transition-transform group-open:rotate-45">+</span>
+              </summary>
+              <div class="mt-4 text-[color:var(--color-fg-muted)] leading-[1.65]">
+                <p>{item.a}</p>
+              </div>
+            </details>
+          ))}
+        </div>
+      </div>
+    </Container>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section>
+    <Container class="py-20 md:py-28 text-center">
+      <p class="font-[family-name:var(--font-serif)] italic text-balance mx-auto max-w-3xl"
+         style="font-size: clamp(1.75rem, 3.5vw, 2.5rem); line-height: 1.2;">
+        Run a free citation audit on your Phoenix or Mesa business.
+      </p>
+      <p class="mt-6 max-w-xl mx-auto text-[color:var(--color-fg-muted)] leading-[1.65]">
+        Thirty minutes on a call. We pull live citation data across five AI chatbots for
+        your business and top competitors — and walk you through what the AI is saying
+        about your Phoenix or East Valley market today.
+      </p>
+      <div class="mt-10 flex justify-center flex-wrap gap-4">
+        <a href="/contact" class="btn btn--primary">
+          <span>Start a project</span>
+          <span aria-hidden="true">→</span>
+        </a>
+        <a href={`mailto:${site.email}`} class="btn">
+          <span>Email us directly</span>
+        </a>
+      </div>
+    </Container>
+  </section>
+</Base>

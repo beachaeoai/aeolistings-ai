@@ -75,11 +75,28 @@ export const site = {
     title: 'Founder',
     /** Personal LinkedIn — Person.sameAs, NOT Organization.sameAs. */
     linkedin: 'https://www.linkedin.com/in/jacobbeach1/',
+    /**
+     * Additional personal profile URLs for Person.sameAs. Leave empty to
+     * omit from schema — sameAs is populated only from non-empty values.
+     * Adding profiles here is the single highest-ROI move for founder-
+     * query disambiguation ("Jake Beach AEO" currently returns wrong
+     * Jake Beaches; each URL added here narrows the match).
+     */
+    x: '',           // e.g. https://x.com/jacobbeach
+    substack: '',    // e.g. https://jakebeach.substack.com
+    youtube: '',     // channel URL if applicable
+    github: '',      // e.g. https://github.com/beachaeoai (org page counts)
     /** Path under /public, served at /images/founder.jpg */
     portrait: '/images/founder.jpg',
     /** Native dimensions of the optimized portrait (800×1067 JPEG). */
     portraitWidth: 800,
     portraitHeight: 1067,
+    /**
+     * Canonical URL of the founder's profile page on this site. Fed to
+     * Person.url and referenced by ProfilePage schema. /about/jake-beach
+     * is the dedicated profile page; /about references it as a section.
+     */
+    profileUrl: '/about/jake-beach',
     /** Bio used both on /about and in Person.description in schema. */
     bio: "Jake Beach is the founder of AEO Listings LLC, a Mesa-based agency that helps contractors and local service businesses get recommended in AI search, Google, and other answer engines when prospects ask who to hire. He combines real-world marketing and small-business experience with a focus on helping owners grow on their own terms — building simple systems that turn online visibility into the right kind of calls, leads, and booked work.",
   },
@@ -130,9 +147,16 @@ export function buildRootSchemaGraph(): Record<string, unknown> {
   );
 
   // Person.sameAs: personal profile URLs for the founder.
-  const personSameAs = [site.founder.linkedin].filter(
-    (v) => typeof v === 'string' && v.length > 0,
-  );
+  // Person.sameAs: all personal-profile URLs on the founder. Non-empty
+  // values only — leaving slots empty here is fine, just adds nothing to
+  // the schema. Every populated URL narrows LLM founder-query matching.
+  const personSameAs = [
+    site.founder.linkedin,
+    site.founder.x,
+    site.founder.substack,
+    site.founder.youtube,
+    site.founder.github,
+  ].filter((v) => typeof v === 'string' && v.length > 0);
 
   const organization: Record<string, unknown> = {
     '@type': ['Organization', 'ProfessionalService'],
@@ -176,6 +200,9 @@ export function buildRootSchemaGraph(): Record<string, unknown> {
   // Person entity for the founder. Shipped in the root @graph so it appears
   // on every page (consistent entity signal) rather than only /about.
   // The Organization references this Person via `founder: { @id }` above.
+  // `url` points at the dedicated profile page (/about/jake-beach), which
+  // ships a ProfilePage schema whose mainEntity references this same @id
+  // — bidirectional signal that strengthens founder-query resolution.
   const person: Record<string, unknown> = {
     '@type': 'Person',
     '@id': personId,
@@ -183,7 +210,7 @@ export function buildRootSchemaGraph(): Record<string, unknown> {
     jobTitle: site.founder.title,
     description: site.founder.bio,
     worksFor: { '@id': orgId },
-    url: `${site.url}/about`,
+    url: `${site.url}${site.founder.profileUrl}`,
     image: { '@id': portraitId },
   };
   if (personSameAs.length > 0) person.sameAs = personSameAs;

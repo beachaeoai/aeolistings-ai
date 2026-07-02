@@ -1,0 +1,260 @@
+---
+import Base from '../../layouts/Base.astro';
+import Container from '../../components/Container.astro';
+import { site } from '../../lib/site';
+
+// ProfilePage schema. Points at the Person entity (`#jake`) shipped in
+// the site-wide root @graph via Base.astro. `mainEntity` tells crawlers
+// this page IS the canonical profile page for the Person — which is the
+// strongest signal we can ship for founder-query disambiguation.
+const profilePageSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfilePage',
+  '@id': `${site.url}/about/jake-beach#page`,
+  url: `${site.url}/about/jake-beach`,
+  name: `${site.founder.name} — Founder, ${site.name}`,
+  description: `${site.founder.name} is the founder of ${site.name}, an Answer Engine Optimization agency headquartered in Mesa, Arizona.`,
+  isPartOf: { '@id': `${site.url}/#website` },
+  about: { '@id': `${site.url}/#jake` },
+  mainEntity: { '@id': `${site.url}/#jake` },
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  '@id': `${site.url}/about/jake-beach#breadcrumbs`,
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: site.url },
+    { '@type': 'ListItem', position: 2, name: 'About', item: `${site.url}/about` },
+    { '@type': 'ListItem', position: 3, name: site.founder.name, item: `${site.url}/about/jake-beach` },
+  ],
+};
+
+// Focus areas — feeds Person.knowsAbout implicitly through page content.
+const focusAreas = [
+  {
+    label: 'Answer Engine Optimization',
+    body: "The core discipline of the agency — structuring a business's content, entity signals, and off-site corroboration so it gets cited by ChatGPT, Claude, Perplexity, Gemini, and Google AI Overview when prospects ask for a recommendation.",
+  },
+  {
+    label: 'Local services markets',
+    body: "Home service trades and local professional practices doing $500K–$10M in annual revenue — plumbers, HVAC contractors, roofers, electricians, landscapers, painters, remodelers, CPAs, attorneys, dentists, vets.",
+  },
+  {
+    label: 'East Valley + Phoenix metro',
+    body: "Direct market experience in Mesa, Phoenix, Scottsdale, Tempe, Chandler, and Gilbert — six regional pages document the specific AEO dynamics of each.",
+  },
+  {
+    label: 'Schema.org & structured data',
+    body: "Entity-graph architecture (Organization + Person + Service + FAQPage + Review, wired by @id) as the technical foundation any local business needs before AEO tactics compound.",
+  },
+];
+
+const principles = [
+  'Answers first. Jargon never. Every page answers the actual question in the first paragraph.',
+  "Measure what AI sees. Track citations, not rankings. If citation share doesn't move, the work hasn't done its job.",
+  "Retainer, no lock-in. Cancel by email. The work has to earn its keep every month.",
+  "We pass our own test. If our own site doesn't get recommended by AI chatbots, we have no business selling the outcome to clients.",
+];
+---
+<Base
+  title={`${site.founder.name}, Founder`}
+  description={`${site.founder.name} is the founder of ${site.name}, a Mesa, Arizona-based Answer Engine Optimization agency working with home service contractors and local professionals across the United States.`}
+  path="/about/jake-beach"
+  schema={[profilePageSchema, breadcrumbSchema]}
+>
+  <!-- HERO -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-32">
+      <div class="mono-label flex flex-wrap items-center gap-3">
+        <a href="/about" class="link-slide hover:text-[color:var(--color-accent)]">← /about</a>
+        <span aria-hidden="true">·</span>
+        <span>Founder</span>
+      </div>
+
+      <div class="grid md:grid-cols-[auto_1fr] gap-8 md:gap-14 mt-10 items-center">
+        <figure class="shrink-0">
+          <img
+            src={site.founder.portrait}
+            alt={`${site.founder.name}, ${site.founder.title} of ${site.name}`}
+            width={site.founder.portraitWidth}
+            height={site.founder.portraitHeight}
+            loading="eager"
+            decoding="async"
+            class="block w-[180px] md:w-[240px] aspect-[3/4] object-cover bg-[color:var(--color-bg-2)] rounded-[2px]"
+          />
+        </figure>
+        <div>
+          <h1 class="text-balance"
+              style="font-family: var(--font-serif); font-size: var(--text-display); line-height: 1.02;">
+            {site.founder.name}
+          </h1>
+          <p class="mono-label mt-4">Founder · {site.name} · Mesa, Arizona</p>
+          <ul class="mt-8 space-y-2 font-[family-name:var(--font-sans)] text-[0.9375rem]">
+            <li>
+              <a href={`mailto:${site.email}`} class="link-slide text-[color:var(--color-fg)]">
+                {site.email}
+              </a>
+            </li>
+            <li>
+              <a href={site.founder.linkedin} rel="noopener noreferrer" target="_blank"
+                 class="link-slide text-[color:var(--color-fg)]">
+                LinkedIn — /in/jacobbeach1
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </Container>
+  </section>
+
+  <!-- BIO -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28">
+      <div class="grid md:grid-cols-[1fr_2fr] gap-12 md:gap-20">
+        <div>
+          <div class="mono-label">01 · Bio</div>
+          <h2 class="mt-5"
+              style="font-size: var(--text-h1); line-height: 1.05;">
+            Who I am.
+          </h2>
+        </div>
+        <div class="max-w-[60ch] space-y-5 text-[1.0625rem] leading-[1.65]">
+          <p>{site.founder.bio}</p>
+          <p class="text-[color:var(--color-fg-muted)]">
+            I started {site.name} in Mesa, Arizona because the way local recommendations
+            happen just changed and most small businesses don't know it yet. A growing share
+            of people looking for a plumber, roofer, electrician, or local pro now ask
+            ChatGPT before they open Google. The businesses getting recommended by AI aren't
+            necessarily the best — they're the ones that made themselves easy for AI to
+            recommend. I wanted to fix that gap for the kind of business I grew up around.
+          </p>
+        </div>
+      </div>
+    </Container>
+  </section>
+
+  <!-- WHAT I FOCUS ON -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28">
+      <div class="grid md:grid-cols-[1fr_2fr] gap-12 md:gap-20">
+        <div>
+          <div class="mono-label">02 · Focus</div>
+          <h2 class="mt-5"
+              style="font-size: var(--text-h1); line-height: 1.05;">
+            What I work on.
+          </h2>
+        </div>
+        <div class="space-y-6 max-w-[62ch] text-[1.0625rem] leading-[1.65]">
+          {focusAreas.map((f) => (
+            <div>
+              <h3 class="font-[family-name:var(--font-serif)] text-[1.375rem] leading-tight">
+                {f.label}
+              </h3>
+              <p class="mt-2 text-[color:var(--color-fg-muted)]">
+                {f.body}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Container>
+  </section>
+
+  <!-- OPERATING PRINCIPLES -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28">
+      <div class="grid md:grid-cols-[1fr_2fr] gap-12 md:gap-20">
+        <div>
+          <div class="mono-label">03 · How I work</div>
+          <h2 class="mt-5"
+              style="font-size: var(--text-h1); line-height: 1.05;">
+            Four rules.<br/>I don't break them.
+          </h2>
+        </div>
+        <div class="space-y-5 max-w-[60ch] text-[1.0625rem] leading-[1.65]">
+          {principles.map((p, i) => (
+            <div class="grid grid-cols-[auto_1fr] gap-4">
+              <span class="mono-label pt-1 text-[color:var(--color-accent)]">0{i + 1}</span>
+              <p>{p}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Container>
+  </section>
+
+  <!-- WRITING & THINKING -->
+  <section class="border-b border-[color:var(--color-hairline)]">
+    <Container class="py-20 md:py-28">
+      <div class="grid md:grid-cols-[1fr_2fr] gap-12 md:gap-20">
+        <div>
+          <div class="mono-label">04 · Writing</div>
+          <h2 class="mt-5"
+              style="font-size: var(--text-h1); line-height: 1.05;">
+            Where to read<br/>my thinking.
+          </h2>
+        </div>
+        <div class="space-y-4 max-w-[62ch] text-[1.0625rem] leading-[1.65]">
+          <p class="text-[color:var(--color-fg-muted)]">
+            I publish on the AEO Listings blog roughly weekly. Recent pieces:
+          </p>
+          <ul class="space-y-3">
+            <li>
+              <a href="/blog/why-chatgpt-recommends-your-competitor-instead-of-you" class="link-slide text-[color:var(--color-fg)]">
+                Why ChatGPT recommends your competitor instead of you
+              </a>
+              <span class="block text-sm text-[color:var(--color-fg-muted)] mt-1">
+                The five-pattern diagnostic — entity signals, retrievability, recency, corroboration, category specificity.
+              </span>
+            </li>
+            <li>
+              <a href="/blog/how-to-check-if-chatgpt-recommends-your-business" class="link-slide text-[color:var(--color-fg)]">
+                How to check if ChatGPT recommends your business
+              </a>
+              <span class="block text-sm text-[color:var(--color-fg-muted)] mt-1">
+                The DIY citation audit method — 12 prompts, 4 chatbots, 3 runs each.
+              </span>
+            </li>
+            <li>
+              <a href="/blog/the-schema-markup-you-actually-need-for-aeo-in-2026" class="link-slide text-[color:var(--color-fg)]">
+                The Schema.org markup you actually need for AEO in 2026
+              </a>
+              <span class="block text-sm text-[color:var(--color-fg-muted)] mt-1">
+                The minimum viable set — five entity types + the graph pattern.
+              </span>
+            </li>
+            <li>
+              <a href="/blog" class="link-slide text-[color:var(--color-fg)]">
+                Full archive →
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </Container>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section>
+    <Container class="py-20 md:py-28 text-center">
+      <p class="font-[family-name:var(--font-serif)] italic text-balance mx-auto max-w-3xl"
+         style="font-size: clamp(1.75rem, 3.5vw, 2.5rem); line-height: 1.2;">
+        Prefer a conversation? Email me directly.
+      </p>
+      <p class="mt-6 max-w-xl mx-auto text-[color:var(--color-fg-muted)] leading-[1.65]">
+        Every engagement is run by the founder. When you email {site.email}, the person
+        replying is the person doing the work.
+      </p>
+      <div class="mt-10 flex justify-center flex-wrap gap-4">
+        <a href={`mailto:${site.email}`} class="btn btn--primary">
+          <span>Email me</span>
+          <span aria-hidden="true">→</span>
+        </a>
+        <a href="/contact" class="btn">
+          <span>Or use the form</span>
+        </a>
+      </div>
+    </Container>
+  </section>
+</Base>
