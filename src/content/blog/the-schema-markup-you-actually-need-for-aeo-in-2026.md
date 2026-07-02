@@ -1,10 +1,9 @@
 ---
 title: "The Schema.org markup you actually need for AEO in 2026"
 description: "Most schema guides list everything you could ship. AEO works differently — a small set of Schema.org types does most of the citation work. Here's the minimum viable set, in the order to deploy it."
-pubDate: 2026-06-04
+pubDate: 2026-07-01
 author: "AEO Listings"
 tags: ["schema-org", "structured-data", "technical", "tactics"]
-draft: true
 ---
 
 **For a local service business optimizing for AI citation in 2026, the Schema.org markup that actually moves the needle is a much shorter list than most SEO guides imply. Five entity types do roughly 90% of the work: `LocalBusiness` (or its subtype `ProfessionalService`), `Service`, `FAQPage`, `Review` / `AggregateRating`, and `Person` for the founder. The rest of Schema.org's massive vocabulary is either redundant for local services, unused by LLMs in practice, or actively counterproductive when over-applied. This post is the minimum viable set, in the order to ship it.**
