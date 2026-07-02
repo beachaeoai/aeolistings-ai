@@ -345,6 +345,56 @@ Sent automatically by .github/workflows/draft-review-cron.yml.
   return { html, text };
 }
 
+/** Real-time "queue blocked" alert email — sent when the cron tries to
+ *  publish `draft` but finds a PR already open blocking that slug.
+ *  Complements the daily queue-nudge cron; this fires the instant a
+ *  cron tick gets skipped, so silent-fail can't happen.
+ */
+function buildQueueBlockedEmail({ draft, existing }) {
+  const prUrl = existing?.url || '';
+  const prNumber = existing?.number ? `#${existing.number}` : '';
+  const createdAt = existing?.createdAt || existing?.created_at;
+  const daysAgoText = createdAt
+    ? ` (opened ${Math.max(0, Math.floor((Date.now() - Date.parse(createdAt)) / 86_400_000))} days ago)`
+    : '';
+
+  const subject = `Queue blocked — cron skipped today's publish (${prNumber || 'open PR'})`;
+  const html = `<!DOCTYPE html>
+<html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1a1a1a;max-width:640px;margin:0 auto;padding:24px;background:#FAF8F1;">
+  <h2 style="font-size:18px;margin:0 0 12px;font-weight:600;color:#8B2F2F;">Cron tick skipped — queue is blocked</h2>
+  <p style="font-size:15px;line-height:1.65;margin:0 0 16px;">
+    Today's scheduled cron tried to surface <strong>${htmlEscape(draft.title)}</strong> for review, but skipped because there's still an open Publish PR from a previous cycle${daysAgoText}. Every cron tick this stays open costs another skipped publish.
+  </p>
+
+  <table style="border-collapse:collapse;width:100%;margin:16px 0 24px;">
+    <tr><td style="padding:6px 16px 6px 0;color:#666;font-size:13px;vertical-align:top;white-space:nowrap;">Would have surfaced</td><td style="padding:6px 0;font-size:14px;color:#1a1a1a;">${htmlEscape(draft.title)}</td></tr>
+    <tr><td style="padding:6px 16px 6px 0;color:#666;font-size:13px;vertical-align:top;white-space:nowrap;">Blocking PR</td><td style="padding:6px 0;font-size:14px;color:#1a1a1a;">${prUrl ? `<a href="${htmlEscape(prUrl)}" style="color:#8B2F2F;">${htmlEscape(prNumber || prUrl)}</a>` : '(no URL)'}</td></tr>
+  </table>
+
+  <div style="margin:24px 0 12px;">
+    <a href="${htmlEscape(prUrl)}" style="display:inline-block;background:#8B2F2F;color:#FAF8F1;padding:11px 20px;text-decoration:none;font-weight:600;border-radius:2px;font-size:14px;">Merge or close the blocking PR →</a>
+  </div>
+
+  <hr style="border:none;border-top:1px solid #e0ddd4;margin:24px 0;" />
+  <p style="font-size:12px;color:#999;margin:0;line-height:1.5;">
+    Sent by .github/workflows/draft-review-cron.yml when it detected the queue was blocked. Daily nudges from queue-nudge-daily.yml will follow if the PR stays open.
+  </p>
+</body></html>`;
+  const text = `Cron tick skipped — queue is blocked.
+
+Today's scheduled cron tried to surface "${draft.title}" but skipped
+because there's still an open Publish PR from a previous cycle${daysAgoText}.
+
+  Would have surfaced:  ${draft.title}
+  Blocking PR:          ${prNumber} ${prUrl}
+
+Action needed: merge or close the blocking PR so the queue can move.
+
+${prUrl}
+`;
+  return { html, text, subject };
+}
+
 async function main() {
   console.log(DRY_RUN ? '▸ DRY RUN — no changes will be made\n' : '');
 
@@ -398,12 +448,34 @@ async function main() {
     return;
   }
 
-  // Don't open a duplicate PR if one for this slug is already open
-  const existingPr = tryRun(`gh pr list --head ${branch} --state open --json url --jq '.[0].url // empty'`);
-  if (existingPr) {
+  // Don't open a duplicate PR if one for this slug is already open.
+  // Also send an alert email so a silent skip doesn't disappear —
+  // the queue-nudge cron catches slow-open PRs, but this catches
+  // "the cron just fired and skipped RIGHT NOW because you have a
+  // blocking PR" in real time.
+  const existingPrJson = tryRun(
+    `gh pr list --head ${branch} --state open --json url,number,createdAt --jq '.[0] // empty'`,
+  );
+  if (existingPrJson) {
+    let existing = { url: existingPrJson };
+    try {
+      existing = JSON.parse(existingPrJson);
+    } catch {
+      // Fall back to old shape — url string only
+    }
     console.log(`⚠️  Open PR already exists for ${draft.slug}:`);
-    console.log(`    ${existingPr}`);
+    console.log(`    ${existing.url || existingPrJson}`);
     console.log('Skipping (action it manually first, then the next cron will pick the next draft).');
+
+    // Send the "queue blocked" alert. Best-effort — the queue-nudge
+    // daily cron is the durable safety net; this is the immediate ping.
+    try {
+      const { html, text, subject } = buildQueueBlockedEmail({ draft, existing });
+      await sendEmail({ subject, html, text });
+      console.log(`▸ Sent queue-blocked alert to ${EMAIL_TO}`);
+    } catch (e) {
+      console.error(`✗ Queue-blocked alert send failed: ${e.message}`);
+    }
     return;
   }
 

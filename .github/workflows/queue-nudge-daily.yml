@@ -1,0 +1,46 @@
+name: Queue nudge (daily)
+
+# What this does:
+#   Every day at 09:00 America/Phoenix, check for open "Publish:" PRs and
+#   email Jake if any have been sitting unactioned for 3+ days. Escalates
+#   in tone at 7 and 10 days. Sends nothing if the queue is fresh — so
+#   you won't get a spam email every morning.
+#
+# Why this exists:
+#   The main draft-review cron opens a PR and sends one email. Miss that
+#   email and the queue silently backs up: subsequent cron ticks skip
+#   because a PR is already open for the same draft. This job turns that
+#   silent failure into a visible one.
+
+on:
+  schedule:
+    # Daily at 16:00 UTC = 09:00 America/Phoenix.
+    - cron: '0 16 * * *'
+  # Manual trigger for testing.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  # Same Node 24 opt-in as the main cron workflow.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
+jobs:
+  nudge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Send nudges if any PRs are stale
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: node scripts/queue-nudge.mjs
