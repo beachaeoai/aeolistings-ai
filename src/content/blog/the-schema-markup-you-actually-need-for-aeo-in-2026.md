@@ -1,7 +1,7 @@
 ---
 title: "The Schema.org markup you actually need for AEO in 2026"
 description: "Most schema guides list everything you could ship. AEO works differently — a small set of Schema.org types does most of the citation work. Here's the minimum viable set, in the order to deploy it."
-pubDate: 2026-06-13
+pubDate: 2026-07-01
 author: "AEO Listings"
 tags: ["schema-org", "structured-data", "technical", "tactics"]
 ---
