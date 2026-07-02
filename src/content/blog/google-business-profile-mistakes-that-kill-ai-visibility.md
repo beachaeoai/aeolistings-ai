@@ -1,7 +1,7 @@
 ---
 title: "Google Business Profile mistakes that kill AI visibility"
 description: "Your Google Business Profile is the single highest-leverage signal for AI citation of a local business. Seven common errors quietly cost businesses citation share — and the fix for each takes under 30 minutes."
-pubDate: 2026-06-14
+pubDate: 2026-06-13
 author: "AEO Listings"
 tags: ["google-business-profile", "tactics", "common-mistakes"]
 ---
