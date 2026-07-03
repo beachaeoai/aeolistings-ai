@@ -1,10 +1,9 @@
 ---
 title: "How to write a service page that gets retrieved by AI chatbots"
 description: "A service page that gets cited by ChatGPT or Perplexity looks different from one optimized for Google ranking. The difference is structural — and a side-by-side comparison makes the pattern obvious."
-pubDate: 2026-06-05
+pubDate: 2026-07-03
 author: "AEO Listings"
 tags: ["copywriting", "tactics", "content-strategy"]
-draft: true
 ---
 
 **A service page that gets retrieved and cited by AI chatbots looks structurally different from one optimized for traditional Google ranking. The retrievable version leads with a direct answer in the first 60 words, uses question-shaped H2s that match how buyers actually phrase prompts, and is built out of self-contained 2–4 sentence paragraphs that can stand alone when chunked. The traditional-SEO version often does the opposite — burying the answer below brand throat-clearing, using benefit-language H2s ("Quality Service You Can Trust"), and writing in flowing paragraphs that lose meaning when separated from the page around them. Restructuring an existing service page to the retrievable pattern is one of the highest-ROI AEO moves available.**
