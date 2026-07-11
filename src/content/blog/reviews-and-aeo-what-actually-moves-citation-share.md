@@ -1,10 +1,9 @@
 ---
 title: "Reviews and AEO: what actually moves citation share"
 description: "Reviews matter for AEO, but not the way most agencies sell it. Recency outweighs volume, sentiment specificity outweighs star rating, and what reviewers actually say about specific services often matters more than the headline number."
-pubDate: 2026-06-06
+pubDate: 2026-07-11
 author: "AEO Listings"
 tags: ["reviews", "off-site", "tactics"]
-draft: true
 ---
 
 **Reviews matter for AEO, but the conventional ranking framing — "get to 4.8 stars with 100 reviews and you're set" — misses what LLMs actually weight. Citation share is moved by three properties of your reviews in roughly this order of impact: recency (when was the last one), specificity (do reviewers describe the actual work in terms an LLM can retrieve), and trajectory (is the volume growing, stable, or shrinking). Star rating and total count are mostly floors — once you're above the credibility threshold for your trade, additional volume produces diminishing returns. The agency mistake is optimizing for volume when the real lever is recency and what reviewers say.**
