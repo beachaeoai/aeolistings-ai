@@ -21,7 +21,7 @@
  *     and deployed on every push to main by Cloudflare's git integration.
  */
 {
-  "name": "aeolistings-ai",
+  "name": "aeolistings-intake",
   "compatibility_date": "2026-05-03",
   "assets": {
     "directory": "./dist"
