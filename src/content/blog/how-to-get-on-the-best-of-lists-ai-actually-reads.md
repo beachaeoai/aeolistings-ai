@@ -1,10 +1,9 @@
 ---
 title: "How to get your business on the 'best of' lists AI actually reads"
 description: "AI chatbots don't recommend businesses from their websites — they recommend businesses named on third-party lists. Here's how to find the lists that feed AI answers in your category, and how to get placed on them."
-pubDate: 2026-07-28
+pubDate: 2026-08-03
 author: "AEO Listings"
 tags: ["corroboration", "off-site", "tactics", "listicles"]
-draft: true
 ---
 
 **When an AI chatbot answers "who's the best [trade] in [city]?", it is usually not evaluating business websites directly — it is synthesizing from third-party "best of" lists: local news roundups, industry directories, comparison listicles, and community threads. That means the highest-leverage off-site move for AI citation share is identifying the specific lists that feed AI answers in your category and getting placed on them. The method is straightforward: run your buyer-intent prompts, note which sources the AI cites, and pitch the ones you're missing from. Most businesses skip this entirely because it feels like PR — but it's closer to a checklist than a campaign.**
