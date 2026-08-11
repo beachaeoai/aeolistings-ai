@@ -1,10 +1,9 @@
 ---
 title: "What a monthly AEO report should actually show you"
 description: "If you're paying for Answer Engine Optimization, the monthly report is where the work proves itself — or hides. The five sections a real citation report contains, and the tells that you're getting SEO reporting with new labels."
-pubDate: 2026-07-29
+pubDate: 2026-08-11
 author: "AEO Listings"
 tags: ["measurement", "reporting", "agency-selection"]
-draft: true
 ---
 
 **A real monthly AEO report shows five things: a prompt-by-prompt citation table (which buyer-intent questions you were and weren't cited on, per AI engine), month-over-month deltas against a fixed baseline, the competitors cited instead of you and where, the sentiment and accuracy of how AI describes your business, and the specific work shipped that month tied to the gaps it targets. If your report shows keyword rankings, traffic graphs, or "AI visibility scores" with no prompt-level detail, you're getting SEO reporting with new labels — and you have no way to know whether the AEO work is real.**
