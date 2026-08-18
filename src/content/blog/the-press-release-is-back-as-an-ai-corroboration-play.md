@@ -1,10 +1,9 @@
 ---
 title: "The press release is back — as an AI corroboration play"
 description: "Press releases were declared dead for SEO a decade ago, and for ranking purposes they were. But AI answer engines read syndicated news differently than Google's ranking algorithm ever did — and one wire release can seed dozens of the third-party mentions that citation share is built on."
-pubDate: 2026-07-30
+pubDate: 2026-08-18
 author: "AEO Listings"
 tags: ["corroboration", "press-releases", "off-site", "tactics"]
-draft: true
 ---
 
 **The press release died as an SEO tactic around 2013, when Google started ignoring the links and penalizing the link schemes built on them. It has quietly come back for a different reason: AI answer engines weight *mentions*, not links. One syndicated wire release typically lands on 15 to 25 regional news domains, each republishing your business name, location, services, and positioning in consistent language — which is precisely the independent-corroboration signal LLMs use to decide whether a business is real, current, and worth citing. The release isn't building link equity anymore. It's building entity evidence.**
