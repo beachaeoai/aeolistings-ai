@@ -1,10 +1,9 @@
 ---
 title: "AEO for multi-city service businesses: one entity or many?"
 description: "Most East Valley contractors serve four to six cities. Should that be one business entity with a broad service area, or separate per-city presences? The answer is one entity, several deliberate exceptions — and the reasoning matters more than the rule."
-pubDate: 2026-07-31
+pubDate: 2026-08-26
 author: "AEO Listings"
 tags: ["entity-strategy", "local", "multi-city", "tactics"]
-draft: true
 ---
 
 **For a service business covering multiple cities, the right AEO architecture is almost always one strong entity with an explicit multi-city service area — not separate per-city entities. One Google Business Profile (per physical location, not per served city), one Schema.org Organization with every city enumerated in `areaServed`, and one website with distinctive per-city pages. Splitting into per-city entities — multiple GBPs without real offices, city-specific microsites, "Mesa Plumbing Pros" and "Chandler Plumbing Pros" brand variants — fragments the corroboration that citation share is built on, and usually violates Google's guidelines on top of it. The exceptions are narrow and worth knowing, but the default is consolidation.**
