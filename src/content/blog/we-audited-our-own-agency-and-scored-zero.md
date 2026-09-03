@@ -1,10 +1,9 @@
 ---
 title: "We ran a citation audit on our own agency. We scored zero."
 description: "In July 2026 we ran our standard baseline citation audit on aeolistings.ai — the same one we run for clients. Zero citations across every tested prompt. Here's the full result, why it's the expected shape for a young agency, and the 90-day response plan we're running on ourselves."
-pubDate: 2026-08-01
+pubDate: 2026-09-03
 author: "AEO Listings"
 tags: ["transparency", "case-study", "measurement", "our-own-aeo"]
-draft: true
 ---
 
 **In July 2026 we ran our standard Month 0 citation audit on our own agency — the same 29-prompt baseline we run for every client. The result: zero citations. Not one tested buyer-intent prompt, from "best AEO agency" to "AEO agency in Phoenix" to our own founder's name, returned aeolistings.ai in the answer. We're publishing the result because we tell clients a zero baseline is normal, diagnosable, and fixable — and the only honest way to say that is to show our own zero and what we're doing about it.**
